@@ -1,0 +1,153 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function ontology_documentation_schema() {
+
+  $schema['ontology_documentation'] = array(
+
+    'description' => 'Tabella per documentazione OWL',
+    'fields' => array(
+      'odid' => array(
+        'description' => 'ID termine',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'rodid' => array(
+        'description' => 'ID ultima revisione del termine',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default'  => 0,
+      ),
+      'title' => array(
+        'description' => 'Nome termine',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => NULL,
+      ),
+      'category' => array(
+        'description' => 'Tipo entità',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => 'concept',
+      ),
+      'language' => array(
+        'description' => 'Lingua',
+        'type' => 'varchar',
+        'length' => 12,
+        'not null' => TRUE,
+        'default' => 'en',
+      ),
+      'uid' => array(
+        'description' => 'ID user',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'created' => array(
+        'description' => 'Timestamp creazione',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'changed' => array(
+        'description' => 'Timestamp modifica',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'status' => array(
+        'description' => 'Pubblicata o no',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+    ),
+    'indexes' => array(
+      'category_type' => array('category'),
+      'category_type_status' => array('category', 'status'),
+      'user_uid' => array('uid'),
+      'entity_created' => array('created'),
+      'entity_changed' => array('changed'),
+      'status' => array('status'),
+    ),
+    'unique keys' => array(
+      'odid' => array('odid'),
+      'rodid' => array('rodid'),
+      'title' => array('title'),
+    ),
+    'primary key' => array('odid'),
+
+  );
+
+  $schema['ontology_documentation_revision'] = array(
+
+    'description' => 'Tabella per le revisioni della documentazione OWL',
+    'fields' => array(
+      'odid' => array(
+        'description' => 'ID termine a cui appartiene la revisione',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'rodid' => array(
+        'description' => 'ID revisione',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'title' => array(
+        'description' => 'Nome termine',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => 'concept',
+      ),
+      'language' => array(
+        'description' => 'Lingua',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => 'en',
+      ),
+      'uid' => array(
+        'description' => 'ID user',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'created' => array(
+        'description' => 'Timestamp creazione',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'status' => array(
+        'description' => 'Pubblicata o no',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array(
+      'revisions_of_entity' => array('odid'),
+      'revisions_of_entity_title' => array('title'),
+      'revisions_user_id' => array('uid'),
+    ),
+    'primary key' => array('rodid'),
+    'foreign keys' => array(
+      'ontology_documentation' => array('table' => 'ontology_documentation',
+      'columns' => array('odid' => 'odid')
+      )
+    ),
+  );
+
+  //drupal_set_message('<pre>' . print_r($schema, TRUE) . '</pre>');
+  return $schema;
+}

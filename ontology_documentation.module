@@ -1,0 +1,307 @@
+<?php
+
+define('entity_type', 'ontology_documentation');
+
+//Definisce i bundles da applicare ai campi rilevanti
+$all_bundles = ontology_documentation_get_bundles();
+$role_attribute = ontology_documentation_get_bundles('WITH_DOMAIN_AND_CODOMAIN');
+$concept_role = ontology_documentation_get_bundles('WITH_INHERITANCE');
+$concept = ontology_documentation_get_bundles('WITH_ATTRIBUTES_AND_ROLES');
+
+//Specifica quali bundles posseggono quali campi
+global $bundle_fields;
+$bundle_fields = array(
+  'categoria' => $all_bundles,
+  'occorrenza' => $all_bundles,
+  'etichetta' => $all_bundles,
+  'specializzazioni' => $concept_role,
+  'generalizzazioni' => $concept_role,
+  'dominio' => $role_attribute,
+  'codominio' => $role_attribute,
+  'attributi_obbligatori' => $concept,
+  'attributi_non_obbligatori' => $concept,
+  'ruoli_obbligatori' => $concept,
+  'ruoli_non_obbligatori' => $concept,
+  'assiomi' => $all_bundles,
+  'link_obda' => $all_bundles,
+  'mappings' => $all_bundles,
+);
+
+//Base per l'array del campo
+global  $base_field;
+$base_field = array(
+  'field_name' => '',
+  'type' => 'text_long',
+  'cardinality' => 1,
+  'translatable' => 1,
+);
+
+//Base per l'array di istanza del campo
+global $base_field_instance;
+$base_field_instance = array(
+  'field_name' => '',
+  'entity_type' => entity_type,
+  'bundle' => '',
+  'widget' => array('type' => 'text_textarea'),
+  'settings' => array('text_processing' => 1),
+  'format' => 'filter_html',
+  'required' => TRUE,
+);
+
+//Memorizza tutte le instanze dei campi da rimuovere
+global $field_instances;
+$field_instances = array();
+
+/**
+ * Implements hook_help().
+ */
+function ontology_documentation_help($path, $arg){
+  switch ($path) {
+    case "admin/help#ontology_documentation":
+      $output['header'] = array(
+        '#type' => 'html_tag',
+        '#tag' => 'h3',
+        '#value' => 'Help support for Tesi module'
+      );
+      $output['content'] = array(
+        '#type' => 'html_tag',
+        '#tag' => 'em',
+        '#value' => 'Upgrade our OWL documentation pages',
+      );
+      break;
+  }
+  return drupal_render($output);
+}
+
+function ontology_documentation_permission(){
+
+  $permission = array(
+    'administer ontology_documentation entities' => array(
+      'title' => t('Administer ontology documentation entities'),
+      'description' => t('Allow users to configure ontology documentation entities'),
+      'restricted access' => TRUE,
+    ),
+    'view ontology_documentation entities' => array(
+      'title' => t('View ontology documentation entities'),
+      'description' => t('Allow users to view ontology documentation entities'),
+      'restricted access' => TRUE,
+    ),
+    'create ontology_documentation entities' => array(
+      'title' => t('Create ontology documentation entities'),
+      'description' => t('Allow user to create ontology documentation entities'),
+      'retricted access' => TRUE,
+    ),
+    'edit any ontology_documentation entities' => array(
+      'title' => t('Edit any ontology documentation entities'),
+      'description' => t('Allow users to edit any ontology documentation entities'),
+      'restricted access' => TRUE,
+    ),
+    'edit own ontology_documentation entities' => array(
+      'title' => t('Edit own ontology documentation entities'),
+      'description' => t('Allow users to edit own ontology documentation entities'),
+      'restricted access' => TRUE,
+    ),
+  );
+
+  return $permission;
+}
+
+//CHIAMATA DA entity_access(), funzione implementata da Entity API
+function ontology_documentation_access($op, $entity, $account, $entity_type){
+  global $user;
+
+  if(!isset($account)){
+    $account = $user;
+  }
+
+  $entity_owner = isset($entity['uid']) ? $entity->uid : FALSE;
+
+  switch($op){
+    case 'create':
+      return user_access('administer ontology_documentation entities', $account) ||
+             user_access('create ontology_documentation entities', $account);
+      break;
+    case 'view':
+      return user_access('administer ontology_documentation entities', $account) ||
+             user_access('view ontology_documentation entities', $account);
+      break;
+    case 'edit':
+      return user_access('administer ontology_documentation entities', $account) ||
+             user_access('edit any ontology_documentation entities', $account)   ||
+             user_access('edit own ontology_documentation entities', $account)   &&
+             $account->uid == $entity_owner;
+      break;
+  }
+}
+
+/**
+ * Implements hook_entity_info().
+ */
+function ontology_documentation_entity_info(){
+  $entity_info['ontology_documentation'] = array(
+   'label' => 'Ontology documentation type',
+   'entity class' => 'OntologyDocumentation',
+   'controller class' => 'OntologyDocumentationController',
+   'base table' => 'ontology_documentation',
+   'revision table' => 'ontology_documentation_revision',
+   'fieldable' => TRUE,
+   'entity keys' => array(
+     'id' => 'odid',
+     'revision' => 'rodid',
+     'bundle' => 'category',
+     'label' => 'title',
+   ),
+   'bundle keys' => array(
+     'bundle' => 'category',
+   ),
+   'bundles' => array(),
+   'view modes' => array(
+     'full' => array(
+       'label' => t('Full content'),
+       'custom settings' => FALSE,
+     ),
+   ),
+
+  // Le istruzioni che seguono sono necessarie per l'utilizzo della UI di Amministrazione offerta da Entity API.
+  // entity_class_label() chiama il metodo defaultLabel() implementato dalla classe specificata in 'entity class'.
+  // entity_class_uri() chiama il metodo defaultUri() implementato dalla classe specificata in 'entity class'.
+  // test_tesi_access() implementa le direttive per l'accesso dei contenuti, viene chiamta dalla 'access callback' definita nei menu.
+  'module' => 'ontology_documentation',
+  'label callback' => 'entity_class_label',
+  'uri callback' => 'entity_class_uri',
+  'access callback' => 'ontology_documentation_access',
+  'admin ui' => array(
+    'path' => 'admin/structure/documentation-types',
+    'controller class' => 'EntityDefaultUIController',
+    'file' => 'ontology_documentation.admin.inc',
+  ),
+);
+ return $entity_info;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function ontology_documentation_menu(){
+  $items = array();
+
+  $items['admin/config/mastro/ontology-documentation'] = array(
+    'title' => 'Ontology Documentation',
+    'description' => 'Upgrade OWL documentation pages',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('ontology_documentation_config_form'),
+    'access callback' => 'entity_access',
+    'access arguments' => array('edit', 'ontology_documentation', NULL, NULL),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'ontology_documentation.callback.inc',
+  );
+
+  $items['ontology-documentation/%/%ontology_documentation_term'] = array(
+    'title' => 'Root',
+    'load arguments' => array(0, 1),
+    'access callback' => 'entity_access',
+    'access arguments' => array('view', 'ontology_documentation', 2, NULL),
+    'page callback' => 'ontology_documentation_term_view',
+    'page arguments' => array(2),
+    'type' => MENU_CALLBACK,
+    'file' => 'ontology_documentation.callback.inc',
+  );
+
+  $items['ontology-documentation/%/%ontology_documentation_term/view'] = array(
+    'title' => 'View',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'file' => 'ontology_documentation.callback.inc',
+    'weight' => -1,
+  );
+
+  $items['ontology-documentation/%/%ontology_documentation_term/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'ontology_documentation_term_edit',
+    'page arguments' => array(2),
+    'access callback' => 'entity_access',
+    'access arguments' => array('edit', 'ontology_documentation', 2, NULL),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'ontology_documentation.callback.inc',
+  );
+
+  return $items;
+}
+
+function ontology_documentation_term_load($term, $entity_type, $bundle){
+
+  if(!in_array($bundle, ontology_documentation_get_bundles()))
+    return FALSE;
+
+  //Carico l'entità e ritorno l'oggetto entità
+  $entity_type = str_replace('-', '_', $entity_type);
+  $term = str_replace('-', '_', $term);
+  $entity_fq = new EntityFieldQuery();
+  $entity_id = $entity_fq->entityCondition('entity_type', $entity_type)
+               ->entityCondition('bundle', $bundle)
+               ->propertyCondition('title', $term)
+               ->execute();
+
+  if(!empty($entity_id))
+    return entity_load('ontology_documentation', array_keys($entity_id[$entity_type]));
+
+  return FALSE;
+}
+
+function ontology_documentation_get_bundles($condition = 'ALL'){
+  $bundles = array();
+
+    switch($condition){
+      case 'ALL':
+        $bundles += array('concept','role','attribute');
+        return $bundles;
+        break;
+      case 'WITH_DOMAIN_AND_CODOMAIN':
+        $bundles += array('role', 'attribute');
+        return $bundles;
+        break;
+      case 'WITH_INHERITANCE':
+        $bundles += array('concept', 'role');
+        return $bundles;
+        break;
+      case 'WITH_ATTRIBUTES_AND_ROLES':
+        $bundles += array('concept');
+        return $bundles;
+        break;
+    }
+}
+
+function ontology_documentation_enable(){
+  global $bundle_fields;
+  global $base_field;
+  global $base_field_instance;
+  global $field_instances;
+
+  $term_field =  &$base_field;
+  $bundle_instance = &$base_field_instance;
+  foreach ($bundle_fields as $field => $bundles) {
+    //Assegno il nome al campo
+    $term_field['field_name'] = $field;
+    //Creo il campo
+    field_create_field($term_field);
+    //Creo le istanze dei campi da assegnare ai bundles
+    foreach ($bundles as $bundle) {
+      //Assegno il nome del campo e il nome del bundle per l'istanza
+      $bundle_instance['field_name'] = $field;
+      $bundle_instance['bundle'] = $bundle;
+      //Creo l'istanza
+      $field_instances[] = $bundle_instance;
+      field_create_instance($bundle_instance);
+    }
+  }
+}
+
+function ontology_documentation_disable(){
+  global $bundle_fields;
+  global $field_instances;
+  //Cancella i campi
+  foreach (array_keys($bundle_fields) as $field_name)
+    field_delete_field($field_name);
+  //Cancella le istanze dei campi
+  foreach ($field_instances as $instance)
+    field_delete_instance($instance);
+}
