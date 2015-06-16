@@ -1,12 +1,106 @@
 <?php
 
+// Definisco il nome del modulo da includere
+define('MODULE_NAME', 'ontology_documentation');
+// Definisco il percorso del modulo
+define('MODULE_FILE_PATH', drupal_get_path('module', MODULE_NAME));
+// Definisco il nome del modulo da includere
+define('MODULE_FILE', MODULE_NAME . '.module');
+// Includo il modulo
+require_once DRUPAL_ROOT. '/' . MODULE_FILE_PATH . '/' . MODULE_FILE;
+
+//Definisce i bundles da applicare ai campi rilevanti
+$all_bundles = ontology_documentation_get_bundles();
+$role_attribute_bundles = ontology_documentation_get_bundles('WITH_DOMAIN_AND_CODOMAIN');
+$concept_role_bundles = ontology_documentation_get_bundles('WITH_INHERITANCE');
+$concept_bundles = ontology_documentation_get_bundles('WITH_ATTRIBUTES_AND_ROLES');
+
+//Specifica quali bundles posseggono quali campi
+global $bundles_fields;
+$bundles_fields = array(
+  'categoria' => $all_bundles,
+  'occorrenza' => $all_bundles,
+  'etichetta' => $all_bundles,
+  'specializzazioni' => $concept_role_bundles,
+  'generalizzazioni' => $concept_role_bundles,
+  'dominio' => $role_attribute_bundles,
+  'codominio' => $role_attribute_bundles,
+  'attributi_obbligatori' => $concept_bundles,
+  'attributi_non_obbligatori' => $concept_bundles,
+  'ruoli_obbligatori' => $concept_bundles,
+  'ruoli_non_obbligatori' => $concept_bundles,
+  'assiomi' => $all_bundles,
+  'link_obda' => $all_bundles,
+  'mappings' => $all_bundles,
+);
+
+//Base per l'array del campo
+global  $base_field;
+$base_field = array(
+  'field_name' => '',
+  'type' => 'text_long',
+  'cardinality' => 1,
+  'translatable' => 1,
+);
+
+//Base per l'array di istanza del campo
+global $base_field_instance;
+$base_field_instance = array(
+  'field_name' => '',
+  'entity_type' => ENTITY_TYPE,
+  'bundle' => '',
+  'widget' => array('type' => 'text_textarea'),
+  'settings' => array('text_processing' => 1),
+  'format' => 'filter_html',
+  'required' => TRUE,
+);
+
+//Memorizza tutte le instanze dei campi da rimuovere
+global $field_instances;
+$field_instances = array();
+
+// Crea i campi rilevanti per ogni bundle.
+// Ceea le istanze per ogni bundle.
+function ontology_documentation_enable() {
+  global $bundles_fields, $base_field;
+  global $base_field_instance, $field_instances;
+
+  $term_field =  &$base_field;
+  $bundle_instance = &$base_field_instance;
+  foreach ($bundles_fields as $field => $bundles) {
+    //Assegno il nome al campo
+    $term_field['field_name'] = $field;
+    //Creo il campo
+    field_create_field($term_field);
+    //Creo le istanze dei campi da assegnare ai bundles
+    foreach ($bundles as $bundle) {
+      //Assegno il nome del campo e il nome del bundle per l'istanza
+      $bundle_instance['field_name'] = $field;
+      $bundle_instance['bundle'] = $bundle;
+      //Creo l'istanza
+      $field_instances[] = $bundle_instance;
+      field_create_instance($bundle_instance);
+    }
+  }
+}
+
+// Cancella i campi creati.
+// Cancella le istanze dei campi create.
+function ontology_documentation_disable() {
+  global $bundles_fields, $field_instances;
+  //Cancella i campi
+  foreach (array_keys($bundles_fields) as $field_name)
+    field_delete_field($field_name);
+  //Cancella le istanze dei campi
+  foreach ($field_instances as $instance)
+    field_delete_instance($instance);
+}
+
 /**
  * Implements hook_schema().
  */
 function ontology_documentation_schema() {
-
   $schema['ontology_documentation'] = array(
-
     'description' => 'Tabella per documentazione OWL',
     'fields' => array(
       'odid' => array(
@@ -84,9 +178,7 @@ function ontology_documentation_schema() {
     'primary key' => array('odid'),
 
   );
-
   $schema['ontology_documentation_revision'] = array(
-
     'description' => 'Tabella per le revisioni della documentazione OWL',
     'fields' => array(
       'odid' => array(
@@ -148,6 +240,5 @@ function ontology_documentation_schema() {
     ),
   );
 
-  //drupal_set_message('<pre>' . print_r($schema, TRUE) . '</pre>');
   return $schema;
 }
