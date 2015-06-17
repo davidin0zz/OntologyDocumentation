@@ -3,11 +3,15 @@
 // Definisco il tipo di entità da gestire
 define('ENTITY_TYPE', 'ontology_documentation');
 // Definisco il percorso del file di callback
-define('CALLBACK_FILE_PATH', drupal_get_path('module', ENTITY_TYPE));
+define('FILE_PATH', drupal_get_path('module', ENTITY_TYPE));
 // Definisco il nome del file di callback
 define('CALLBACK_FILE', ENTITY_TYPE . '.callback.inc');
+// Definisco il nome del file di admin per la UI
+define('ADMIN_FILE', ENTITY_TYPE . '.admin.inc');
 // Include il file con le funzioni di callback ontology_documentation_access().
-require_once DRUPAL_ROOT. '/' . CALLBACK_FILE_PATH . '/' . CALLBACK_FILE;
+require_once DRUPAL_ROOT. '/' . FILE_PATH . '/' . CALLBACK_FILE;
+// Includo il file con il form per la UI di amministrazione
+require_once DRUPAL_ROOT. '/' . FILE_PATH . '/' . ADMIN_FILE;
 
 /**
  * Implements hook_help().
@@ -67,7 +71,7 @@ function ontology_documentation_permission() {
  * Implements hook_entity_info().
  */
 function ontology_documentation_entity_info() {
-  $entity_info['ontology_documentation'] = array(
+  $entity_info[ENTITY_TYPE] = array(
    'label' => 'Ontology documentation type',
    'entity class' => 'OntologyDocumentation',
    'controller class' => 'OntologyDocumentationController',
@@ -101,11 +105,32 @@ function ontology_documentation_entity_info() {
   'access callback' => 'ontology_documentation_access',
   'admin ui' => array(
     'path' => 'admin/structure/documentation-types',
-    'controller class' => 'EntityDefaultUIController',
+    'controller class' => 'OntologyDocumentationUIController',
     'file' => 'ontology_documentation.admin.inc',
   ),
 );
  return $entity_info;
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function ontology_documentation_entity_info_alter(&$entity_info) {
+  foreach(ontology_documentation_get_bundles() as $bundle) {
+    $entity_info[ENTITY_TYPE]['bundles'][$bundle['machine_name']] = array(
+        'label' => $bundle['human_label'],
+        'uri callback' => 'entity_class_uri',
+        'admin' => array(
+          'path' => 'admin/structure/documentation-types',
+          //'bundle argument' => 4,
+          //'real path' => 'admin/structure/documentation-types/manage/'.$bundle['machine_name'],
+          //'access callback' => TRUE,
+          //'access callback' => 'entity_access',
+          //'access arguments' => array('edit', ENTITY_TYPE, 4, NULL),
+        ),
+    );
+  }
+
 }
 
 /**
@@ -153,48 +178,91 @@ function ontology_documentation_menu() {
     'file' => 'ontology_documentation.callback.inc',
   );
 
+  /*$items['admin/structure/documentation-types/edit/%ontology_documentation'] = array(
+    'title' => 'edit term',
+    'page callback' => 'entity_ui_get_form',
+    'page arguments' => array('ontology_documentation_admin_edit_form', 4),
+    'access callback' => 'entity_access',
+    'access arguments' => array('edit', ENTITY_TYPE, 4, NULL),
+    'type' => MENU_LOCAL_ACTION,
+    'file' => 'ontology_documentation.admin.inc',
+  );*/
+
   return $items;
 }
 
 function ontology_documentation_load($term, $entity_type, $bundle) {
+  //$bundles = &drupal_static(__FUNCTION__,array());
 
-  if(!in_array($bundle, ontology_documentation_get_bundles()))
-    return FALSE;
+  //if(empty($bundles))
+  //  $bundles = ontology_documentation_get_bundles();
 
-  //Carico l'entità e ritorno l'oggetto entità
+  //foreach($bundles as $bundle_name)
+  //  if($bundle == $bundle_name['machine_name']) {
+  //    $check = TRUE;
+  //    break;
+  //  }
+
+  //if(!$check)
+  //  return FALSE;
+
+  // Carico l'entità e ritorno l'oggetto entità
   $entity_type = str_replace('-', '_', $entity_type);
   $term = str_replace('-', '_', $term);
-  $entity_fq = new EntityFieldQuery();
-  $entity_id = $entity_fq->entityCondition('entity_type', $entity_type)
+  $entity_query = new EntityFieldQuery();
+  $entity_query_response = $entity_query->entityCondition('entity_type', $entity_type)
                ->entityCondition('bundle', $bundle)
                ->propertyCondition('title', $term)
                ->execute();
 
-  if(!empty($entity_id))
-    return entity_load('ontology_documentation', array_keys($entity_id[$entity_type]));
+  if(!empty($entity_query_response)) {
+    $entity_id = key($entity_query_response[$entity_type]);
+    $entity = entity_load('ontology_documentation', array_keys($entity_query_response[$entity_type]));
+    return $entity[$entity_id];
+  }
 
   return FALSE;
 }
 
 function ontology_documentation_get_bundles($condition = 'ALL') {
-  $bundles = array();
+  $bundles = &drupal_static(__FUNCTION__,array());
+
+  if(empty($bundles)) {
+    $bundles += array(
+      array(
+       'machine_name' => 'concept',
+       'human_label' => 'Concept',
+       'description' => 'Describe a specific owl concept',
+      ),
+      array(
+       'machine_name' => 'role',
+       'human_label' => 'Role',
+       'description' => 'Describe a specific owl role',
+      ),
+      array(
+        'machine_name' => 'attribute',
+        'human_label' => 'Attribute',
+        'description' => 'Describe a sepcific owl attribute',
+      ),
+    );
+  }
 
   switch($condition) {
     case 'ALL':
-      $bundles += array('concept','role','attribute');
-      return $bundles;
+      // Tutti e tre
+      return array_slice($bundles, 0,3);
       break;
     case 'WITH_DOMAIN_AND_CODOMAIN':
-      $bundles += array('role', 'attribute');
-      return $bundles;
+      // Role,Attribute
+      return array_slice($bundles, 1,2);
       break;
     case 'WITH_INHERITANCE':
-      $bundles += array('concept', 'role');
-      return $bundles;
+      // Cocept,Role
+      return array_slice($bundles, 0,2);
       break;
     case 'WITH_ATTRIBUTES_AND_ROLES':
-      $bundles += array('concept');
-      return $bundles;
+      // Concept
+      return array_slice($bundles, 0,1);
       break;
   }
 }

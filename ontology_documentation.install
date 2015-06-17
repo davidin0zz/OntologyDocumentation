@@ -76,7 +76,7 @@ function ontology_documentation_enable() {
     foreach ($bundles as $bundle) {
       //Assegno il nome del campo e il nome del bundle per l'istanza
       $bundle_instance['field_name'] = $field;
-      $bundle_instance['bundle'] = $bundle;
+      $bundle_instance['bundle'] = $bundle['machine_name'];
       //Creo l'istanza
       $field_instances[] = $bundle_instance;
       field_create_instance($bundle_instance);

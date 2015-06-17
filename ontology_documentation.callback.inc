@@ -1,6 +1,7 @@
 <?php
 
 function ontology_documentation_term_view($entity) {
+  drupal_set_title('Pagina di view per '.$entity->label());
   $return = array(
     '#type' => 'html_tag',
     '#tag' => 'h2',
@@ -12,16 +13,16 @@ function ontology_documentation_term_view($entity) {
   return(drupal_render($return));
 }
 
-function ontology_documentation_edit($array) {
-  drupal_set_title('Pagina di edit per '.$array['termine']);
-  $return = array(
-    '#type' => 'html_tag',
-    '#tag' => 'h2',
-    '#attributes' => array(
-      'id' => 'term_edit'
-    ),
-    '#value' => 'Edit '.$array['categoria'].' '.$array['termine'],
-  );
+function ontology_documentation_term_edit($entity) {
+    drupal_set_title('Pagina di edit per '.$entity->label());
+    $return = array(
+      '#type' => 'html_tag',
+      '#tag' => 'h2',
+      '#attributes' => array(
+        'id' => 'term_edit'
+      ),
+      '#value' => 'Edit '.$entity->category.' '.$entity->label(),
+    );
   return(drupal_render($return));
 }
 
@@ -94,21 +95,23 @@ function ontology_documentation_delete($ids, $entity_type = ENTITY_TYPE) {
 }
 
 function ontology_documentation_create($mode) {
-  $options = array();
-  $data = array();
-
-  $options['cache_wsdl'] = WSDL_CACHE_NONE;
-  $options['trace'] = TRUE;
   $wsdl = variable_get('ws_url');
+
+  $options = array(
+    'cache_wsdl' => WSDL_CACHE_NONE,
+    'trace' => TRUE,
+  );
+
+  $data = array(
+    'title' => '',
+    'category' => '',
+    'language' => 'en',
+    'uid' => get_mastro_uid(),
+    'created' => REQUEST_TIME,
+    'changed' => REQUEST_TIME,
+  );
+
   $soap = new SoapClient($wsdl, $options);
-
-  $data['title'] = '';
-  $data['category'] = '';
-  $data['language'] = 'en';
-  $data['uid'] = get_mastro_uid();
-  $data['created'] = REQUEST_TIME;
-  $data['changed'] = REQUEST_TIME;
-
   $concepts = mastro_callWSWithArrayResponse('getAllConcepts');
   $roles = mastro_callWSWithArrayResponse('getAllRoles');
   $attributes = mastro_callWSWithArrayResponse('getAllAttributes');
@@ -121,9 +124,13 @@ function ontology_documentation_create($mode) {
       foreach($concepts as $concept) {
         $term_data['title'] = $concept;
         if(($new_entity = entity_create(ENTITY_TYPE, $term_data))) {
-          $entity_wrapper = entity_metadata_wrapper(ENTITY_TYPE, $new_entity);
-          $entity_wrapper->categoria->set('Concept');
-          $entity_wrapper->save();
+
+          // CREO I CONCETTI
+          //$entity_wrapper = entity_metadata_wrapper(ENTITY_TYPE, $new_entity);
+          //$entity_wrapper->categoria->set('Concept');
+          //$entity_wrapper->save();
+          $new_entity->save();
+
         }
         else {
           drupal_set_message('Error: entity_create()!', 'error');
@@ -133,6 +140,23 @@ function ontology_documentation_create($mode) {
       }
       drupal_set_message('NEW concepts have been created!');
 
+      foreach($roles as $role) {
+        $term_data['title'] = $role;
+        if(($new_entity = entity_create(ENTITY_TYPE, $term_data))) {
+
+          // CREO I CONCETTI
+          //$entity_wrapper = entity_metadata_wrapper(ENTITY_TYPE, $new_entity);
+          //$entity_wrapper->categoria->set('Concept');
+          //$entity_wrapper->save();
+          $new_entity->save();
+
+        }
+        else {
+          drupal_set_message('Error: entity_create()!', 'error');
+          return;
+        }
+      }
+      drupal_set_message('NEW roles have been created!');
       break;
     case 'UPDATE':
       break;
@@ -148,22 +172,26 @@ function ontology_documentation_access($op, $entity, $account, $entity_type) {
     $account = $user;
   }
 
-  $entity_owner = isset($entity['uid']) ? $entity->uid : FALSE;
+  //dpm(menu_get_router());
+  // CONTROLLARE QUI!!
+  if(isset($entity->uid))
+    $entity_owner = $entity->uid;
+  else
+    $entity_owner = FALSE;
 
-  switch($op) {
-    case 'create':
+  if(!empty($op)) {
+    if($op == 'create')
       return user_access('administer ontology_documentation entities', $account) ||
              user_access('create ontology_documentation entities', $account);
-      break;
-    case 'view':
+    elseif($op == 'view')
       return user_access('administer ontology_documentation entities', $account) ||
              user_access('view ontology_documentation entities', $account);
-      break;
-    case 'edit':
+    elseif($op == 'update' || $op == 'edit' || $op == 'delete')
       return user_access('administer ontology_documentation entities', $account) ||
              user_access('edit any ontology_documentation entities', $account)   ||
              user_access('edit own ontology_documentation entities', $account)   &&
              $account->uid == $entity_owner && $entity->entityType() == $entity_type;
-      break;
   }
+  else
+    return FALSE;
 }
