@@ -1,29 +1,11 @@
 <?php
 
 function ontology_documentation_term_view($entity) {
-  drupal_set_title('Pagina di view per '.$entity->label());
-  $return = array(
-    '#type' => 'html_tag',
-    '#tag' => 'h2',
-    '#attributes' => array(
-      'id' => 'term_edit'
-    ),
-    '#value' => 'View for term page',
-  );
-  return(drupal_render($return));
+  return 'In VIEW';
 }
 
 function ontology_documentation_term_edit($entity) {
-    drupal_set_title('Pagina di edit per '.$entity->label());
-    $return = array(
-      '#type' => 'html_tag',
-      '#tag' => 'h2',
-      '#attributes' => array(
-        'id' => 'term_edit'
-      ),
-      '#value' => 'Edit '.$entity->category.' '.$entity->label(),
-    );
-  return(drupal_render($return));
+  return 'In EDIT';
 }
 
 function ontology_documentation_config_form($form, &$form_state) {
@@ -171,8 +153,6 @@ function ontology_documentation_access($op, $entity, $account, $entity_type) {
   if(!isset($account)) {
     $account = $user;
   }
-
-  //dpm(menu_get_router());
   // CONTROLLARE QUI!!
   if(isset($entity->uid))
     $entity_owner = $entity->uid;
@@ -186,7 +166,10 @@ function ontology_documentation_access($op, $entity, $account, $entity_type) {
     elseif($op == 'view')
       return user_access('administer ontology_documentation entities', $account) ||
              user_access('view ontology_documentation entities', $account);
-    elseif($op == 'update' || $op == 'edit' || $op == 'delete')
+    // Per la gestione della UI di amministrazione
+    elseif($op == 'manage' || $op == 'update' || $op == 'delete')
+      return user_access('administer ontology_documentation', $account);
+    elseif($op == 'edit')
       return user_access('administer ontology_documentation entities', $account) ||
              user_access('edit any ontology_documentation entities', $account)   ||
              user_access('edit own ontology_documentation entities', $account)   &&
@@ -194,4 +177,8 @@ function ontology_documentation_access($op, $entity, $account, $entity_type) {
   }
   else
     return FALSE;
+}
+
+function ontology_documentation_type_access($op, $entity, $account, $entity_type) {
+
 }

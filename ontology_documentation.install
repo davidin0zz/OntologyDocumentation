@@ -34,6 +34,14 @@ $bundles_fields = array(
   'mappings' => $all_bundles,
 );
 
+// Dati per ontology_documentation_type
+global $ontology_documentation_type_data;
+$ontology_documentation_type_data = array(
+  'category' => '',
+  'name' => '',
+  'description' => '',
+);
+
 //Base per l'array del campo
 global  $base_field;
 $base_field = array(
@@ -62,11 +70,33 @@ $field_instances = array();
 // Crea i campi rilevanti per ogni bundle.
 // Ceea le istanze per ogni bundle.
 function ontology_documentation_enable() {
+
   global $bundles_fields, $base_field;
   global $base_field_instance, $field_instances;
+  global $ontology_documentation_type_data;
 
+  $ontology_type_data = &$ontology_documentation_type_data;
   $term_field =  &$base_field;
   $bundle_instance = &$base_field_instance;
+
+  // Popolo ontology_documentation_type
+  foreach(ontology_documentation_get_bundles() as $bundle) {
+    $ontology_type_data['category'] = $bundle['machine_name'];
+    $ontology_type_data['name'] = $bundle['human_label'];
+    $ontology_type_data['description'] = $bundle['description'];
+    try {
+      $ontology_type_entity = entity_create('ontology_documentation_type', $ontology_type_data);
+      if(is_object($ontology_type_entity))
+        $ontology_type_entity->save();
+      else
+        drupal_set_message('Error: entity_create()!', 'error');
+    }
+    catch(Exception $e) {
+      drupal_set_message($e->getMessage(), 'error');
+    }
+  }
+
+  // Creo i campi e le istanze
   foreach ($bundles_fields as $field => $bundles) {
     //Assegno il nome al campo
     $term_field['field_name'] = $field;
@@ -176,7 +206,10 @@ function ontology_documentation_schema() {
       'title' => array('title'),
     ),
     'primary key' => array('odid'),
-
+    'foreign keys' => array(
+      'ontology_documentation_type' => array('table' => 'ontology_documentation_type',
+      'columns' => array('category' => 'category'),
+     )),
   );
   $schema['ontology_documentation_revision'] = array(
     'description' => 'Tabella per le revisioni della documentazione OWL',
@@ -238,6 +271,39 @@ function ontology_documentation_schema() {
       'columns' => array('odid' => 'odid')
       )
     ),
+  );
+  $schema['ontology_documentation_type'] = array(
+    'description' => 'Tabella per i bundles',
+    'fields' => array(
+      'category' => array(
+        'description' => 'Tipo di bunble',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'Nome comune',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+     'description' => array(
+       'descritpion' => 'Descrizione',
+       'type' => 'varchar',
+       'length' => 255,
+       'not null' => TRUE,
+     ),
+     'locked' => array(
+       'description' => 'Descrive lo stato nella UI',
+       'type' => 'int',
+       'not null' => TRUE,
+       'default' => 1,
+     ),
+    ),
+   'primary key' => array('category'),
+   'unique keys' => array(
+     'name' => array('name'),
+   ),
   );
 
   return $schema;
