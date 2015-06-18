@@ -168,7 +168,7 @@ function ontology_documentation_access($op, $entity, $account, $entity_type) {
              user_access('view ontology_documentation entities', $account);
     // Per la gestione della UI di amministrazione
     elseif($op == 'manage' || $op == 'update' || $op == 'delete')
-      return user_access('administer ontology_documentation', $account);
+      return user_access('administer ontology_documentation entities', $account);
     elseif($op == 'edit')
       return user_access('administer ontology_documentation entities', $account) ||
              user_access('edit any ontology_documentation entities', $account)   ||

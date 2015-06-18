@@ -85,11 +85,13 @@ function ontology_documentation_enable() {
     $ontology_type_data['name'] = $bundle['human_label'];
     $ontology_type_data['description'] = $bundle['description'];
     try {
-      $ontology_type_entity = entity_create('ontology_documentation_type', $ontology_type_data);
-      if(is_object($ontology_type_entity))
-        $ontology_type_entity->save();
-      else
-        drupal_set_message('Error: entity_create()!', 'error');
+      if(empty(entity_load_multiple_by_name('ontology_documentation_type', array($bundle['machine_name'])))) {
+        $ontology_type_entity = entity_create('ontology_documentation_type', $ontology_type_data);
+        if(is_object($ontology_type_entity))
+          $ontology_type_entity->save();
+        else
+          drupal_set_message('Error: entity_create()!', 'error');
+      }
     }
     catch(Exception $e) {
       drupal_set_message($e->getMessage(), 'error');

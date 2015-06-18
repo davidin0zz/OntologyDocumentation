@@ -107,6 +107,7 @@ function ontology_documentation_entity_info() {
     'bundle of' => 'ontology_documentation',
     'entity keys' => array(
       'id' => 'category',
+      'name' => 'category',
       'label' => 'name',
     ),
     'module' => 'ontology_documentation',
@@ -132,7 +133,7 @@ function ontology_documentation_entity_info_alter(&$entity_info) {
       'label' => $bundle['human_label'],
       'uri callback' => 'entity_class_uri',
       'admin' => array(
-        'path' => 'admin/structure/ontology-documentation-types/manage/%entity_object',
+        'path' => 'admin/structure/ontology-documentation-types/manage/%ontology_documentation_type',
         'bundle argument' => 4,
         'real path' => 'admin/structure/ontology-documentation-types/manage/' . $bundle['machine_name'],
         ),
@@ -195,6 +196,7 @@ function ontology_documentation_load($entity_name, $entity_type = NULL, $bundle 
   //             ->entityCondition('bundle', $bundle)
   //             ->propertyCondition('title', $term)
   //             ->execute();
+
   $entity = entity_load_multiple_by_name($entity_type, array($entity_name));
   if(!empty($entity))
       return $entity;
@@ -205,6 +207,11 @@ function ontology_documentation_load($entity_name, $entity_type = NULL, $bundle 
   //  $entity = entity_load('ontology_documentation', array($entity_id));
   //  return $entity[$entity_id];
  //}
+}
+
+function ontology_documentation_type_load($type_id) {
+  $entity = entity_load('ontology_documentation_type', array($type_id));
+  return reset($entity);
 }
 
 function ontology_documentation_get_bundles($condition = 'ALL') {
