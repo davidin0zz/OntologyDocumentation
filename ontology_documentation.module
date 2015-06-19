@@ -182,6 +182,49 @@ function ontology_documentation_menu() {
     'type' => MENU_LOCAL_TASK,
     'file' => 'ontology_documentation.callback.inc',
   );
+  $items['admin/ontology-documentation'] = array(
+    'title' => 'Ontology',
+    'weight' => -10,
+    'page callback' => 'ontology_documentation_view',
+    'access callback' => 'entity_access',
+    'access arguments' => array('view', ENTITY_TYPE, NULL, NULL),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/ontology-documentation/add'] = array(
+    'title' => 'Add Ontology documentation',
+    //'weight' => -10,
+    'page callback' => 'system_admin_menu_block_page',
+    'access callback' => 'entity_access',
+    'access arguments' => array('create', ENTITY_TYPE, NULL, NULL),
+    'file' => 'system.admin.inc',	 // don't forget to add the file and path
+    'file path' => drupal_get_path('module', 'system'),
+    //'position' => 'right',
+     'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/ontology-documentation/add/concept'] = array(
+    'title' => 'Add Concept',
+    'description' => 'Allow you to create a new OWL concept',
+    'page callback' => 'ontology_documentation_concept_create',
+    'access callback' => 'entity_access',
+    'access arguments' => array('create', ENTITY_TYPE, NULL, NULL),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/ontology-documentation/add/role'] = array(
+    'title' => 'Add Role',
+    'description' => 'Allow you to create a new OWL role',
+    'page callback' => 'ontology_documentation_role_create',
+    'access callback' => 'entity_access',
+    'access arguments' => array('create', ENTITY_TYPE, NULL, NULL),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/ontology-documentation/add/attribute'] = array(
+    'title' => 'Add Attribute',
+    'description' => 'Allow you to create a new OWL attribute',
+    'page callback' => 'ontology_documentation_attribute_create',
+    'access callback' => 'entity_access',
+    'access arguments' => array('create', ENTITY_TYPE, NULL, NULL),
+    'type' => MENU_NORMAL_ITEM,
+  );
 
   return $items;
 }

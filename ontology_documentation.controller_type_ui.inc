@@ -9,9 +9,13 @@ class OntologyDocumentationUIController extends EntityDefaultUIController {
      );
     return $additional_header;
   }
-
-  //function overviewTable() {
-
+  //function overviewTableRow($conditions, $id, $entity, $additional_cols = array()) {
+  //  $entity_info = $entity->entityInfo;
+  //
+  //
+  //
+  //  );
+  //
   //}
 
 }
