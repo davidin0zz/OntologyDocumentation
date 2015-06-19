@@ -1,6 +1,6 @@
 <?php
 
-class OntologyDocumentationUIController extends EntityDefaultUIController {
+class OntologyDocumentationTypeUIController extends EntityDefaultUIController {
   function overviewTableHeaders($conditions, $rows, $additional_header = array()) {
      array_unshift($additional_header, t('NAME'));
      $additional_header[] = array(
@@ -9,13 +9,10 @@ class OntologyDocumentationUIController extends EntityDefaultUIController {
      );
     return $additional_header;
   }
-  //function overviewTableRow($conditions, $id, $entity, $additional_cols = array()) {
-  //  $entity_info = $entity->entityInfo;
-  //
-  //
-  //
-  //  );
-  //
-  //}
-
+  function hook_menu(){
+    $items = parent::hook_menu();
+    $items[$this->path]['title'] = 'Ontology types';
+    $items[$this->path]['weight'] = -1;
+    return $items;
+  }
 }

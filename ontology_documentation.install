@@ -36,6 +36,7 @@ $concept_bundles = ontology_documentation_get_bundles('WITH_ATTRIBUTES_AND_ROLES
 global $bundles_fields;
 $bundles_fields = array(
   'categoria' => $all_bundles,
+  'descrizione' => $all_bundles,
   'occorrenza' => $all_bundles,
   'etichetta' => $all_bundles,
   'specializzazioni' => $concept_role_bundles,
@@ -72,8 +73,9 @@ $base_field = array(
 global $base_field_instance;
 $base_field_instance = array(
   'field_name' => '',
-  'entity_type' => ENTITY_TYPE,
+  'entity_type' => 'ontology_documentation',
   'bundle' => '',
+  'label' => '',
   'widget' => array('type' => 'text_textarea'),
   'settings' => array('text_processing' => 1),
   'format' => 'filter_html',
@@ -128,6 +130,7 @@ function ontology_documentation_enable() {
       //Assegno il nome del campo e il nome del bundle per l'istanza
       $bundle_instance['field_name'] = $field;
       $bundle_instance['bundle'] = $bundle['machine_name'];
+      $bundle_instance['label'] = strtoupper($field);
       //Creo l'istanza
       $field_instances[] = $bundle_instance;
       field_create_instance($bundle_instance);

@@ -17,10 +17,12 @@ function ontology_documentation_attribute_create() {
 }
 
 function ontology_documentation_term_view($entity) {
+  drupal_set_title($entity->title);
   return 'In VIEW';
 }
 
 function ontology_documentation_term_edit($entity) {
+  drupal_set_title($entity->title);
   return 'In EDIT';
 }
 
@@ -103,10 +105,6 @@ function ontology_documentation_create($mode) {
   $data = array(
     'title' => '',
     'category' => '',
-    'language' => 'en',
-    'uid' => get_mastro_uid(),
-    'created' => REQUEST_TIME,
-    'changed' => REQUEST_TIME,
   );
 
   $soap = new SoapClient($wsdl, $options);
@@ -127,6 +125,7 @@ function ontology_documentation_create($mode) {
           //$entity_wrapper = entity_metadata_wrapper(ENTITY_TYPE, $new_entity);
           //$entity_wrapper->categoria->set('Concept');
           //$entity_wrapper->save();
+          $new_entity->dominio = 'prova';
           $new_entity->save();
 
         }
@@ -138,14 +137,18 @@ function ontology_documentation_create($mode) {
       }
       drupal_set_message('NEW concepts have been created!');
 
+      $term_data['category'] = 'role';
       foreach($roles as $role) {
         $term_data['title'] = $role;
-        if(($new_entity = entity_create(ENTITY_TYPE, $term_data))) {
-
+        if(($new_entity = entity_create('ontology_documentation', $term_data))) {
           // CREO I CONCETTI
           //$entity_wrapper = entity_metadata_wrapper(ENTITY_TYPE, $new_entity);
           //$entity_wrapper->categoria->set('Concept');
           //$entity_wrapper->save();
+          //$entity_wrapper->field_categoria->set('prova valore');
+          //$entity_wrapper->save();
+          //drupal_set_message('<pre>'.print_r($new_entity,TRUE).'</pre>');
+          //$new_entity->categoria = 'CONCETTO';
           $new_entity->save();
 
         }

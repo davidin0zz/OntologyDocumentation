@@ -10,6 +10,7 @@ class OntologyDocumentation extends Entity {
   public function __construct(array $values = array(), $entity_type = NULL) {
     $ontologyDocumentationDataArray = array(
       'language' => 'en',
+      'uid' => get_mastro_uid(),
       'created' => REQUEST_TIME,
       'changed' => REQUEST_TIME,
       'status' => 1,
