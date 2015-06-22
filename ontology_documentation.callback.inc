@@ -95,87 +95,18 @@ function ontology_documentation_delete($ids, $entity_type = ENTITY_TYPE) {
 }
 
 function ontology_documentation_create($mode) {
-  $wsdl = variable_get('ws_url');
-
-  $options = array(
-    'cache_wsdl' => WSDL_CACHE_NONE,
-    'trace' => TRUE,
-  );
-
-  $terms_base_data = array(
-    'title' => '',
-    'category' => '',
-  );
-
-  $category = array(
-     'label' => array(
-       '#type' => 'html_tag',
-       '#tag' => 'h2',
-       '#value' => 'Categoria',
-     ),
-     'link' => array(
-      '#type' => 'link',
-      '#title' => '',
-      '#href' => '',
-    ),
-  );
-
-  $soap = new SoapClient($wsdl, $options);
-  $ontology_terms_types = array(
-    'concepts' => mastro_callWSWithArrayResponse('getAllConcepts'),
-    'roles' => mastro_callWSWithArrayResponse('getAllRoles'),
-    'attributes' => mastro_callWSWithArrayResponse('getAllAttributes'),
-  );
-
    switch($mode) {
     case 'NEW':
-      $bundles = ontology_documentation_get_bundles();
-      //dpm($bundles);
-      foreach($bundles as $bundle){
-        $bundle_name = $bundle['machine_name'];
-        $terms_base_data['category'] = $bundle_name;
-        //dpm($bundle_fields);
-          foreach($ontology_terms_types as $ontology_terms_type => $ontology_terms) {
-            foreach($ontology_terms as $ontology_term) {
-              $terms_base_data['title'] = $ontology_term;
-              // Creo l'entità
-              $entity = entity_create(ENTITY_TYPE, $terms_base_data);
-              // Creo il wrapper
-              $entity_wrapper = entity_metadata_wrapper(ENTITY_TYPE, $entity, array('language' => 'en'));
-              // Imposto il text format per i campo categoria
-              $entity_wrapper->categoria->format->set('full_html');
-              switch($bundle_name) {
-                case 'concept':
-                  // Imposto il valore del campo categoria
-                  $category['link']['#title'] = $bundle['human_label'].'s';
-                  $category['link']['#href'] = DOCUMENTATION_BASE_URL . '/' . $bundle['machine_name'] . 's';
-                  $entity_wrapper->categoria->value->set(drupal_render($category));
-                  // Imposto il valore del campo occorrenza
-
-
-                  //Salvo l'entità
-                  $entity_wrapper->save();
-
-
-                  break;
-                case 'role':
-                  break;
-                case 'attribute':
-                  break;
-              }
-              break;
-            }
-            break;
-          }
-        break;
+      try {
+        ontology_documentation_create_concepts_page(array('title'=>'', 'category' => 'concept'));
+        //ontology_documentation_create_roles_page(array('title'=>'', 'category' => 'role'));
+        //ontology_documentation_create_attributess_page(array('title'=>'', 'category' => 'attribute'));
       }
-
+      catch(Exception $e) {
+        drupal_set_message($e->getMessage(), 'error');
+      }
       break;
     case 'UPDATE':
-      $en = entity_load_single('ontology_documentation', 16);
-      dpm($en->identifier());
-      $e2 = entity_load_single('ontology_documentation',$en->internalIdentifier());
-      dpm($en2);
       break;
   }
   variable_set('empty_owl_documentation', FALSE);
@@ -214,26 +145,157 @@ function ontology_documentation_access($op, $entity, $account, $entity_type) {
     return FALSE;
 }
 
-function ontology_documentation_type_access($op, $entity, $account, $entity_type) {
+function ontology_documentation_mastro_get_data($operation, $parameters = NULL) {
+  $wsdl = &drupal_static(__FUNCTION__);
+  if(!isset($wsdl)) {
+    $wsdl = array(
+        'url' => variable_get('ws_url'),
+        'options' => array(
+          'cache_wsdl' => WSDL_CACHE_NONE,
+          'trace' => TRUE,
+        ),
+    );
+    $wsdl['soap'] = new SoapClient($wsdl['url'], $wsdl['options']);
+  }
 
+  if(!isset($parameters))
+    return call_user_func(array($wsdl['soap'], $operation))->return;
+  else
+    call_user_func_array(array($wsdl['soap'], $operation), $parameters)->return;
 }
 
-function getDiagramsLinksBox_($entity,$type){
-  drupal_add_library('system', 'drupal.collapse');
+function  ontology_documentation_save(&$wrapper) {
+  $wrapper->save();
+}
 
-  $links = array(
-    '#title'       => 'Occorrenze nei diagrammi',
-	'#children'    => '',
-	'#collapsible' => true,
-	'#collapsed'   => false,
-	'#attributes'  => array(
-    'class' => array('collapsible', 'collapsed')
-	),
-  );
+function ontology_documentation_get_wiki_term_description($term) {
+  $search_info = &drupal_static('search' . __FUNCTION__, array());
+  $entity_field_query = &drupal_static('query' . __FUNCTION__);
 
-  $links['#children'] = '<ul>'.getDiagramsLinks($entity,$type).'</ul>';
+  if(empty($search_info)) {
+    $search_info['start string'] = '== Descrizione ==';
+    $search_info['end string'] = '==';
+    $search_info['start offset'] = strlen($search_info['start string']);
+    $search_info['end offset'] = - 1;
+  }
+  if(!isset($entity_field_query)) {
+    $entity_field_query = new EntityFieldQuery();
+  }
 
-  if(variable_get('show_axioms', ''))
-    return theme ('fieldset', array('element' => $links));
-  else return '';
+  dpm($search_info);
+  //Azzero le precedenti condizioni
+  $entity_field_query->propertyConditions = array();
+  // Cerco l'id del nodo del wiki dell'omonimo termine
+  $query_response = $entity_field_query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'wiki')
+    ->propertyCondition('title', $term)
+    ->execute();
+  // Ottengo l'id del nodo
+  $wiki_node_id = array_keys($query_response['node']);
+  // Carico il nodo
+  $wiki_node = entity_load('node', $wiki_node_id);
+  if($wiki_node) {
+  // Creo il wrapper per il nodo
+  $wiki_wrapper = entity_metadata_wrapper('node', current($wiki_node));
+  // Ottengo il contenuto del body non interpretato
+  $wiki_description = $wiki_wrapper->body->value->raw();
+  // Filtro solo la descrizione
+  $start = strpos($wiki_description, $search_info['start string']) + $search_info['start offset'];
+  if($start !== FALSE) {
+    $fin = strpos($wiki_description, $search_info['end string'], $start) + $search_info['end offset'];
+    if($fin !== FALSE) {
+      $wiki_description = trim(substr($wiki_description, $start, $fin - $start));
+      return $wiki_description;
+    }
+    else
+      return '';
+  }
+  else
+    return '';
+  }
+  else
+    throw new Exception('entity_create(): Entity Controller not found!');
+}
+
+function ontology_documentation_create_concepts_page($data) {
+  // Carico i campi per il particolare bundle
+  $fields = field_info_instances(ENTITY_TYPE, $data['category']);
+  // Ottengo tutti i concetti
+  $mastro_concepts = ontology_documentation_mastro_get_data('getAllConcepts');
+  // Itero sui concetti
+  foreach($mastro_concepts as $concept) {
+    // Assegno il titolo alle proprietà dell'entità
+    $data['title'] = $concept;
+    // Creo una nuova entità con le proprietà di base
+    $entity = entity_create(ENTITY_TYPE, $data);
+    if($entity) {
+      // Creo il wrapper per manipolare i campi 'attaccati' all'entità
+      $entity_wrapper = entity_metadata_wrapper(ENTITY_TYPE, $entity);
+      // Itero sui campi da assegnare
+      foreach($fields as $field){
+        // Configuro i campi
+        ontology_documentation_setup_field($field['field_name'], 'full_html', $entity_wrapper);
+      }
+      // Salvo la pagina
+      ontology_documentation_save($entity_wrapper);
+    }
+    else
+      throw new Exception('entity_create(): Entity Controller not found!');
+  }
+}
+
+function ontology_documentation_setup_field($field_name, $text_format = 'plain_text', &$wrapper) {
+  // Definisco variabili utili
+  $entity_type = $wrapper->type();
+  $bundle = $wrapper->getBundle();
+  $term = $wrapper->value()->title;
+
+  // Definisco la struttura dell'etichetta uguale per tutti i campi
+  $label = array('label_content' => array('#type' => 'html_tag','#tag' => 'h2','#value' => '',));
+
+  switch($field_name) {
+    case 'categoria':
+      $label['label_content']['#value'] = ucwords($field_name);
+      $content_field = array('link' => array('#type' => 'link','#title' => '','#href' => '',));
+      $content_field['link']['#title'] = $bundle . 's';
+      $content_field['link']['#href'] = DOCUMENTATION_BASE_URL . '/' . $bundle . 's';
+      $wrapper->$field_name->format->set($text_format);
+      $wrapper->$field_name->value->set(drupal_render(array_merge($label, $content_field)));
+      break;
+    case 'descrizione':
+      $label['label_content']['#value'] = ucwords($field_name);
+      $content_field = array('field_content' => array('#type' => 'html_tag','#tag' => 'em','#value' => '',));
+      $description = ontology_documentation_get_wiki_term_description($term);
+      $content_field['field_content']['#value'] = $description;
+      $wrapper->$field_name->format->set($text_format);
+      $wrapper->$field_name->value->set(drupal_render(array_merge($label, $content_field)));
+      break;
+    case 'occorrenza':
+
+      break;
+    case 'etichetta':
+      break;
+    case 'specializzazioni':
+      break;
+    case 'generalizzazioni':
+      break;
+    case 'dominio':
+      break;
+    case 'codominio':
+      break;
+    case 'attributi_obbligatori':
+      break;
+    case 'attributi_non_obbligatori':
+      break;
+    case 'ruoli_obbligatori':
+      break;
+    case 'ruoli_non_obbligatori':
+      break;
+    case 'assiomi':
+      break;
+    case 'link_obda':
+      break;
+    case 'mappings':
+      break;
+  }
 }
