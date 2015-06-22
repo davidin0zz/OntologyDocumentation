@@ -1,5 +1,6 @@
 <?php
-
+// Definisco l'url per le pagina della docoumentazione
+define('DOCUMENTATION_BASE_URL', 'ontology-documentation');
 // Definisco il tipo di entità da gestire
 define('ENTITY_TYPE', 'ontology_documentation');
 // Definisco il percorso del file di callback
@@ -79,7 +80,7 @@ function ontology_documentation_entity_info() {
    'fieldable' => TRUE,
    'entity keys' => array(
      'id' => 'odid',
-     //'name' => 'title',
+     'name' => 'title',
      'revision' => 'rodid',
      'bundle' => 'category',
      'label' => 'title',
@@ -113,8 +114,7 @@ function ontology_documentation_entity_info() {
     'bundle of' => 'ontology_documentation',
     'entity keys' => array(
       'id' => 'category',
-      //'name' => 'category',
-      'label' => 'name',
+      'label' => 'title',
     ),
     'module' => 'ontology_documentation',
     'label callback' => 'entity_class_label',
@@ -223,6 +223,13 @@ function ontology_documentation_menu() {
   );
 
   return $items;
+}
+
+// Nascondo il titolo dei campi per ogni campo di tipo 'ENTITY_TYPE'
+function ontology_documentation_preprocess_field(&$variables) {
+  if($variables['element']['#entity_type'] == ENTITY_TYPE) {
+    $variables['label_hidden'] = TRUE;
+  }
 }
 
 function ontology_documentation_load($entity_name, $entity_type = NULL, $bundle = NULL) {

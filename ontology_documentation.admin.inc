@@ -10,12 +10,12 @@ function ontology_documentation_type_form($form, &$form_state, $entity_type, $op
       '#size' => '50',
       '#required' => TRUE,
     );
-    $form['name'] = array(
+    $form['title'] = array(
       '#type' => 'textfield',
       '#title' => t('Documentation type name'),
       '#description' => t('The human-readable name of this documentation type.'),
       '#size' => '50',
-      '#default_value' => isset($entity_type->name) ? $entity_type->name : '',
+      '#default_value' => isset($entity_type->title) ? $entity_type->title : '',
       '#required' => TRUE,
     );
     $form['description'] = array(

@@ -18,7 +18,7 @@ function ontology_documentation_attribute_create() {
 
 function ontology_documentation_term_view($entity) {
   drupal_set_title($entity->title);
-  return 'In VIEW';
+  return entity_view(ENTITY_TYPE, array($entity));
 }
 
 function ontology_documentation_term_edit($entity) {
@@ -102,64 +102,80 @@ function ontology_documentation_create($mode) {
     'trace' => TRUE,
   );
 
-  $data = array(
+  $terms_base_data = array(
     'title' => '',
     'category' => '',
   );
 
+  $category = array(
+     'label' => array(
+       '#type' => 'html_tag',
+       '#tag' => 'h2',
+       '#value' => 'Categoria',
+     ),
+     'link' => array(
+      '#type' => 'link',
+      '#title' => '',
+      '#href' => '',
+    ),
+  );
+
   $soap = new SoapClient($wsdl, $options);
-  $concepts = mastro_callWSWithArrayResponse('getAllConcepts');
-  $roles = mastro_callWSWithArrayResponse('getAllRoles');
-  $attributes = mastro_callWSWithArrayResponse('getAllAttributes');
+  $ontology_terms_types = array(
+    'concepts' => mastro_callWSWithArrayResponse('getAllConcepts'),
+    'roles' => mastro_callWSWithArrayResponse('getAllRoles'),
+    'attributes' => mastro_callWSWithArrayResponse('getAllAttributes'),
+  );
 
-  $term_data = &$data;
-  switch($mode) {
+   switch($mode) {
     case 'NEW':
-      // Creo concetti
-      $term_data['category'] = 'concept';
-      foreach($concepts as $concept) {
-        $term_data['title'] = $concept;
-        if(($new_entity = entity_create(ENTITY_TYPE, $term_data))) {
+      $bundles = ontology_documentation_get_bundles();
+      //dpm($bundles);
+      foreach($bundles as $bundle){
+        $bundle_name = $bundle['machine_name'];
+        $terms_base_data['category'] = $bundle_name;
+        //dpm($bundle_fields);
+          foreach($ontology_terms_types as $ontology_terms_type => $ontology_terms) {
+            foreach($ontology_terms as $ontology_term) {
+              $terms_base_data['title'] = $ontology_term;
+              // Creo l'entità
+              $entity = entity_create(ENTITY_TYPE, $terms_base_data);
+              // Creo il wrapper
+              $entity_wrapper = entity_metadata_wrapper(ENTITY_TYPE, $entity, array('language' => 'en'));
+              // Imposto il text format per i campo categoria
+              $entity_wrapper->categoria->format->set('full_html');
+              switch($bundle_name) {
+                case 'concept':
+                  // Imposto il valore del campo categoria
+                  $category['link']['#title'] = $bundle['human_label'].'s';
+                  $category['link']['#href'] = DOCUMENTATION_BASE_URL . '/' . $bundle['machine_name'] . 's';
+                  $entity_wrapper->categoria->value->set(drupal_render($category));
+                  // Imposto il valore del campo occorrenza
 
-          // CREO I CONCETTI
-          //$entity_wrapper = entity_metadata_wrapper(ENTITY_TYPE, $new_entity);
-          //$entity_wrapper->categoria->set('Concept');
-          //$entity_wrapper->save();
-          $new_entity->dominio = 'prova';
-          $new_entity->save();
 
-        }
-        else {
-          drupal_set_message('Error: entity_create()!', 'error');
-          return;
-        }
+                  //Salvo l'entità
+                  $entity_wrapper->save();
 
+
+                  break;
+                case 'role':
+                  break;
+                case 'attribute':
+                  break;
+              }
+              break;
+            }
+            break;
+          }
+        break;
       }
-      drupal_set_message('NEW concepts have been created!');
 
-      $term_data['category'] = 'role';
-      foreach($roles as $role) {
-        $term_data['title'] = $role;
-        if(($new_entity = entity_create('ontology_documentation', $term_data))) {
-          // CREO I CONCETTI
-          //$entity_wrapper = entity_metadata_wrapper(ENTITY_TYPE, $new_entity);
-          //$entity_wrapper->categoria->set('Concept');
-          //$entity_wrapper->save();
-          //$entity_wrapper->field_categoria->set('prova valore');
-          //$entity_wrapper->save();
-          //drupal_set_message('<pre>'.print_r($new_entity,TRUE).'</pre>');
-          //$new_entity->categoria = 'CONCETTO';
-          $new_entity->save();
-
-        }
-        else {
-          drupal_set_message('Error: entity_create()!', 'error');
-          return;
-        }
-      }
-      drupal_set_message('NEW roles have been created!');
       break;
     case 'UPDATE':
+      $en = entity_load_single('ontology_documentation', 16);
+      dpm($en->identifier());
+      $e2 = entity_load_single('ontology_documentation',$en->internalIdentifier());
+      dpm($en2);
       break;
   }
   variable_set('empty_owl_documentation', FALSE);
@@ -200,4 +216,24 @@ function ontology_documentation_access($op, $entity, $account, $entity_type) {
 
 function ontology_documentation_type_access($op, $entity, $account, $entity_type) {
 
+}
+
+function getDiagramsLinksBox_($entity,$type){
+  drupal_add_library('system', 'drupal.collapse');
+
+  $links = array(
+    '#title'       => 'Occorrenze nei diagrammi',
+	'#children'    => '',
+	'#collapsible' => true,
+	'#collapsed'   => false,
+	'#attributes'  => array(
+    'class' => array('collapsible', 'collapsed')
+	),
+  );
+
+  $links['#children'] = '<ul>'.getDiagramsLinks($entity,$type).'</ul>';
+
+  if(variable_get('show_axioms', ''))
+    return theme ('fieldset', array('element' => $links));
+  else return '';
 }

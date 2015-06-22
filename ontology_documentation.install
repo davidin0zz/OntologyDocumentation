@@ -78,7 +78,6 @@ $base_field_instance = array(
   'label' => '',
   'widget' => array('type' => 'text_textarea'),
   'settings' => array('text_processing' => 1),
-  'format' => 'filter_html',
   'required' => TRUE,
 );
 
@@ -103,7 +102,7 @@ function ontology_documentation_enable() {
   // Popolo ontology_documentation_type
   foreach(ontology_documentation_get_bundles() as $bundle) {
     $ontology_type_data['category'] = $bundle['machine_name'];
-    $ontology_type_data['name'] = $bundle['human_label'];
+    $ontology_type_data['title'] = $bundle['human_label'];
     $ontology_type_data['description'] = $bundle['description'];
     try {
       if(empty(entity_load_multiple_by_name('ontology_documentation_type', array($bundle['machine_name'])))) {
@@ -314,7 +313,7 @@ function ontology_documentation_schema() {
         'length' => 32,
         'not null' => TRUE,
       ),
-      'name' => array(
+      'title' => array(
         'description' => 'Nome comune',
         'type' => 'varchar',
         'length' => 255,
@@ -335,7 +334,7 @@ function ontology_documentation_schema() {
     ),
    'primary key' => array('category'),
    'unique keys' => array(
-     'name' => array('name'),
+     'title' => array('title'),
    ),
   );
 
