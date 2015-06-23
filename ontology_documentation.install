@@ -36,9 +36,8 @@ $concept_bundles = ontology_documentation_get_bundles('WITH_ATTRIBUTES_AND_ROLES
 global $bundles_fields;
 $bundles_fields = array(
   'categoria' => $all_bundles,
-  'descrizione' => $all_bundles,
   'occorrenza' => $all_bundles,
-  'etichetta' => $all_bundles,
+  'descrizione' => $all_bundles,
   'specializzazioni' => $concept_role_bundles,
   'generalizzazioni' => $concept_role_bundles,
   'dominio' => $role_attribute_bundles,
@@ -81,19 +80,13 @@ $base_field_instance = array(
   'required' => TRUE,
 );
 
-//Memorizza tutte le instanze dei campi da rimuovere
-global $field_instances;
-$field_instances = array();
-
 // Crea i campi rilevanti per ogni bundle.
 // Ceea le istanze per ogni bundle.
 function ontology_documentation_enable() {
 
   global $bundles_fields, $base_field;
-  global $base_field_instance, $field_instances;
-  global $ontology_documentation_type_data;
-  global $ontology_add_shortcut_link;
-  global $ontology_shortcut_default_set;
+  global $base_field_instance, $ontology_documentation_type_data;
+  global $ontology_add_shortcut_link, $ontology_shortcut_default_set;
 
   $ontology_type_data = &$ontology_documentation_type_data;
   $term_field =  &$base_field;
@@ -120,22 +113,20 @@ function ontology_documentation_enable() {
 
   // Creo i campi e le istanze
   foreach ($bundles_fields as $field => $bundles) {
-    //Assegno il nome al campo
+    // Assegno il nome al campo
     $term_field['field_name'] = $field;
-    //Creo il campo
+    // Creo il campo
     field_create_field($term_field);
-    //Creo le istanze dei campi da assegnare ai bundles
+    // Creo le istanze dei campi da assegnare ai bundles
     foreach ($bundles as $bundle) {
-      //Assegno il nome del campo e il nome del bundle per l'istanza
+      // Assegno il nome del campo e il nome del bundle per l'istanza
       $bundle_instance['field_name'] = $field;
       $bundle_instance['bundle'] = $bundle['machine_name'];
       $bundle_instance['label'] = strtoupper($field);
-      //Creo l'istanza
-      $field_instances[] = $bundle_instance;
+      // Creo l'istanza
       field_create_instance($bundle_instance);
     }
   }
-
   // SE IL MODULO shortcut NON È GIÀ ABILITATO DÀ ERRORE!!
   // Aggiungo lo shortcut link "Add ontology"
   shortcut_admin_add_link($ontology_add_shortcut_link, $ontology_shortcut_default_set);
@@ -145,17 +136,18 @@ function ontology_documentation_enable() {
 // Cancella i campi creati.
 // Cancella le istanze dei campi create.
 function ontology_documentation_disable() {
-  global $bundles_fields, $field_instances;
-  global $shortcut_current_default;
+  global $bundles_fields, $ontology_add_shortcut_link;
+  $bundles_instances = field_info_instances(ENTITY_TYPE);
 
   //Cancella i campi
   foreach (array_keys($bundles_fields) as $field_name)
     field_delete_field($field_name);
   //Cancella le istanze dei campi
-  foreach ($field_instances as $instance)
-    field_delete_instance($instance);
+  foreach ($bundles_instances as $bundle)
+    foreach($bundle as $instance)
+      field_delete_instance($instance);
   // Elimino il link aggiunto allo shortcut di default
-  menu_link_delete(NULL, SHORTCUT_DEFAULT_PATH);
+  menu_link_delete(NULL, $ontology_add_shortcut_link['link_path']);
 }
 
 /**

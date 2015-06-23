@@ -80,7 +80,6 @@ function ontology_documentation_entity_info() {
    'fieldable' => TRUE,
    'entity keys' => array(
      'id' => 'odid',
-     'name' => 'title',
      'revision' => 'rodid',
      'bundle' => 'category',
      'label' => 'title',

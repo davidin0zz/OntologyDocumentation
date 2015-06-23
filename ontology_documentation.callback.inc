@@ -18,12 +18,22 @@ function ontology_documentation_attribute_create() {
 
 function ontology_documentation_term_view($entity) {
   drupal_set_title($entity->title);
+  drupal_add_library('system', 'drupal.collapse');
   return entity_view(ENTITY_TYPE, array($entity));
 }
 
 function ontology_documentation_term_edit($entity) {
   drupal_set_title($entity->title);
-  return 'In EDIT';
+  drupal_add_library('system', 'drupal.collapse');
+  $fieldset = array(
+    '#type' => 'fieldset',
+    '#title' => 'prova',
+    '#children' => '<ul><li>primo</li><li>secondo</li></ul>',
+    '#attributes' => array(
+        'class' => array('collapsible', 'collapsed'),
+    ),
+  );
+  return drupal_render($fieldset);
 }
 
 function ontology_documentation_config_form($form, &$form_state) {
@@ -145,8 +155,72 @@ function ontology_documentation_access($op, $entity, $account, $entity_type) {
     return FALSE;
 }
 
-function ontology_documentation_mastro_get_data($operation, $parameters = NULL) {
-  $wsdl = &drupal_static(__FUNCTION__);
+function ontology_documentation_mastro_get_data($operation = NULL, $parameters = NULL, $field = NULL, $bundle = NULL) {
+  $mastro_functions_per_ontology_field = &drupal_static('functions' . __FUNCTION__, array());
+  $wsdl = &drupal_static('wsdl' . __FUNCTION__);
+
+  if(empty($mastro_functions_per_ontology_field)) {
+    $mastro_functions_per_ontology_field = array(
+      'occorrenza' => array(
+        'concept' => array(
+           'associatives' => array('concept'),
+           'operation' => 'getConceptGraphMLLinks',
+        ),
+        'role' => array(
+          'associatives' => array('role'),
+          'operation' => 'getRoleGraphMLLinks',
+        ),
+        'attribute' => array(
+          'associatives' => array('attribute'),
+          'operation' => 'getAttributeGraphMLLinks',
+        ),
+      ),
+      'specializzazioni' => array(
+        'concept' => array(
+          'associatives' => array('conceptName', 'renderingMode'),
+          'operation' => 'getAssertedSubAtomicConcepts',
+        ),
+        'role' => array(
+          'associatives' => array('roleName', 'renderingMode'),
+          'operation' => 'getAssertedSubAtomicRoles',
+        ),
+      ),
+      'generalizzazioni' => array(
+        'concept' => array(
+          'associatives' => array('conceptName', 'renderingMode'),
+          'operation' => 'getAssertedSuperAtomicConcepts',
+        ),
+        'role' => array(
+          'associatives' => array('roleName', 'renderingMode'),
+          'operation' => 'getAssertedSuperAtomicRoles',
+        ),
+      ),
+      'attributi_obbligatori' => array(
+        'concept' => array(
+          'associatives' => array('conceptName'),
+          'operation' => 'getRelevantMandatoryAttributes',
+        ),
+      ),
+      'attributi_non_obbligatori' => array(
+        'concept' => array(
+          'associatives' => array('conceptName'),
+          'operation' => 'getRelevantOptionalAttributes',
+        ),
+      ),
+      'ruoli_obbligatori' => array(
+        'concept' => array(
+          'associatives' => array('conceptName'),
+          'operation' => 'getRelevantMandatoryRoles',
+        ),
+      ),
+      'ruoli_non_obbligatori' => array(
+        'concept' => array(
+          'associatives' => array('conceptName'),
+          'operation' => 'getRelevantOptionalRoles',
+        ),
+      ),
+    );
+  }
   if(!isset($wsdl)) {
     $wsdl = array(
         'url' => variable_get('ws_url'),
@@ -158,10 +232,27 @@ function ontology_documentation_mastro_get_data($operation, $parameters = NULL) 
     $wsdl['soap'] = new SoapClient($wsdl['url'], $wsdl['options']);
   }
 
-  if(!isset($parameters))
-    return call_user_func(array($wsdl['soap'], $operation))->return;
+  if(!isset($field) && !isset($bundle) && isset($operation)) {
+    if(!isset($parameters))
+      return call_user_func(array($wsdl['soap'], $operation))->return;
+    else
+      return call_user_func_array(array($wsdl['soap'], $operation), array($parameters))->return;
+  }
+  elseif(isset($field) && isset($bundle) && !isset($operation)) {
+    if(!isset($parameters)) {
+      $mastro_operation = $mastro_functions_per_ontology_field[$field][$bundle]['operation'];
+      return call_user_func(array($wsdl['soap'], $mastro_operation))->return;
+    }
+    else {
+      $operation = $mastro_functions_per_ontology_field[$field][$bundle]['operation'];
+      $array_keys = $mastro_functions_per_ontology_field[$field][$bundle]['associatives'];
+      $array_parameters = $parameters;
+      $parameters = array_combine($array_keys, $array_parameters);
+      return call_user_func_array(array($wsdl['soap'], $operation), array($parameters))->return;
+    }
+  }
   else
-    call_user_func_array(array($wsdl['soap'], $operation), $parameters)->return;
+    throw new Exception('ontology_documentation_mastro_get_data(): Improper use!');
 }
 
 function  ontology_documentation_save(&$wrapper) {
@@ -182,7 +273,6 @@ function ontology_documentation_get_wiki_term_description($term) {
     $entity_field_query = new EntityFieldQuery();
   }
 
-  dpm($search_info);
   //Azzero le precedenti condizioni
   $entity_field_query->propertyConditions = array();
   // Cerco l'id del nodo del wiki dell'omonimo termine
@@ -249,33 +339,59 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
   $entity_type = $wrapper->type();
   $bundle = $wrapper->getBundle();
   $term = $wrapper->value()->title;
+  $graph_viewer = 'graphml-viewer';
 
   // Definisco la struttura dell'etichetta uguale per tutti i campi
-  $label = array('label_content' => array('#type' => 'html_tag','#tag' => 'h2','#value' => '',));
+  $label = array('label_content' => array('#type' => 'html_tag','#tag' => 'h2','#value' => ucwords($field_name)));
 
   switch($field_name) {
     case 'categoria':
-      $label['label_content']['#value'] = ucwords($field_name);
       $content_field = array('link' => array('#type' => 'link','#title' => '','#href' => '',));
       $content_field['link']['#title'] = $bundle . 's';
       $content_field['link']['#href'] = DOCUMENTATION_BASE_URL . '/' . $bundle . 's';
+      $render = array_merge($label, $content_field);
       $wrapper->$field_name->format->set($text_format);
-      $wrapper->$field_name->value->set(drupal_render(array_merge($label, $content_field)));
+      $wrapper->$field_name->value->set(drupal_render($render));
       break;
     case 'descrizione':
-      $label['label_content']['#value'] = ucwords($field_name);
-      $content_field = array('field_content' => array('#type' => 'html_tag','#tag' => 'em','#value' => '',));
+      $description_content = array('description_content' => array('#type' => 'html_tag','#tag' => 'em','#value' => '',));
       $description = ontology_documentation_get_wiki_term_description($term);
-      $content_field['field_content']['#value'] = $description;
+      $description_content['description_content']['#value'] = $description;
+      $content = array_merge($label, $description_content);
       $wrapper->$field_name->format->set($text_format);
-      $wrapper->$field_name->value->set(drupal_render(array_merge($label, $content_field)));
+      $wrapper->$field_name->value->set(drupal_render($content));
       break;
     case 'occorrenza':
-
-      break;
-    case 'etichetta':
+      $links['#theme'] = 'fieldset';
+      $links['#title'] = t('Occorrenze nei diagrammi');
+      $links['#children']['#theme'] = 'item_list';
+      $links['#children']['#items'] = '';
+      $links['#children']['#type'] = 'ul';
+      $links['#attributes']['class'][] = 'collapsible';
+      $links['#attributes']['class'][] = 'collapsed';
+      $operation = 'get' . ucwords($bundle) . 'GraphMLLinks';
+      $diagram_links = ontology_documentation_mastro_get_data(NULL, array($term), $field_name, $bundle);
+      if(is_array($diagram_links)) {
+        foreach($diagram_links as $index => $diagram_link) {
+          $text = explode('.', $diagram_link);
+          //$graphml_link = l(current(array_slice($text, 0, 1)) . ':' . $index + 1, $graph_viewer . '/' . $diagram_link) ;
+          $graphml_link = l($text[0] . ':' . $index + 1, $graph_viewer . '/' . $diagram_link) ;
+          $links['#children']['#items'][] = $graphml_link;
+        }
+      }
+      else {
+        $text = explode('.', $diagram_links);
+        //$graphml_link = l(current(array_slice($text, 0, 1)) . ':1',$graph_viewer . '/' . $diagram_links);
+        $graphml_link = l($text[0] . ':1',$graph_viewer . '/' . $diagram_links);
+        $links['#children']['#items'][] = $graphml_link;
+      }
+      $links['#children'] = drupal_render($links['#children']);
+      $wrapper->$field_name->format->set($text_format);
+      $wrapper->$field_name->value->set(drupal_render($links));
       break;
     case 'specializzazioni':
+      //$specializations = ontology_documentation_mastro_get_data(NULL, NULL, $field_name, $bundle);
+      //dpm($specializations);
       break;
     case 'generalizzazioni':
       break;

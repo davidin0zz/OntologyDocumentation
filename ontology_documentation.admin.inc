@@ -51,6 +51,15 @@ function ontology_documentation_type_form($form, &$form_state, $entity_type, $op
   return $form;
 }
 
+function ontology_documentation_form($form, &$form_state, $entity_type, $op) {
+  $form['button'] = array(
+    '#type' => 'button',
+    '#value' => 'Working progress',
+  );
+
+  return $form;
+}
+
 function ontology_documentation_type_form_submit($form, &$form_state) {
   $entity_type = entity_ui_form_submit_build_entity($form, $form_state);
   dpm($entity_type);
