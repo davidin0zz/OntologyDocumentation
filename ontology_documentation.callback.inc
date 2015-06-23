@@ -364,7 +364,7 @@ function ontology_documentation_create_terms_page($type) {
           // Itero sui campi da assegnare
           foreach($fields as $field){
             // Configuro i campi
-            ontology_documentation_setup_field($field['field_name'], 'full_html', $entity_wrapper);
+            ontology_documentation_setup_field($field['field_name'], 'wiki_text', $entity_wrapper);
           }
           // Salvo la pagina
           ontology_documentation_save($entity_wrapper);
@@ -465,10 +465,17 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       $list['typing_content']['#theme'] = 'item_list';
       $list['typing_content']['#items'] = '';
       $list['typing_content']['#type'] = 'ul';
-      $domains = ontology_documentation_mastro_get_data(NULL, array($term), $field_name.'_domain', $bundle);
-      dpm($domains);
+      $domain = 'Dominio: ' .
+          ontology_documentation_mastro_get_data(NULL, array($term), $field_name.'_domain', $bundle);
+      $list['typing_content']['#items'][] = $domain;
+      $range = 'Codominio: ' .
+          ontology_documentation_mastro_get_data(NULL, array($term), $field_name.'_range', $bundle);
+      $list['typing_content']['#items'][] = $range;
+      $content = array_merge($label, $list);
+      $wrapper->$field_name->value->set(drupal_render($content));
       break;
     case 'attributi_obbligatori':
+      dpm(ontology_documentation_mastro_get_data(NULL, array($term), $field_name, $bundle));
       break;
     case 'attributi_non_obbligatori':
       break;
