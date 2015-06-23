@@ -155,7 +155,7 @@ function ontology_documentation_access($op, $entity, $account, $entity_type) {
     return FALSE;
 }
 
-function ontology_documentation_mastro_get_data($operation = NULL, $parameters = NULL, $field = NULL, $bundle = NULL) {
+function ontology_documentation_mastro_get_data($operation = NULL, $parameters = array(), $field = NULL, $bundle = NULL) {
   $mastro_functions_per_ontology_field = &drupal_static('functions' . __FUNCTION__, array());
   $wsdl = &drupal_static('wsdl' . __FUNCTION__);
 
@@ -252,27 +252,17 @@ function ontology_documentation_mastro_get_data($operation = NULL, $parameters =
     $wsdl['soap'] = new SoapClient($wsdl['url'], $wsdl['options']);
   }
 
-  if(!isset($field) && !isset($bundle) && isset($operation)) {
-    if(!isset($parameters))
-      return call_user_func(array($wsdl['soap'], $operation))->return;
-    else
-      return call_user_func_array(array($wsdl['soap'], $operation), array($parameters))->return;
+  $operation = isset($field) && isset($bundle) ? $mastro_functions_per_ontology_field[$field][$bundle]['operation'] : $operation;
+  $array_keys = isset($field) && isset($bundle) ? $mastro_functions_per_ontology_field[$field][$bundle]['keys'] : range(0,100);
+  if(count($array_keys) == count($parameters)) {
+    $parameters = array(array_combine($array_keys, $parameters));
   }
-  elseif(isset($field) && isset($bundle) && !isset($operation)) {
-    if(!isset($parameters)) {
-      $mastro_operation = $mastro_functions_per_ontology_field[$field][$bundle]['operation'];
-      return call_user_func(array($wsdl['soap'], $mastro_operation))->return;
-    }
-    else {
-      $operation = $mastro_functions_per_ontology_field[$field][$bundle]['operation'];
-      $array_keys = $mastro_functions_per_ontology_field[$field][$bundle]['keys'];
-      $parameters = array_combine($array_keys, $parameters);
-      $result = call_user_func_array(array($wsdl['soap'], $operation), array($parameters));
-      return property_exists($result, 'return') ? $result->return : array();
-    }
+  $parameters = is_array(current($parameters)) ? $parameters : array($parameters);
+  $result = call_user_func_array(array($wsdl['soap'], $operation), $parameters);
+  if(property_exists($result, 'return')) {
+    return is_array($result->return) ? $result->return : array($result->return);
   }
-  else
-    throw new Exception('ontology_documentation_mastro_get_data(): Improper use!');
+  return array();
 }
 
 function  ontology_documentation_save(&$wrapper) {
@@ -417,18 +407,10 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       $links['#attributes']['class'][] = 'collapsed';
       $operation = 'get' . ucwords($bundle) . 'GraphMLLinks';
       $diagram_links = ontology_documentation_mastro_get_data(NULL, array($term), $field_name, $bundle);
-      if(is_array($diagram_links)) {
-        foreach($diagram_links as $index => $diagram_link) {
-          $text = explode('.', $diagram_link);
-          //$graphml_link = l(current(array_slice($text, 0, 1)) . ':' . $index + 1, $graph_viewer . '/' . $diagram_link) ;
-          $graphml_link = l($text[0].':'.$index + 1, $graph_viewer."/$diagram_link");
-          $links['#children']['#items'][] = $graphml_link;
-        }
-      }
-      else {
-        $text = explode('.', $diagram_links);
-        //$graphml_link = l(current(array_slice($text, 0, 1)) . ':1',$graph_viewer . '/' . $diagram_links);
-        $graphml_link = l($text[0] . ':1',$graph_viewer."/$diagram_links");
+      foreach($diagram_links as $index => $diagram_link) {
+        $text = explode('.', $diagram_link);
+        //$graphml_link = l(current(array_slice($text, 0, 1)) . ':' . $index + 1, $graph_viewer . '/' . $diagram_link) ;
+        $graphml_link = l($text[0].': '.($index + 1), $graph_viewer.'/'.$diagram_link);
         $links['#children']['#items'][] = $graphml_link;
       }
       $links['#children'] = drupal_render($links['#children']);
@@ -441,14 +423,9 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       $list['specializations_content']['#type'] = 'ul';
       $specializations = ontology_documentation_mastro_get_data(NULL, array($term, 'FUNCTIONAL_STYLE_SYNTAX'), $field_name, $bundle);
       if(!empty($specializations)) {
-        if(is_array($specializations)) {
           foreach($specializations as $item) {
-            $list['specializations_content']['#items'][] = l($item, DOCUMENTATION_BASE_URL."/$bundle/$item");
+            $list['specializations_content']['#items'][] = l($item, DOCUMENTATION_BASE_URL.'/'.$bundle.'/'.$item);
           }
-        }
-        else {
-          $list['specializations_content']['#items'][] = l($specializations, DOCUMENTATION_BASE_URL."/$bundle/$specializations");
-        }
       }
       else {
         $message['specializations_content']['#type'] = 'html_tag';
@@ -465,11 +442,11 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       $list['typing_content']['#theme'] = 'item_list';
       $list['typing_content']['#items'] = '';
       $list['typing_content']['#type'] = 'ul';
-      $domain = 'Dominio: ' .
-          ontology_documentation_mastro_get_data(NULL, array($term), $field_name.'_domain', $bundle);
+      list($domain) = ontology_documentation_mastro_get_data(NULL, array($term), $field_name.'_domain', $bundle);
+      $domain = 'Dominio :' . $domain;
       $list['typing_content']['#items'][] = $domain;
-      $range = 'Codominio: ' .
-          ontology_documentation_mastro_get_data(NULL, array($term), $field_name.'_range', $bundle);
+      list($range) = ontology_documentation_mastro_get_data(NULL, array($term), $field_name.'_range', $bundle);
+      $range = 'Codominio :' . $range;
       $list['typing_content']['#items'][] = $range;
       $content = array_merge($label, $list);
       $wrapper->$field_name->value->set(drupal_render($content));
