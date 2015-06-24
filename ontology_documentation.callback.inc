@@ -239,6 +239,20 @@ function ontology_documentation_mastro_get_data($operation = NULL, $parameters =
           'operation' => 'getRelevantOptionalRoles',
         ),
       ),
+     'assiomi' => array(
+       'concept' => array(
+         'keys' => array('conceptName', 'axiomType', 'format'),
+         'operation' => 'getMastroAxiomsByConcept',
+       ),
+       'role' => array(
+         'keys' => array('roleName', 'axiomType', 'format'),
+         'operation' => 'getMastroAxiomsByRole',
+       ),
+       'attribute' => array(
+         'keys' => array('attributeName', 'axiomType', 'format'),
+         'operation'=> 'getMastroAxiomsByAttribute',
+       ),
+     ),
     );
   }
   if(!isset($wsdl)) {
@@ -390,6 +404,18 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
   $term = $wrapper->value()->title;
   $graph_viewer = 'graphml-viewer';
 
+  // Positive inclusions axiomType => 0
+  // Negative inclusions axiomType => 1
+  // Denial assertions axiomType => 4
+  // Functiona and ID constraints axiomType => 2 and axiomType => 3
+  // Epistemic constraints axiomType => 5
+  $axiom_type = array(
+    'positive_inclusions' => array(0),
+    'negative_inclusions' => array(1),
+    'denial_assertions' => array(4),
+    'functional_and_id_contraints' => array(2, 3),
+    'epistemic_constraints' => array(5),
+  );
   $field_data = array(
     'label' => array(
       '#theme' => 'html_tag',
@@ -420,10 +446,55 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       '#theme' => 'fieldset',
       '#title' => '',
       '#children' => array(
-        '#theme' => 'item_list',
-        '#items' => array(),
-        '#type' => 'ul',
-        '#pre_render' => array('ontology_documentation_item_list_child_render'),
+        'occurrences' => array(
+          '#theme' => 'item_list',
+          '#items' => array(),
+          '#type' => 'ul',
+          '#printed' => true,
+          '#pre_render' => array('ontology_documentation_item_list_child_render'),
+        ),
+        'axioms' => array(
+          'positive_inclusions' => array(
+            '#theme' => 'item_list',
+            '#items' => array(),
+            '#title' => t('Positive inclusions'),
+            '#type' => 'ul',
+            '#printed' => true,
+            '#pre_render' => array('ontology_documentation_item_list_child_render'),
+          ),
+          'negative_inclusions' => array(
+            '#theme' => 'item_list',
+            '#items' => array(),
+            '#title' => t('Negative inclusions'),
+            '#type' => 'ul',
+            '#printed' => true,
+            '#pre_render' => array('ontology_documentation_item_list_child_render'),
+          ),
+          'denial_assertions' => array(
+            '#theme' => 'item_list',
+            '#items' => array(),
+            '#title' => t('Denial assertions'),
+            '#type' => 'ul',
+            '#printed' => true,
+            '#pre_render' => array('ontology_documentation_item_list_child_render'),
+           ),
+          'functional_and_id_contraints' => array(
+            '#theme' => 'item_list',
+            '#items' => array(),
+            '#title' => t('Functional and ID constraints'),
+            '#type' => 'ul',
+            '#printed' => true,
+            '#pre_render' => array('ontology_documentation_item_list_child_render'),
+          ),
+          'epistemic_constraints' => array(
+            '#theme' => 'item_list',
+            '#items' => array(),
+            '#title' => t('Epistemic constraints'),
+            '#type' => 'ul',
+            '#printed' => true,
+            '#pre_render' => array('ontology_documentation_item_list_child_render'),
+          ),
+        ),
       ),
       '#attributes' => array(
         'class' => array(
@@ -435,7 +506,6 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       '#pre_render' => array('ontology_documentation_fieldset_child_reder'),
     ),
   );
-
 
   // Imposto il tipo di formato del testo
   $wrapper->$field_name->format->set($text_format);
@@ -456,6 +526,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       break;
     case 'occorrenza':
       $field_data['fieldset_box']['#printed'] = false;
+      $field_data['fieldset_box']['#children']['occurrences']['#printed'] = false;
       $field_data['page_link']['#printed'] = false;
       $field_data['fieldset_box']['#title'] = t('Occorrenze nei diagrammi');
       $diagram_links = ontology_documentation_mastro_get_data(NULL, array($term), $field_name, $bundle);
@@ -463,7 +534,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
         $text = explode('.', $diagram_link);
         $field_data['page_link']['#title'] = current(array_slice($text, 0, 1)).': '.($index + 1);
         $field_data['page_link']['#href'] = $graph_viewer.'/'.$diagram_link;
-        $field_data['fieldset_box']['#children']['#items'][$index] = array('data'=> $field_data['page_link']);
+        $field_data['fieldset_box']['#children']['occurrences']['#items'][$index] = array('data'=> $field_data['page_link']);
       }
       $field_data['page_link']['#printed'] = true;
       $wrapper->$field_name->value->set(drupal_render($field_data));
@@ -528,7 +599,24 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       $wrapper->$field_name->value->set(drupal_render($field_data));
       break;
     case 'assiomi':
-
+      $field_data['fieldset_box']['#printed'] = false;
+      $field_data['fieldset_box']['#title'] = t('Axioms');
+      $field_data['fieldset_box']['#children']['axioms']['positive_inclusions']['#printed'] = false;
+      $field_data['fieldset_box']['#children']['axioms']['negative_inclusions']['#printed'] = false;
+      $field_data['fieldset_box']['#children']['axioms']['denial_assertions']['#printed'] = false;
+      $field_data['fieldset_box']['#children']['axioms']['functional_and_id_contraints']['#printed'] = false;
+      $field_data['fieldset_box']['#children']['axioms']['epistemic_constraints']['#printed'] = false;
+      foreach($field_data['fieldset_box']['#children']['axioms'] as $axiom_type_key => $axiom) {
+        foreach($axiom_type[$axiom_type_key] as $axiom_type_integer) {
+          $axioms_result = ontology_documentation_mastro_get_data(NULL, array($term, $axiom_type_integer, false), $field_name, $bundle);
+          if(!empty($axioms_result)) {
+            foreach($axioms_result as $axiom_result) {
+              $field_data['fieldset_box']['#children']['axioms'][$axiom_type_key]['#items'][] = $axiom_result;
+            }
+          }
+        }
+      }
+      $wrapper->$field_name->value->set(drupal_render($field_data));
       break;
     case 'link_obda':
       break;
