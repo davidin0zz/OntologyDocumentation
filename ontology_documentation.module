@@ -90,7 +90,7 @@ function ontology_documentation_entity_info() {
    'bundles' => array(),
    'view modes' => array(
      'full' => array(
-       'label' => t('Full content'),
+       'label' => t('Full Content'),
        'custom settings' => FALSE,
      ),
    ),

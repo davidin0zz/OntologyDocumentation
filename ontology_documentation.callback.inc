@@ -24,16 +24,16 @@ function ontology_documentation_term_view($entity) {
 
 function ontology_documentation_term_edit($entity) {
   drupal_set_title($entity->title);
-  drupal_add_library('system', 'drupal.collapse');
-  $fieldset = array(
-    '#type' => 'fieldset',
-    '#title' => 'prova',
-    '#children' => '<ul><li>primo</li><li>secondo</li></ul>',
-    '#attributes' => array(
-        'class' => array('collapsible', 'collapsed'),
-    ),
+  $link = array(
+    array(
+      'data' => array(
+        '#type' => 'link',
+        '#title' => 'prova',
+        '#href' => 'http://exmample.org',
+      ),
+    )
   );
-  return drupal_render($fieldset);
+  return drupal_render($link);
 }
 
 function ontology_documentation_config_form($form, &$form_state) {
@@ -110,7 +110,7 @@ function ontology_documentation_create($mode) {
       try {
         ontology_documentation_create_terms_page('Concepts');
         ontology_documentation_create_terms_page('Roles');
-        //ontology_documentation_create_attributess_page(array('title'=>'', 'category' => 'attribute'));
+        ontology_documentation_create_terms_page('Attributes');
       }
       catch(Exception $e) {
         drupal_set_message($e->getMessage(), 'error');
@@ -366,6 +366,23 @@ function ontology_documentation_create_terms_page($type) {
   }
 }
 
+function ontology_documentation_item_list_child_render($render_element) {
+  foreach($render_element['#items'] as $key => $content) {
+    if(isset($render_element['#items'][$key]['data'])) {
+      $render_element['#items'][$key]['data'] = drupal_render($render_element['#items'][$key]['data']);
+    }
+  }
+  return $render_element;
+}
+
+function ontology_documentation_fieldset_child_reder($render_element) {
+  if(isset($render_element['#children'])) {
+    $render_element['#children'] = drupal_render($render_element['#children']);
+    return $render_element;
+  }
+  return $render_element;
+}
+
 function ontology_documentation_setup_field($field_name, $text_format = 'plain_text', &$wrapper) {
   // Definisco variabili utili
   $entity_type = $wrapper->type();
@@ -373,94 +390,145 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
   $term = $wrapper->value()->title;
   $graph_viewer = 'graphml-viewer';
 
-  // Definisco la struttura dell'etichetta uguale per tutti i campi
-  $label['label_content']['#theme'] = 'html_tag';
-  $label['label_content']['#tag'] = 'h2';
-  $label['label_content']['#value'] = ucwords($field_name);
+  $field_data = array(
+    'label' => array(
+      '#theme' => 'html_tag',
+      '#tag' => 'h2',
+      '#value' => ucwords(str_replace('_', ' ', $field_name)),
+      '#printed' => true,
+    ),
+    'page_link' =>array(
+      '#type' => 'link',
+      '#title' => '',
+      '#href' => '',
+      '#printed' => true,
+    ),
+    'item_list' => array(
+      '#theme' => 'item_list',
+      '#items' => array(),
+      '#type' => 'ul',
+      '#pre_render' => array('ontology_documentation_item_list_child_render'),
+      '#printed' => true,
+    ),
+    'description' => array(
+      '#type' => 'html_tag',
+      '#tag' => 'p',
+      '#value' => '',
+      '#printed' => true,
+    ),
+    'fieldset_box' => array(
+      '#theme' => 'fieldset',
+      '#title' => '',
+      '#children' => array(
+        '#theme' => 'item_list',
+        '#items' => array(),
+        '#type' => 'ul',
+        '#pre_render' => array('ontology_documentation_item_list_child_render'),
+      ),
+      '#attributes' => array(
+        'class' => array(
+          'collapsible',
+          'collapsed',
+        ),
+      ),
+      '#printed' => true,
+      '#pre_render' => array('ontology_documentation_fieldset_child_reder'),
+    ),
+  );
+
+
   // Imposto il tipo di formato del testo
   $wrapper->$field_name->format->set($text_format);
 
   switch($field_name) {
     case 'categoria':
-      $content_field['link']['#type'] = 'link';
-      $content_field['link']['#title'] = $bundle . 's';
-      $content_field['link']['#href'] = DOCUMENTATION_BASE_URL . "/${bundle}s";
-      $render = array_merge($label, $content_field);
-      $wrapper->$field_name->value->set(drupal_render($render));
+      $field_data['label']['#printed'] = false;
+      $field_data['page_link']['#printed'] = false;
+      $field_data['page_link']['#title'] = $bundle.'s';
+      $field_data['page_link']['#href'] = DOCUMENTATION_BASE_URL.'/'.$bundle.'s';
+      $wrapper->$field_name->value->set(drupal_render($field_data));
       break;
     case 'descrizione':
-      $description_content['description_content']['#type'] = 'html_tag';
-      $description_content['description_content']['#tag'] = 'em';
-      $description_content['description_content']['#value'] = '';
-      $description = ontology_documentation_get_wiki_term_description($term);
-      $description_content['description_content']['#value'] = $description;
-      $content = array_merge($label, $description_content);
-      $wrapper->$field_name->value->set(drupal_render($content));
+      $field_data['label']['#printed'] = false;
+      $field_data['description']['#printed'] = false;
+      $field_data['description']['#value'] = ontology_documentation_get_wiki_term_description($term);
+      $wrapper->$field_name->value->set(drupal_render($field_data));
       break;
     case 'occorrenza':
-      $links['#theme'] = 'fieldset';
-      $links['#title'] = t('Occorrenze nei diagrammi');
-      $links['#children']['#theme'] = 'item_list';
-      $links['#children']['#items'] = '';
-      $links['#children']['#type'] = 'ul';
-      $links['#attributes']['class'][] = 'collapsible';
-      $links['#attributes']['class'][] = 'collapsed';
-      $operation = 'get' . ucwords($bundle) . 'GraphMLLinks';
+      $field_data['fieldset_box']['#printed'] = false;
+      $field_data['page_link']['#printed'] = false;
+      $field_data['fieldset_box']['#title'] = t('Occorrenze nei diagrammi');
       $diagram_links = ontology_documentation_mastro_get_data(NULL, array($term), $field_name, $bundle);
       foreach($diagram_links as $index => $diagram_link) {
         $text = explode('.', $diagram_link);
-        //$graphml_link = l(current(array_slice($text, 0, 1)) . ':' . $index + 1, $graph_viewer . '/' . $diagram_link) ;
-        $graphml_link = l($text[0].': '.($index + 1), $graph_viewer.'/'.$diagram_link);
-        $links['#children']['#items'][] = $graphml_link;
+        $field_data['page_link']['#title'] = current(array_slice($text, 0, 1)).': '.($index + 1);
+        $field_data['page_link']['#href'] = $graph_viewer.'/'.$diagram_link;
+        $field_data['fieldset_box']['#children']['#items'][$index] = array('data'=> $field_data['page_link']);
       }
-      $links['#children'] = drupal_render($links['#children']);
-      $wrapper->$field_name->value->set(drupal_render($links));
+      $field_data['page_link']['#printed'] = true;
+      $wrapper->$field_name->value->set(drupal_render($field_data));
       break;
     // 'generalizzazioni' esegue lo stesso setup di 'specializzazioni'
     case 'generalizzazioni':
     case 'specializzazioni':
-      $list['specializations_content']['#theme'] = 'item_list';
-      $list['specializations_content']['#type'] = 'ul';
+      $field_data['label']['#printed'] = false;
       $specializations = ontology_documentation_mastro_get_data(NULL, array($term, 'FUNCTIONAL_STYLE_SYNTAX'), $field_name, $bundle);
       if(!empty($specializations)) {
-          foreach($specializations as $item) {
-            $list['specializations_content']['#items'][] = l($item, DOCUMENTATION_BASE_URL.'/'.$bundle.'/'.$item);
-          }
+        $field_data['item_list']['#printed'] = false;
+        $field_data['page_link']['#printed'] = false;
+        foreach($specializations as $index => $item) {
+          $field_data['page_link']['#title'] = $item;
+          $field_data['page_link']['#href'] = DOCUMENTATION_BASE_URL.'/'.$bundle.'/'.str_replace('_', '-', $item);
+          $field_data['item_list']['#items'][$index] = array('data' => $field_data['page_link']);
+        }
+        $field_data['page_link']['#printed'] = true;
       }
       else {
-        $message['specializations_content']['#type'] = 'html_tag';
-        $message['specializations_content']['#tag'] = 'p';
-        $message['specializations_content']['#value'] = 'Non sono definite specializzazioni per questo ' . $bundle;
-        $content = array_merge($label, $message);
-        $wrapper->$field_name->value->set(drupal_render($content));
-        break;
+        $field_data['description']['#printed'] = false;
+        $field_data['description']['#value'] = 'Non sono definite specializzazioni per questo ' . $bundle;
       }
-      $content = array_merge($label, $list);
-      $wrapper->$field_name->value->set(drupal_render($content));
+      $wrapper->$field_name->value->set(drupal_render($field_data));
       break;
     case 'tipizzazione':
-      $list['typing_content']['#theme'] = 'item_list';
-      $list['typing_content']['#items'] = '';
-      $list['typing_content']['#type'] = 'ul';
-      list($domain) = ontology_documentation_mastro_get_data(NULL, array($term), $field_name.'_domain', $bundle);
-      $domain = 'Dominio :' . $domain;
-      $list['typing_content']['#items'][] = $domain;
-      list($range) = ontology_documentation_mastro_get_data(NULL, array($term), $field_name.'_range', $bundle);
-      $range = 'Codominio :' . $range;
-      $list['typing_content']['#items'][] = $range;
-      $content = array_merge($label, $list);
-      $wrapper->$field_name->value->set(drupal_render($content));
+      $field_data['label']['#printed'] = false;
+      $field_data['item_list']['#printed'] = false;
+      $domain = ontology_documentation_mastro_get_data(NULL, array($term), $field_name.'_domain', $bundle);
+      $domain = !empty($domain) ? 'Dominio: '.current($domain).'<p></p>' : 'Dominio: non tipizzato';
+      $field_data['item_list']['#items'][] = $domain;
+      $range = ontology_documentation_mastro_get_data(NULL, array($term), $field_name.'_range', $bundle);
+      $range = !empty($range) ? 'Codominio: '.current($range) : 'Codominio: non tipizzato';
+      $field_data['item_list']['#items'][] = $range;
+      $wrapper->$field_name->value->set(drupal_render($field_data));
       break;
-    case 'attributi_obbligatori':
-      dpm(ontology_documentation_mastro_get_data(NULL, array($term), $field_name, $bundle));
-      break;
-    case 'attributi_non_obbligatori':
-      break;
-    case 'ruoli_obbligatori':
-      break;
+    // Per entrampi i campi è definito lo stesso setup
     case 'ruoli_non_obbligatori':
+    case 'ruoli_obbligatori':
+    case 'attributi_non_obbligatori':
+    case 'attributi_obbligatori':
+      $field_data['label']['#printed'] = false;
+      $current_field_type = current(array_slice(explode('_', $field_name), 0,1));
+      $current_field_bundle = !strcmp($current_field_type, 'attributi') ? 'attribute' : 'role';
+      $mandatory_attributes = ontology_documentation_mastro_get_data(NULL, array($term), $field_name, $bundle);
+      if(!empty($mandatory_attributes)) {
+        $field_data['item_list']['#printed'] = false;
+        $field_data['page_link']['#printed'] = false;
+        foreach($mandatory_attributes as $index => $attribute) {
+          $field_data['page_link']['#title'] = $attribute;
+          $field_data['page_link']['#href'] = DOCUMENTATION_BASE_URL.'/'.$current_field_bundle.'/'.str_replace('_', '-', $attribute);
+          $field_data['item_list']['#items'][$index] = array('data' => $field_data['page_link']);
+        }
+        $field_data['page_link']['#printed'] = true;
+      }
+      else {
+        $field_data['description']['#printed'] = false;
+        $field_data['description']['#value'] = array_search('non', explode('_', $field_name)) === false ?
+          'Non sono definiti '.$current_field_type.' rilevanti obbligatori per questo concetto' :
+          'Non sono definiti '.$current_field_type.' rilevanti non obbligatori per questo concetto';
+      }
+      $wrapper->$field_name->value->set(drupal_render($field_data));
       break;
     case 'assiomi':
+
       break;
     case 'link_obda':
       break;
