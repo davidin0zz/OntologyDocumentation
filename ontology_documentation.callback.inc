@@ -416,6 +416,11 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
     'functional_and_id_contraints' => array(2, 3),
     'epistemic_constraints' => array(5),
   );
+  $link_obda_type = array(
+    'concept' => 0,
+    'role' => 1,
+    'attribute' => 2,
+  );
   $field_data = array(
     'label' => array(
       '#theme' => 'html_tag',
@@ -446,7 +451,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       '#theme' => 'fieldset',
       '#title' => '',
       '#children' => array(
-        'occurrences' => array(
+        'simple' => array(
           '#theme' => 'item_list',
           '#items' => array(),
           '#type' => 'ul',
@@ -526,7 +531,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       break;
     case 'occorrenza':
       $field_data['fieldset_box']['#printed'] = false;
-      $field_data['fieldset_box']['#children']['occurrences']['#printed'] = false;
+      $field_data['fieldset_box']['#children']['simple']['#printed'] = false;
       $field_data['page_link']['#printed'] = false;
       $field_data['fieldset_box']['#title'] = t('Occorrenze nei diagrammi');
       $diagram_links = ontology_documentation_mastro_get_data(NULL, array($term), $field_name, $bundle);
@@ -534,7 +539,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
         $text = explode('.', $diagram_link);
         $field_data['page_link']['#title'] = current(array_slice($text, 0, 1)).': '.($index + 1);
         $field_data['page_link']['#href'] = $graph_viewer.'/'.$diagram_link;
-        $field_data['fieldset_box']['#children']['occurrences']['#items'][$index] = array('data'=> $field_data['page_link']);
+        $field_data['fieldset_box']['#children']['simple']['#items'][$index] = array('data'=> $field_data['page_link']);
       }
       $field_data['page_link']['#printed'] = true;
       $wrapper->$field_name->value->set(drupal_render($field_data));
@@ -619,8 +624,23 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       $wrapper->$field_name->value->set(drupal_render($field_data));
       break;
     case 'link_obda':
+      $field_data['fieldset_box']['#printed'] = false;
+      $field_data['fieldset_box']['#title'] = t('Links to OBDA Analysis');
+      $field_data['fieldset_box']['#children']['simple']['#printed'] = false;
+      $field_data['page_link']['#printed'] = false;
+      $field_data['page_link']['#title'] = 'Inferred subsumptions of propone_iniziativa';
+      $field_data['page_link']['#href'] = 'intensional-reasoning/'.str_replace('_', '-', $term).'/'.$link_obda_type[$bundle];
+      $field_data['fieldset_box']['#children']['simple']['#items'][] = array('data' => $field_data['page_link']);
+      $field_data['page_link']['#title'] = 'Mappings of '.$term;
+      $field_data['page_link']['#href'] = 'mappings/ontology/'.str_replace('_', '-', $term);
+      $field_data['fieldset_box']['#children']['simple']['#items'][] = array('data' => $field_data['page_link']);
+      $field_data['page_link']['#printed'] = true;
+      $wrapper->$field_name->value->set(drupal_render($field_data));
       break;
     case 'mappings':
+      $field_data['fieldset_box']['#printed'] = false;
+      $field_data['fieldset_box']['#title'] = t('Mappings');
+      $wrapper->$field_name->value->set(drupal_render($field_data));
       break;
   }
 }
