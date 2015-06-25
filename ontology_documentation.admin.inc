@@ -62,11 +62,10 @@ function ontology_documentation_form($form, &$form_state, $entity_type, $op) {
 
 function ontology_documentation_type_form_submit($form, &$form_state) {
   $entity_type = entity_ui_form_submit_build_entity($form, $form_state);
-  dpm($entity_type);
   $entity_type->save();
   drupal_set_message(
-    t('Ontology documentation type: @name has been saved.',
-    array('@name' => $entity_type->name)
+    t('Ontology documentation type: @title has been saved.',
+    array('@title' => $entity_type->title)
   ));
   $form_state['redirect'] = 'admin/structure/ontology-documentation-types';
 }

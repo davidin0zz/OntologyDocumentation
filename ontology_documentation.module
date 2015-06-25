@@ -1,18 +1,13 @@
 <?php
-// Definisco l'url per le pagina della docoumentazione
-define('DOCUMENTATION_BASE_URL', 'ontology-documentation');
+
 // Definisco il tipo di entità da gestire
-define('ENTITY_TYPE', 'ontology_documentation');
-// Definisco il percorso del file di callback
-define('FILE_PATH', drupal_get_path('module', ENTITY_TYPE));
-// Definisco il nome del file di callback
-define('CALLBACK_FILE', ENTITY_TYPE . '.callback.inc');
-// Definisco il nome del file di admin per la UI
-define('ADMIN_FILE', ENTITY_TYPE . '.admin.inc');
-// Include il file con le funzioni di callback ontology_documentation_access().
-require_once DRUPAL_ROOT. '/' . FILE_PATH . '/' . CALLBACK_FILE;
-// Includo il file con il form per la UI di amministrazione
-require_once DRUPAL_ROOT. '/' . FILE_PATH . '/' . ADMIN_FILE;
+define('__documentation_type__', 'ontology_documentation');
+// Definisco l'url per le pagina della docoumentazione
+define('__documentation_base_url__', 'ontology-documentation');
+// Definisco l'url per le pagina di ragionamento
+define('__reasoning_relative_path__', 'intensional-reasoning');
+// Definisco l'url per le pagina dei mappings
+define('__mappings_relative_path__', 'mappings/ontology');
 
 /**
  * Implements hook_help().
@@ -23,12 +18,12 @@ function ontology_documentation_help($path, $arg) {
       $output['header'] = array(
         '#type' => 'html_tag',
         '#tag' => 'h3',
-        '#value' => 'Help support for Tesi module'
+        '#value' => 'Ontology documentation'
       );
       $output['content'] = array(
         '#type' => 'html_tag',
         '#tag' => 'em',
-        '#value' => 'Upgrade our OWL documentation pages',
+        '#value' => 'Upgrade OWL documentation pages',
       );
       break;
   }
@@ -65,6 +60,39 @@ function ontology_documentation_permission() {
   );
 
   return $permission;
+}
+
+//CHIAMATA DA entity_access(), funzione implementata da Entity API
+function ontology_documentation_access($op, $entity, $account, $entity_type) {
+  global $user;
+
+  if(!isset($account)) {
+    $account = $user;
+  }
+  // CONTROLLARE QUI!!
+  if(isset($entity->uid))
+    $entity_owner = $entity->uid;
+  else
+    $entity_owner = FALSE;
+
+  if(!empty($op)) {
+    if($op == 'create')
+      return user_access('administer ontology_documentation entities', $account) ||
+             user_access('create ontology_documentation entities', $account);
+    elseif($op == 'view')
+      return user_access('administer ontology_documentation entities', $account) ||
+             user_access('view ontology_documentation entities', $account);
+    // Per la gestione della UI di amministrazione
+    elseif($op == 'manage' || $op == 'update' || $op == 'delete')
+      return user_access('administer ontology_documentation entities', $account);
+    elseif($op == 'edit')
+      return user_access('administer ontology_documentation entities', $account) ||
+             user_access('edit any ontology_documentation entities', $account)   ||
+             user_access('edit own ontology_documentation entities', $account)   &&
+             $account->uid == $entity_owner && $entity->entityType() == $entity_type;
+  }
+  else
+    return FALSE;
 }
 
 /**
@@ -152,81 +180,95 @@ function ontology_documentation_entity_info_alter(&$entity_info) {
 function ontology_documentation_menu() {
   $items = array();
 
-  $items['admin/config/mastro/ontology-documentation'] = array(
+  $items['admin/config/mastro/'.__documentation_base_url__] = array(
     'title' => 'Ontology Documentation',
     'description' => 'Upgrade OWL documentation pages',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('ontology_documentation_config_form'),
     'access callback' => 'entity_access',
-    'access arguments' => array('edit', ENTITY_TYPE, NULL, NULL),
+    'access arguments' => array('edit', __documentation_type__, NULL, NULL),
     'type' => MENU_NORMAL_ITEM,
     'file' => 'ontology_documentation.callback.inc',
   );
-  $items['ontology-documentation/%/%ontology_documentation'] = array(
+  $items[__documentation_base_url__.'/%/%ontology_documentation'] = array(
     'title' => 'Root',
     'load arguments' => array(0, 1),
     'access callback' => 'entity_access',
-    'access arguments' => array('view', ENTITY_TYPE, 2, NULL),
+    'access arguments' => array('view', __documentation_type__, 2, NULL),
     'page callback' => 'ontology_documentation_term_view',
     'page arguments' => array(2),
     'type' => MENU_CALLBACK,
     'file' => 'ontology_documentation.callback.inc',
   );
-  $items['ontology-documentation/%/%ontology_documentation/view'] = array(
+  $items[__documentation_base_url__.'/%/%ontology_documentation/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'file' => 'ontology_documentation.callback.inc',
     'weight' => -1,
   );
-  $items['ontology-documentation/%/%ontology_documentation/edit'] = array(
+  $items[__documentation_base_url__.'/%/%ontology_documentation/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'ontology_documentation_term_edit',
     'page arguments' => array(2),
     'access callback' => 'entity_access',
-    'access arguments' => array('edit', ENTITY_TYPE, 2, NULL),
+    'access arguments' => array('edit', __documentation_type__, 2, NULL),
     'type' => MENU_LOCAL_TASK,
     'file' => 'ontology_documentation.callback.inc',
   );
-  $items['admin/ontology-documentation/add'] = array(
+
+ /**
+  *
+  * Togliere il commento se si vuole implementare la possibilità
+  * di aggiungere nuova documentazione per un nuovo termine creato a mano.
+  * Le funzioni di callback sono definite nel file ontology_documentation.callback.inc.
+  * Ricordarsi di scommentare anche le parti nel file *.install
+  *
+  **/
+  /*
+  $items['admin/'.__documentation_base_url__.'/add'] = array(
     'title' => 'Add Ontology documentation',
     'page callback' => 'system_admin_menu_block_page',
     'access callback' => 'entity_access',
-    'access arguments' => array('create', ENTITY_TYPE, NULL, NULL),
+    'access arguments' => array('create', __documentation_type__, NULL, NULL),
     'file' => 'system.admin.inc',
     'file path' => drupal_get_path('module', 'system'),
-     'type' => MENU_NORMAL_ITEM,
+    'type' => MENU_NORMAL_ITEM,
   );
-  $items['admin/ontology-documentation/add/concept'] = array(
+  $items['admin/'.__documentation_base_url__.'/add/concept'] = array(
     'title' => 'Add Concept',
     'description' => 'Allow you to create a new OWL concept',
     'page callback' => 'ontology_documentation_concept_create',
     'access callback' => 'entity_access',
-    'access arguments' => array('create', ENTITY_TYPE, NULL, NULL),
+    'access arguments' => array('create', __documentation_type__, NULL, NULL),
     'type' => MENU_NORMAL_ITEM,
+    'file' => 'ontology_documentation.callback.inc',
   );
-  $items['admin/ontology-documentation/add/role'] = array(
+  $items['admin/'.__documentation_base_url__.'/add/role'] = array(
     'title' => 'Add Role',
     'description' => 'Allow you to create a new OWL role',
     'page callback' => 'ontology_documentation_role_create',
     'access callback' => 'entity_access',
-    'access arguments' => array('create', ENTITY_TYPE, NULL, NULL),
+    'access arguments' => array('create', __documentation_type__, NULL, NULL),
     'type' => MENU_NORMAL_ITEM,
+    'file' => 'ontology_documentation.callback.inc',
   );
-  $items['admin/ontology-documentation/add/attribute'] = array(
+  $items['admin/'.__documentation_base_url__.'/add/attribute'] = array(
     'title' => 'Add Attribute',
     'description' => 'Allow you to create a new OWL attribute',
     'page callback' => 'ontology_documentation_attribute_create',
     'access callback' => 'entity_access',
-    'access arguments' => array('create', ENTITY_TYPE, NULL, NULL),
+    'access arguments' => array('create', __documentation_type__, NULL, NULL),
     'type' => MENU_NORMAL_ITEM,
+    'file' => 'ontology_documentation.callback.inc',
   );
+  */
 
   return $items;
 }
 
-// Nascondo il titolo dei campi per ogni campo di tipo 'ENTITY_TYPE'
+// Nascondo il titolo dei campi per ogni campo di tipo '__documentation_type__'
 function ontology_documentation_preprocess_field(&$variables) {
-  if($variables['element']['#entity_type'] == ENTITY_TYPE) {
+  if($variables['element']['#entity_type'] == __documentation_type__) {
     $variables['label_hidden'] = TRUE;
   }
 }

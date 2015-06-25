@@ -1,18 +1,18 @@
 <?php
 
 // Definisco il nome del modulo da includere
-define('MODULE_NAME', 'ontology_documentation');
+define('__module__name', 'ontology_documentation');
 // Definisco il percorso del modulo
-define('MODULE_FILE_PATH', drupal_get_path('module', MODULE_NAME));
+define('__module_file_path__', drupal_get_path('module', __module__name));
 // Definisco il nome del modulo da includere
-define('MODULE_FILE', MODULE_NAME . '.module');
+define('__module_file__', __module__name . '.module');
 // Definisco il path per lo shortcut
-define('SHORTCUT_DEFAULT_PATH', 'admin/ontology-documentation/add');
+define('__shortcut_default_path__', 'admin/ontology-documentation/add');
 // Definisco il titolo per lo shortcut
-define('SHORTCUT_DEFAULT_TITLE', 'Add ontology');
+define('__shortcut_default_title__', 'Add ontology');
 
 // Includo il modulo
-require_once DRUPAL_ROOT. '/' . MODULE_FILE_PATH . '/' . MODULE_FILE;
+require_once DRUPAL_ROOT. '/' . __module_file_path__ . '/' . __module_file__;
 
 
 // Shortcut default object
@@ -22,17 +22,17 @@ $ontology_shortcut_default_set = shortcut_default_set();
 // Aggiungo il link per l'oggetto shortcut di default
 global $ontology_add_shortcut_link;
 $ontology_add_shortcut_link = array(
-  'link_path' => SHORTCUT_DEFAULT_PATH,
-  'link_title' => SHORTCUT_DEFAULT_TITLE,
+  'link_path' => __shortcut_default_path__,
+  'link_title' => __shortcut_default_title__,
 );
 
-//Definisce i bundles da applicare ai campi rilevanti
+// Definisce i bundles da applicare ai campi rilevanti
 $all_bundles = ontology_documentation_get_bundles();
 $role_attribute_bundles = ontology_documentation_get_bundles('WITH_DOMAIN_AND_CODOMAIN');
 $concept_role_bundles = ontology_documentation_get_bundles('WITH_INHERITANCE');
 $concept_bundles = ontology_documentation_get_bundles('WITH_ATTRIBUTES_AND_ROLES');
 
-//Specifica quali bundles posseggono quali campi
+// Specifica quali bundles posseggono quali campi
 global $bundles_fields;
 $bundles_fields = array(
   'categoria' => $all_bundles,
@@ -58,7 +58,7 @@ $ontology_documentation_type_data = array(
   'description' => '',
 );
 
-//Base per l'array del campo
+// Base per l'array del campo
 global  $base_field;
 $base_field = array(
   'field_name' => '',
@@ -67,7 +67,7 @@ $base_field = array(
   'translatable' => 1,
 );
 
-//Base per l'array di istanza del campo
+// Base per l'array di istanza del campo
 global $base_field_instance;
 $base_field_instance = array(
   'field_name' => '',
@@ -126,10 +126,17 @@ function ontology_documentation_enable() {
       field_create_instance($bundle_instance);
     }
   }
-  // SE IL MODULO shortcut NON È GIÀ ABILITATO DÀ ERRORE!!
-  // Aggiungo lo shortcut link "Add ontology"
-  shortcut_admin_add_link($ontology_add_shortcut_link, $ontology_shortcut_default_set);
-  shortcut_set_save($ontology_shortcut_default_set);
+
+
+  /**
+   *
+   * Togliere il commento per aggiungere il menu di aggiunta manuale termini nello shortcut.
+   * SE IL MODULO shortcut NON È GIÀ ABILITATO DÀ ERRORE!!
+   *
+   * */
+   //shortcut_admin_add_link($ontology_add_shortcut_link, $ontology_shortcut_default_set);
+   //shortcut_set_save($ontology_shortcut_default_set);
+
 }
 
 // Cancella i campi creati.
@@ -138,15 +145,22 @@ function ontology_documentation_disable() {
   global $bundles_fields, $ontology_add_shortcut_link;
   $bundles_instances = field_info_instances(ENTITY_TYPE);
 
-  //Cancella i campi
+  // Cancella i campi
   foreach (array_keys($bundles_fields) as $field_name)
     field_delete_field($field_name);
-  //Cancella le istanze dei campi
+  // Cancella le istanze dei campi
   foreach ($bundles_instances as $bundle)
     foreach($bundle as $instance)
       field_delete_instance($instance);
-  // Elimino il link aggiunto allo shortcut di default
-  menu_link_delete(NULL, $ontology_add_shortcut_link['link_path']);
+
+  /**
+   *
+   * Togliere il commento se si è aggiunnto il menu di aggiunta manuale termini
+   * nello shortcut.
+   *
+   */
+   //menu_link_delete(NULL, $ontology_add_shortcut_link['link_path']);
+
 }
 
 /**
