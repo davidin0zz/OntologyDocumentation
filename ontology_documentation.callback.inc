@@ -43,7 +43,7 @@ function ontology_documentation_config_form($form, &$form_state) {
     '#type' => 'checkbox',
     '#title' => t('Delete OWL documentation pages'),
     '#description' => t('All the documentation will drop off'),
-    '#disabled' => variable_get('empty_owl_documentation', FALSE),
+    '#disabled' => variable_get('empty_owl_documentation', TRUE),
     '#default_value' => FALSE,
   );
   $form['form_upgrade_check'] = array(
@@ -64,34 +64,30 @@ function ontology_documentation_config_form($form, &$form_state) {
 }
 
 function ontology_documentation_config_form_submit($form, &$form_state) {
-  if($form_state['values']['form_delete_check'] == 1 || $form_state['values']['form_upgrade_check'] ==1) {
-   $documentation_ids = ontology_documentation_get_id();
-   if($form_state['values']['form_delete_check'] == 1)
-     if($documentation_ids) {
-       ontology_documentation_delete($documentation_ids);
-       drupal_set_message('Task deleting has been succesfully completed!');
-     }
-     else {
-       variable_set('empty_owl_documentation', TRUE);
-       drupal_set_message('Error during deleting: entity_load()!', 'error');
-     }
-   if($form_state['values']['form_upgrade_check'] == 1) {
-    drupal_set_message('AGGIORNAMENTO', 'warning');
-    if($documentation_ids) {
+  if ($form_state['values']['form_delete_check'] == 1 || $form_state['values']['form_upgrade_check'] ==1) {
+    $documentation_ids = ontology_documentation_get_id();
+    if ($form_state['values']['form_delete_check'] == 1) {
+     ontology_documentation_delete($documentation_ids);
+     drupal_set_message('Selected \'delete\' task has been succesfully completed!');
+     variable_set('empty_owl_documentation', TRUE);
+   }
+   if ($form_state['values']['form_upgrade_check'] == 1) {
+    if (!empty($documentation_ids)) {
       ontology_documentation_create('UPDATE');
     }
     else {
       ontology_documentation_create('NEW');
+      drupal_set_message('Selected \'update\' task has been succesfully completed!');
     }
    }
  }
  else
-  drupal_set_message('NESSUNA SELEZIONE', 'error');
+  drupal_set_message('No options are selected!', 'error');
 }
 
-function ontology_documentation_get_id($ontology_type = 'ontology_documentation', $id = FALSE) {
-  $return = entity_load($ontology_type, $id);
-  return !empty($return) ? $return : FALSE;
+function ontology_documentation_get_id($ontology_type = __documentation_type__, $id = FALSE) {
+  $entity_ids = entity_load($ontology_type, $id);
+  return !empty($entity_ids) ? $return : array();
 }
 
 function ontology_documentation_delete($ids, $entity_type = __documentation_type__) {
@@ -101,14 +97,14 @@ function ontology_documentation_delete($ids, $entity_type = __documentation_type
 }
 
 function ontology_documentation_create($mode) {
-   switch($mode) {
+   switch ($mode) {
     case 'NEW':
       try {
         ontology_documentation_create_terms_page('Concepts');
         ontology_documentation_create_terms_page('Roles');
         ontology_documentation_create_terms_page('Attributes');
       }
-      catch(Exception $e) {
+      catch (Exception $e) {
         drupal_set_message($e->getMessage(), 'error');
       }
       break;
@@ -122,7 +118,7 @@ function ontology_documentation_mastro_get_data($operation = NULL, $parameters =
   $mastro_methods_per_ontology_field = &drupal_static('functions' . __FUNCTION__, array());
   $wsdl = &drupal_static('wsdl' . __FUNCTION__);
 
-  if(empty($mastro_methods_per_ontology_field)) {
+  if (empty($mastro_methods_per_ontology_field)) {
     $mastro_methods_per_ontology_field = array(
       'occorrenza' => array(
         'concept' => array(
@@ -218,7 +214,7 @@ function ontology_documentation_mastro_get_data($operation = NULL, $parameters =
      ),
     );
   }
-  if(!isset($wsdl)) {
+  if (!isset($wsdl)) {
     $wsdl = array(
         'url' => variable_get('ws_url'),
         'options' => array(
@@ -231,12 +227,12 @@ function ontology_documentation_mastro_get_data($operation = NULL, $parameters =
 
   $operation = isset($field) && isset($bundle) ? $mastro_methods_per_ontology_field[$field][$bundle]['operation'] : $operation;
   $array_keys = isset($field) && isset($bundle) ? $mastro_methods_per_ontology_field[$field][$bundle]['keys'] : range(0,100);
-  if(count($array_keys) == count($parameters)) {
+  if (count($array_keys) == count($parameters)) {
     $parameters = array(array_combine($array_keys, $parameters));
   }
   $parameters = is_array(current($parameters)) ? $parameters : array($parameters);
   $result = call_user_func_array(array($wsdl['soap'], $operation), $parameters);
-  if(property_exists($result, 'return')) {
+  if (property_exists($result, 'return')) {
     return is_array($result->return) ? $result->return : array($result->return);
   }
   return array();
@@ -250,13 +246,13 @@ function ontology_documentation_get_wiki_term_description($term) {
   $search_info = &drupal_static('search' . __FUNCTION__, array());
   $entity_field_query = &drupal_static('query' . __FUNCTION__);
 
-  if(empty($search_info)) {
+  if (empty($search_info)) {
     $search_info['start string'] = '== Descrizione ==';
     $search_info['end string'] = '==';
     $search_info['start offset'] = strlen($search_info['start string']);
     $search_info['end offset'] = - 1;
   }
-  if(!isset($entity_field_query)) {
+  if (!isset($entity_field_query)) {
     $entity_field_query = new EntityFieldQuery();
   }
   //Azzero le precedenti condizioni
@@ -266,21 +262,21 @@ function ontology_documentation_get_wiki_term_description($term) {
     ->entityCondition('bundle', 'wiki')
     ->propertyCondition('title', $term)
     ->execute();
-  if(!empty($query_response)) {
+  if (!empty($query_response)) {
     // Ottengo l'id del nodo
     $wiki_node_id = array_keys($query_response['node']);
     // Carico il nodo
     $wiki_node = entity_load('node', $wiki_node_id);
-    if($wiki_node) {
+    if ($wiki_node) {
       // Creo il wrapper per il nodo
       $wiki_wrapper = entity_metadata_wrapper('node', current($wiki_node));
       // Ottengo il contenuto del body non interpretato
       $wiki_description = $wiki_wrapper->body->value->raw();
       // Filtro solo la descrizione
       $start = strpos($wiki_description, $search_info['start string']) + $search_info['start offset'];
-      if($start !== FALSE) {
+      if ($start !== FALSE) {
         $fin = strpos($wiki_description, $search_info['end string'], $start) + $search_info['end offset'];
-        if($fin !== FALSE) {
+        if ($fin !== FALSE) {
           $wiki_description = trim(substr($wiki_description, $start, $fin - $start));
           return $wiki_description;
         }
@@ -297,7 +293,7 @@ function ontology_documentation_create_terms_page($type) {
     'title' => '',
     'category' => '',
   );
-  switch($type) {
+  switch ($type) {
     case 'Attributes':
       $data['category'] = 'attribute';
     case 'Roles':
@@ -309,8 +305,8 @@ function ontology_documentation_create_terms_page($type) {
       // Ottengo tutti i concetti
       $mastro_terms = ontology_documentation_mastro_get_data('getAll' . $type);
       // Nel caso limite di un solo termine , crea un array che lo contiene
-      if(!is_array($mastro_terms)) {
-        if(!empty($mastro_terms)) {
+      if (!is_array($mastro_terms)) {
+        if (!empty($mastro_terms)) {
           $mastro_terms = array($mastro_terms);
         }
         else {
@@ -318,16 +314,16 @@ function ontology_documentation_create_terms_page($type) {
         }
       }
       // Itero sui termini
-      foreach($mastro_terms as $term) {
+      foreach ($mastro_terms as $term) {
         // Assegno il titolo alle proprietà dell'entità
         $data['title'] = $term;
         // Creo una nuova entità con le proprietà di base
         $entity = entity_create(__documentation_type__, $data);
-        if($entity) {
+        if ($entity) {
           // Creo il wrapper per manipolare i campi 'attaccati' all'entità
           $entity_wrapper = entity_metadata_wrapper(__documentation_type__, $entity);
           // Itero sui campi da assegnare
-          foreach($fields as $field){
+          foreach ($fields as $field) {
             // Configuro i campi
             ontology_documentation_setup_field($field['field_name'], 'wiki_text', $entity_wrapper);
           }
@@ -342,8 +338,8 @@ function ontology_documentation_create_terms_page($type) {
 }
 
 function ontology_documentation_item_list_child_render($render_element) {
-  foreach($render_element['#items'] as $key => $content) {
-    if(isset($render_element['#items'][$key]['data'])) {
+  foreach ($render_element['#items'] as $key => $content) {
+    if (isset($render_element['#items'][$key]['data'])) {
       $render_element['#items'][$key]['data'] = drupal_render($render_element['#items'][$key]['data']);
     }
   }
@@ -351,7 +347,7 @@ function ontology_documentation_item_list_child_render($render_element) {
 }
 
 function ontology_documentation_fieldset_child_reder($render_element) {
-  if(isset($render_element['#children'])) {
+  if (isset($render_element['#children'])) {
     $render_element['#children'] = drupal_render($render_element['#children']);
     return $render_element;
   }
@@ -476,7 +472,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
   // Imposto il tipo di formato del testo
   $wrapper->$field_name->format->set($text_format);
 
-  switch($field_name) {
+  switch ($field_name) {
     case 'categoria':
       $field_data['label']['#printed'] = FALSE;
       $field_data['page_link']['#printed'] = FALSE;
@@ -496,7 +492,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       $field_data['page_link']['#printed'] = FALSE;
       $field_data['fieldset_box']['#title'] = t('Occorrenze nei diagrammi');
       $diagram_links = ontology_documentation_mastro_get_data(NULL, array($term), $field_name, $bundle);
-      foreach($diagram_links as $index => $diagram_link) {
+      foreach ($diagram_links as $index => $diagram_link) {
         $text = explode('.', $diagram_link);
         $field_data['page_link']['#title'] = current(array_slice($text, 0, 1)).': '.($index + 1);
         $field_data['page_link']['#href'] = $graph_viewer.'/'.$diagram_link;
@@ -510,10 +506,10 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
     case 'specializzazioni':
       $field_data['label']['#printed'] = FALSE;
       $specializations = ontology_documentation_mastro_get_data(NULL, array($term, 'FUNCTIONAL_STYLE_SYNTAX'), $field_name, $bundle);
-      if(!empty($specializations)) {
+      if (!empty($specializations)) {
         $field_data['item_list']['#printed'] = FALSE;
         $field_data['page_link']['#printed'] = FALSE;
-        foreach($specializations as $index => $item) {
+        foreach ($specializations as $index => $item) {
           $field_data['page_link']['#title'] = $item;
           $field_data['page_link']['#href'] = __documentation_base_url__.'/'.$bundle.'/'.str_replace('_', '-', $item);
           $field_data['item_list']['#items'][$index] = array('data' => $field_data['page_link']);
@@ -546,10 +542,10 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       $current_field_type = current(array_slice(explode('_', $field_name), 0,1));
       $current_field_bundle = !strcmp($current_field_type, 'attributi') ? 'attribute' : 'role';
       $mandatory_attributes = ontology_documentation_mastro_get_data(NULL, array($term), $field_name, $bundle);
-      if(!empty($mandatory_attributes)) {
+      if (!empty($mandatory_attributes)) {
         $field_data['item_list']['#printed'] = FALSE;
         $field_data['page_link']['#printed'] = FALSE;
-        foreach($mandatory_attributes as $index => $attribute) {
+        foreach ($mandatory_attributes as $index => $attribute) {
           $field_data['page_link']['#title'] = $attribute;
           $field_data['page_link']['#href'] = __documentation_base_url__.'/'.$current_field_bundle.'/'.str_replace('_', '-', $attribute);
           $field_data['item_list']['#items'][$index] = array('data' => $field_data['page_link']);
@@ -558,7 +554,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       }
       else {
         $field_data['description']['#printed'] = FALSE;
-        $field_data['description']['#value'] = array_search('non', explode('_', $field_name)) === FALSE ?
+        $field_data['description']['#value'] = array_search ('non', explode('_', $field_name)) === FALSE ?
           'Non sono definiti '.$current_field_type.' rilevanti obbligatori per questo concetto' :
           'Non sono definiti '.$current_field_type.' rilevanti non obbligatori per questo concetto';
       }
@@ -572,14 +568,10 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       $field_data['fieldset_box']['#children']['axioms']['denial_assertions']['#printed'] = FALSE;
       $field_data['fieldset_box']['#children']['axioms']['functional_and_id_contraints']['#printed'] = FALSE;
       $field_data['fieldset_box']['#children']['axioms']['epistemic_constraints']['#printed'] = FALSE;
-      foreach($field_data['fieldset_box']['#children']['axioms'] as $axiom_type_key => $axiom) {
-        foreach($axiom_type[$axiom_type_key] as $axiom_type_integer) {
+      foreach ($field_data['fieldset_box']['#children']['axioms'] as $axiom_type_key => $axiom) {
+        foreach ($axiom_type[$axiom_type_key] as $axiom_type_integer) {
           $axioms_result = ontology_documentation_mastro_get_data(NULL, array($term, $axiom_type_integer, FALSE), $field_name, $bundle);
-          if(!empty($axioms_result)) {
-            foreach($axioms_result as $axiom_result) {
-              $field_data['fieldset_box']['#children']['axioms'][$axiom_type_key]['#items'][] = $axiom_result;
-            }
-          }
+          $field_data['fieldset_box']['#children']['axioms'][$axiom_type_key]['#items'] = $axioms_result;
         }
       }
       $wrapper->$field_name->value->set(drupal_render($field_data));

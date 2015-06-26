@@ -1,7 +1,7 @@
 <?php
 
 function ontology_documentation_type_form($form, &$form_state, $entity_type, $op) {
-  if($op == 'edit') {
+  if ($op == 'edit') {
     $form['category'] = array(
       '#type' => 'textfield',
       '#title' => t('Documentation type machine name'),
@@ -63,8 +63,7 @@ function ontology_documentation_form($form, &$form_state, $entity_type, $op) {
 function ontology_documentation_type_form_submit($form, &$form_state) {
   $entity_type = entity_ui_form_submit_build_entity($form, $form_state);
   $entity_type->save();
-  drupal_set_message(
-    t('Ontology documentation type: @title has been saved.',
+  drupal_set_message(t('Ontology documentation type: @title has been saved.',
     array('@title' => $entity_type->title)
   ));
   $form_state['redirect'] = 'admin/structure/ontology-documentation-types';

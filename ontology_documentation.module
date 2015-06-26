@@ -66,26 +66,26 @@ function ontology_documentation_permission() {
 function ontology_documentation_access($op, $entity, $account, $entity_type) {
   global $user;
 
-  if(!isset($account)) {
+  if (!isset($account)) {
     $account = $user;
   }
   // CONTROLLARE QUI!!
-  if(isset($entity->uid))
+  if (isset($entity->uid))
     $entity_owner = $entity->uid;
   else
     $entity_owner = FALSE;
 
-  if(!empty($op)) {
-    if($op == 'create')
+  if (!empty($op)) {
+    if ($op == 'create')
       return user_access('administer ontology_documentation entities', $account) ||
              user_access('create ontology_documentation entities', $account);
-    elseif($op == 'view')
+    elseif ($op == 'view')
       return user_access('administer ontology_documentation entities', $account) ||
              user_access('view ontology_documentation entities', $account);
     // Per la gestione della UI di amministrazione
-    elseif($op == 'manage' || $op == 'update' || $op == 'delete')
+    elseif ($op == 'manage' || $op == 'update' || $op == 'delete')
       return user_access('administer ontology_documentation entities', $account);
-    elseif($op == 'edit')
+    elseif ($op == 'edit')
       return user_access('administer ontology_documentation entities', $account) ||
              user_access('edit any ontology_documentation entities', $account)   ||
              user_access('edit own ontology_documentation entities', $account)   &&
@@ -161,7 +161,7 @@ function ontology_documentation_entity_info() {
  * Implements hook_entity_info_alter().
  */
 function ontology_documentation_entity_info_alter(&$entity_info) {
-  foreach(ontology_documentation_get_bundles() as $bundle) {
+  foreach (ontology_documentation_get_bundles() as $bundle) {
     $entity_info['ontology_documentation']['bundles'][$bundle['machine_name']] = array(
       'label' => $bundle['human_label'],
       'uri callback' => 'entity_class_uri',
@@ -268,7 +268,7 @@ function ontology_documentation_menu() {
 
 // Nascondo il titolo dei campi per ogni campo di tipo '__documentation_type__'
 function ontology_documentation_preprocess_field(&$variables) {
-  if($variables['element']['#entity_type'] == __documentation_type__) {
+  if ($variables['element']['#entity_type'] == __documentation_type__) {
     $variables['label_hidden'] = TRUE;
   }
 }
@@ -283,7 +283,7 @@ function ontology_documentation_load($entity_name, $entity_type = NULL, $bundle 
                ->propertyCondition('title', $entity_name)
                ->execute();
 
-  if(!empty($entity_query_response)) {
+  if (!empty($entity_query_response)) {
     $id = key($entity_query_response[$entity_type]);
     $entity = entity_load($entity_type, array($id));
     return $entity[$id];
@@ -299,7 +299,7 @@ function ontology_documentation_type_load($bundle_type_name) {
 function ontology_documentation_get_bundles($condition = 'ALL') {
   $bundles = &drupal_static(__FUNCTION__,array());
 
-  if(empty($bundles)) {
+  if (empty($bundles)) {
     $bundles += array(
       array(
        'machine_name' => 'concept',
@@ -319,7 +319,7 @@ function ontology_documentation_get_bundles($condition = 'ALL') {
     );
   }
 
-  switch($condition) {
+  switch ($condition) {
     case 'ALL':
       // Tutti e tre
       return array_slice($bundles, 0,3);

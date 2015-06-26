@@ -1,6 +1,3 @@
 <?php
 
-class OntologyDocumentationTypeController extends EntityAPIController {
-
-
-}
+class OntologyDocumentationTypeController extends EntityAPIController { }

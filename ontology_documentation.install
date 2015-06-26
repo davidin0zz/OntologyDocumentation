@@ -1,11 +1,11 @@
 <?php
 
 // Definisco il nome del modulo da includere
-define('__module__name', 'ontology_documentation');
+define('__module_name__', 'ontology_documentation');
 // Definisco il percorso del modulo
-define('__module_file_path__', drupal_get_path('module', __module__name));
+define('__module_file_path__', drupal_get_path('module', __module_name__));
 // Definisco il nome del modulo da includere
-define('__module_file__', __module__name . '.module');
+define('__module_file__', __module_name__ . '.module');
 // Definisco il path per lo shortcut
 define('__shortcut_default_path__', 'admin/ontology-documentation/add');
 // Definisco il titolo per lo shortcut
@@ -26,6 +26,7 @@ $ontology_add_shortcut_link = array(
   'link_title' => __shortcut_default_title__,
 );
 
+global $all_bundles;
 // Definisce i bundles da applicare ai campi rilevanti
 $all_bundles = ontology_documentation_get_bundles();
 $role_attribute_bundles = ontology_documentation_get_bundles('WITH_DOMAIN_AND_CODOMAIN');
@@ -80,32 +81,30 @@ $base_field_instance = array(
 );
 
 // Crea i campi rilevanti per ogni bundle.
-// Ceea le istanze per ogni bundle.
+// Crea le istanze per ogni bundle.
 function ontology_documentation_enable() {
 
-  global $bundles_fields, $base_field;
+  global $bundles_fields, $base_field, $all_bundles;
   global $base_field_instance, $ontology_documentation_type_data;
   global $ontology_add_shortcut_link, $ontology_shortcut_default_set;
 
-  $ontology_type_data = &$ontology_documentation_type_data;
-  $term_field =  &$base_field;
-  $bundle_instance = &$base_field_instance;
-
   // Popolo ontology_documentation_type
-  foreach(ontology_documentation_get_bundles() as $bundle) {
-    $ontology_type_data['category'] = $bundle['machine_name'];
-    $ontology_type_data['title'] = $bundle['human_label'];
-    $ontology_type_data['description'] = $bundle['description'];
+  foreach ($all_bundles as $bundle) {
+    $ontology_documentation_type_data['category'] = $bundle['machine_name'];
+    $ontology_documentation_type_data['title'] = $bundle['human_label'];
+    $ontology_documentation_type_data['description'] = $bundle['description'];
     try {
-      if(empty(entity_load_multiple_by_name('ontology_documentation_type', array($bundle['machine_name'])))) {
-        $ontology_type_entity = entity_create('ontology_documentation_type', $ontology_type_data);
-        if(is_object($ontology_type_entity))
+      if (empty(entity_load('ontology_documentation_type', array($bundle['machine_name'])))) {
+        $ontology_type_entity = entity_create('ontology_documentation_type', $ontology_documentation_type_data);
+        if ($ontology_type_entity !== FALSE) {
           $ontology_type_entity->save();
-        else
+        }
+        else {
           drupal_set_message('Error: entity_create()!', 'error');
+        }
       }
     }
-    catch(Exception $e) {
+    catch (Exception $e) {
       drupal_set_message($e->getMessage(), 'error');
     }
   }
@@ -113,20 +112,22 @@ function ontology_documentation_enable() {
   // Creo i campi e le istanze
   foreach ($bundles_fields as $field => $bundles) {
     // Assegno il nome al campo
-    $term_field['field_name'] = $field;
-    // Creo il campo
-    field_create_field($term_field);
-    // Creo le istanze dei campi da assegnare ai bundles
-    foreach ($bundles as $bundle) {
-      // Assegno il nome del campo e il nome del bundle per l'istanza
-      $bundle_instance['field_name'] = $field;
-      $bundle_instance['bundle'] = $bundle['machine_name'];
-      $bundle_instance['label'] = strtoupper($field);
-      // Creo l'istanza
-      field_create_instance($bundle_instance);
+    $base_field['field_name'] = $field;
+    // Creo il campo se non esiste già
+    if (field_info_field($field) === NULL) {
+      // Creo il campo
+      field_create_field($base_field);
+      // Creo le istanze dei campi da assegnare ai bundles
+      foreach ($bundles as $bundle) {
+        // Assegno il nome del campo e il nome del bundle per l'istanza
+        $base_field_instance['field_name'] = $field;
+        $base_field_instance['bundle'] = $bundle['machine_name'];
+        $base_field_instance['label'] = strtoupper($field);
+        // Creo l'istanza
+        field_create_instance($base_field_instance);
+      }
     }
   }
-
 
   /**
    *
@@ -137,21 +138,11 @@ function ontology_documentation_enable() {
    //shortcut_admin_add_link($ontology_add_shortcut_link, $ontology_shortcut_default_set);
    //shortcut_set_save($ontology_shortcut_default_set);
 
+  // Svuoto la cache
+  cache_clear_all();
 }
 
-// Cancella i campi creati.
-// Cancella le istanze dei campi create.
 function ontology_documentation_disable() {
-  global $bundles_fields, $ontology_add_shortcut_link;
-  $bundles_instances = field_info_instances(ENTITY_TYPE);
-
-  // Cancella i campi
-  foreach (array_keys($bundles_fields) as $field_name)
-    field_delete_field($field_name);
-  // Cancella le istanze dei campi
-  foreach ($bundles_instances as $bundle)
-    foreach($bundle as $instance)
-      field_delete_instance($instance);
 
   /**
    *
@@ -160,7 +151,22 @@ function ontology_documentation_disable() {
    *
    */
    //menu_link_delete(NULL, $ontology_add_shortcut_link['link_path']);
+   cache_clear_all();
+}
 
+// Cancella i campi creati.
+// Cancella le istanze dei campi create.
+function ontology_documentation_uninstall() {
+  global $bundles_fields, $ontology_add_shortcut_link;
+
+  // Cancella i campi
+  foreach ($bundles_fields as $bundles_field_name => $bundles) {
+    field_delete_field($bundles_field_name);
+  }
+  // Elimino fisicamente i campi marcati come cancellati
+  field_purge_batch(50);
+  // Cancello la variabile di inizializzazione
+  variable_del('empty_owl_documentation');
 }
 
 /**

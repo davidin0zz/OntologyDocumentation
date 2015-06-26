@@ -9,7 +9,7 @@ class OntologyDocumentationTypeUIController extends EntityDefaultUIController {
      );
     return $additional_header;
   }
-  function hook_menu(){
+  function hook_menu() {
     $items = parent::hook_menu();
     $items[$this->path]['title'] = 'Ontology types';
     $items[$this->path]['weight'] = -1;
