@@ -266,6 +266,16 @@ function ontology_documentation_menu() {
   return $items;
 }
 
+// Disabilito aggiunta manuale termini e tipi di termini
+function ontology_documentation_menu_alter(&$items) {
+  if (isset($items['admin/ontology-documentation/add'])) {
+    unset($items['admin/ontology-documentation/add']);
+  }
+  if (isset($items['admin/structure/ontology-documentation-types/add'])) {
+    unset($items['admin/structure/ontology-documentation-types/add']);
+  }
+}
+
 // Nascondo il titolo dei campi per ogni campo di tipo '__documentation_type__'
 function ontology_documentation_preprocess_field(&$variables) {
   if ($variables['element']['#entity_type'] == __documentation_type__) {
