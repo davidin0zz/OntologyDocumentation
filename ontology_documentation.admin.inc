@@ -8,7 +8,7 @@ function ontology_documentation_type_form($form, &$form_state, $entity_type, $op
       '#description' => t('A unique machine-readable name of this documentation type.'),
       '#default_value' => isset($entity_type->category) ? $entity_type->category : '',
       '#size' => '50',
-      '#required' => TRUE,
+      '#disabled' => TRUE,
     );
     $form['title'] = array(
       '#type' => 'textfield',
