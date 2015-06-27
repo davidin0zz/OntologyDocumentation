@@ -18,20 +18,6 @@ function ontology_documentation_term_view($entity) {
   return entity_view(__documentation_type__, array($entity));
 }
 
-function ontology_documentation_term_edit($entity) {
-  drupal_set_title($entity->title);
-  $link = array(
-    array(
-      'data' => array(
-        '#type' => 'link',
-        '#title' => 'prova',
-        '#href' => 'http://exmample.org',
-      ),
-    )
-  );
-  return drupal_render($link);
-}
-
 function ontology_documentation_config_form($form, &$form_state) {
   $form['form_header'] = array(
     '#type' => 'html_tag',
@@ -87,7 +73,7 @@ function ontology_documentation_config_form_submit($form, &$form_state) {
 
 function ontology_documentation_get_id($ontology_type = __documentation_type__, $id = FALSE) {
   $entity_ids = entity_load($ontology_type, $id);
-  return !empty($entity_ids) ? $return : array();
+  return !empty($entity_ids) ? $entity_ids : array();
 }
 
 function ontology_documentation_delete($ids, $entity_type = __documentation_type__) {
@@ -358,7 +344,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
   // Definisco le variabili utili
   $entity_type = $wrapper->type();
   $bundle = $wrapper->getBundle();
-  $term = $wrapper->value()->title;
+  $term = $wrapper->name->value();
   $graph_viewer = 'graphml-viewer';
 
   // Positive inclusions axiomType => 0
@@ -399,9 +385,9 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       '#printed' => TRUE,
     ),
     'description' => array(
-      '#type' => 'html_tag',
-      '#tag' => 'p',
-      '#value' => '',
+      '#markup' => '',
+      //'#tag' => 'p',
+      //'#value' => '',
       '#printed' => TRUE,
     ),
     'fieldset_box' => array(
@@ -483,7 +469,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
     case 'descrizione':
       $field_data['label']['#printed'] = FALSE;
       $field_data['description']['#printed'] = FALSE;
-      $field_data['description']['#value'] = ontology_documentation_get_wiki_term_description($term);
+      $field_data['description']['#markup'] = ontology_documentation_get_wiki_term_description($term);
       $wrapper->$field_name->value->set(drupal_render($field_data));
       break;
     case 'occorrenza':

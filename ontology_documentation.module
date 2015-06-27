@@ -30,106 +30,42 @@ function ontology_documentation_help($path, $arg) {
   return drupal_render($output);
 }
 
-function ontology_documentation_permission() {
-  $permission = array(
-    'administer ontology_documentation entities' => array(
-      'title' => t('Administer ontology documentation entities'),
-      'description' => t('Allow users to configure ontology documentation entities'),
-      'restricted access' => TRUE,
-    ),
-    'view ontology_documentation entities' => array(
-      'title' => t('View ontology documentation entities'),
-      'description' => t('Allow users to view ontology documentation entities'),
-      'restricted access' => TRUE,
-    ),
-    'create ontology_documentation entities' => array(
-      'title' => t('Create ontology documentation entities'),
-      'description' => t('Allow user to create ontology documentation entities'),
-      'retricted access' => TRUE,
-    ),
-    'edit any ontology_documentation entities' => array(
-      'title' => t('Edit any ontology documentation entities'),
-      'description' => t('Allow users to edit any ontology documentation entities'),
-      'restricted access' => TRUE,
-    ),
-    'edit own ontology_documentation entities' => array(
-      'title' => t('Edit own ontology documentation entities'),
-      'description' => t('Allow users to edit own ontology documentation entities'),
-      'restricted access' => TRUE,
-    ),
-  );
-
-  return $permission;
-}
-
-//CHIAMATA DA entity_access(), funzione implementata da Entity API
-function ontology_documentation_access($op, $entity, $account, $entity_type) {
-  global $user;
-
-  if (!isset($account)) {
-    $account = $user;
-  }
-  // CONTROLLARE QUI!!
-  if (isset($entity->uid))
-    $entity_owner = $entity->uid;
-  else
-    $entity_owner = FALSE;
-
-  if (!empty($op)) {
-    if ($op == 'create')
-      return user_access('administer ontology_documentation entities', $account) ||
-             user_access('create ontology_documentation entities', $account);
-    elseif ($op == 'view')
-      return user_access('administer ontology_documentation entities', $account) ||
-             user_access('view ontology_documentation entities', $account);
-    // Per la gestione della UI di amministrazione
-    elseif ($op == 'manage' || $op == 'update' || $op == 'delete')
-      return user_access('administer ontology_documentation entities', $account);
-    elseif ($op == 'edit')
-      return user_access('administer ontology_documentation entities', $account) ||
-             user_access('edit any ontology_documentation entities', $account)   ||
-             user_access('edit own ontology_documentation entities', $account)   &&
-             $account->uid == $entity_owner && $entity->entityType() == $entity_type;
-  }
-  else
-    return FALSE;
-}
-
 /**
  * Implements hook_entity_info().
  */
 function ontology_documentation_entity_info() {
   $entity_info['ontology_documentation'] = array(
-   'label' => 'Ontology documentation',
-   'entity class' => 'OntologyDocumentation',
-   'controller class' => 'OntologyDocumentationController',
-   'base table' => 'ontology_documentation',
-   'revision table' => 'ontology_documentation_revision',
-   'fieldable' => TRUE,
-   'entity keys' => array(
-     'id' => 'odid',
-     'revision' => 'rodid',
-     'bundle' => 'category',
-     'label' => 'title',
-   ),
-   'bundle keys' => array(
-     'bundle' => 'category',
-   ),
-   'bundles' => array(),
-   'view modes' => array(
-     'full' => array(
-       'label' => t('Full Content'),
-       'custom settings' => FALSE,
-     ),
-   ),
-  'module' => 'ontology_documentation',
-  'label callback' => 'entity_class_label',
-  'uri callback' => 'entity_class_uri',
-  'access callback' => 'ontology_documentation_access',
-  'admin ui' => array(
-    'path' => 'admin/ontology-documentation',
-    'file' => 'ontology_documentation.admin.inc',
-    'controller class' => 'OntologyDocumentationUIController',
+    'label' => 'Ontology documentation',
+    'entity class' => 'OntologyDocumentation',
+    'controller class' => 'OntologyDocumentationController',
+    'views controller class' => 'EntityDefaultViewsController',
+    'base table' => 'ontology_documentation',
+    'revision table' => 'ontology_documentation_revision',
+    'fieldable' => TRUE,
+    'entity keys' => array(
+      'id' => 'odid',
+      'revision' => 'rodid',
+      'bundle' => 'category',
+      'label' => 'title',
+    ),
+    'bundle keys' => array(
+      'bundle' => 'category',
+    ),
+    'bundles' => array(),
+    'view modes' => array(
+      'full' => array(
+      'label' => t('Full Content'),
+      'custom settings' => FALSE,
+      ),
+    ),
+    'module' => 'ontology_documentation',
+    'label callback' => 'entity_class_label',
+    'uri callback' => 'entity_class_uri',
+    'access callback' => 'ontology_documentation_access',
+    'admin ui' => array(
+      'path' => 'admin/ontology-documentation',
+      'file' => 'ontology_documentation.admin.inc',
+      'controller class' => 'OntologyDocumentationUIController',
     ),
   );
   $entity_info['ontology_documentation_type'] = array(
@@ -158,6 +94,66 @@ function ontology_documentation_entity_info() {
 }
 
 /**
+ * Implements hook_entity_property_info().
+ */
+function ontology_documentation_entity_property_info() {
+  $entity_property_info = array();
+
+  $entity_property_info[__documentation_type__]['properties'] = array(
+    'id' => array(
+      'label' => t('Ontology documentation id'),
+      'description' => t('The id of the ontology term'),
+      'type' => 'integer',
+      'schema field' => 'odid',
+     ),
+    'rid' => array(
+      'label' => t('Ontology documentation revision id'),
+      'description' => t('The revision id of the ontology term'),
+      'type' => 'integer',
+      'schema field' => 'rodid',
+    ),
+    'name' => array(
+      'label' => t('Ontology documentation title'),
+      'description' => t('The title of the ontology term'),
+      'type' => 'text',
+      'schema field' => 'title',
+    ),
+    'type' => array(
+      'label' => t('Ontology documentation categoty'),
+      'description' => t('The category of the ontology term'),
+      'type' => 'entity',
+      'schema field' => 'category',
+    ),
+    'lang' => array(
+      'label' => t('Ontology documentation language'),
+      'description' => t('The language of the ontology term'),
+      'type' => 'text',
+      'schema field' => 'language',
+    ),
+    'uid' => array(
+      'label' => t('Ontology documentation uid'),
+      'description' => t('The user id creator of the ontology term'),
+      'type' => 'integer',
+      'schema field' => 'uid',
+    ),
+    'creation_date' => array(
+      'label' => t('Ontology documentation created date'),
+      'description' => t('The timestamp creation of the ontology term'),
+      'type' => 'date',
+      'schema field' => 'created',
+    ),
+    'modification_date' => array(
+      'label' => t('Ontology documentation cached date'),
+      'description' => t('The timestamp modification of the ontology term'),
+      'type' => 'date',
+      'schema field' => 'changed',
+    ),
+  );
+
+  return $entity_property_info;
+}
+
+/**
  * Implements hook_entity_info_alter().
  */
 function ontology_documentation_entity_info_alter(&$entity_info) {
@@ -172,6 +168,16 @@ function ontology_documentation_entity_info_alter(&$entity_info) {
         ),
     );
   }
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function ontology_documentation_admin_paths() {
+  $paths = array(
+    __documentation_base_url__.'/*/*/edit' => TRUE,
+  );
+  return $paths;
 }
 
 /**
@@ -208,12 +214,13 @@ function ontology_documentation_menu() {
   );
   $items[__documentation_base_url__.'/%/%ontology_documentation/edit'] = array(
     'title' => 'Edit',
-    'page callback' => 'ontology_documentation_term_edit',
-    'page arguments' => array(2),
+    'load arguments' => array(0, 1),
+    'page callback' => 'entity_ui_get_form',
+    'page arguments' => array('ontology_documentation', 2, 'edit'),
     'access callback' => 'entity_access',
     'access arguments' => array('edit', __documentation_type__, 2, NULL),
+    'file' => 'ontology_documentation.admin.inc',
     'type' => MENU_LOCAL_TASK,
-    'file' => 'ontology_documentation.callback.inc',
   );
 
  /**
@@ -266,7 +273,6 @@ function ontology_documentation_menu() {
   return $items;
 }
 
-// Disabilito aggiunta manuale termini e tipi di termini
 function ontology_documentation_menu_alter(&$items) {
   if (isset($items['admin/ontology-documentation/add'])) {
     unset($items['admin/ontology-documentation/add']);
@@ -347,4 +353,68 @@ function ontology_documentation_get_bundles($condition = 'ALL') {
       return array_slice($bundles, 0,1);
       break;
   }
+}
+
+function ontology_documentation_permission() {
+  $permission = array(
+    'administer ontology_documentation entities' => array(
+      'title' => t('Administer ontology documentation entities'),
+      'description' => t('Allow users to configure ontology documentation entities'),
+      'restricted access' => TRUE,
+    ),
+    'view ontology_documentation entities' => array(
+      'title' => t('View ontology documentation entities'),
+      'description' => t('Allow users to view ontology documentation entities'),
+      'restricted access' => TRUE,
+    ),
+    'create ontology_documentation entities' => array(
+      'title' => t('Create ontology documentation entities'),
+      'description' => t('Allow user to create ontology documentation entities'),
+      'retricted access' => TRUE,
+    ),
+    'edit any ontology_documentation entities' => array(
+      'title' => t('Edit any ontology documentation entities'),
+      'description' => t('Allow users to edit any ontology documentation entities'),
+      'restricted access' => TRUE,
+    ),
+    'edit own ontology_documentation entities' => array(
+      'title' => t('Edit own ontology documentation entities'),
+      'description' => t('Allow users to edit own ontology documentation entities'),
+      'restricted access' => TRUE,
+    ),
+  );
+
+  return $permission;
+}
+
+function ontology_documentation_access($op, $entity, $account, $entity_type) {
+  global $user;
+
+  if (!isset($account)) {
+    $account = $user;
+  }
+  // CONTROLLARE QUI!!
+  if (isset($entity->uid))
+    $entity_owner = $entity->uid;
+  else
+    $entity_owner = FALSE;
+
+  if (!empty($op)) {
+    if ($op == 'create')
+      return user_access('administer ontology_documentation entities', $account) ||
+             user_access('create ontology_documentation entities', $account);
+    elseif ($op == 'view')
+      return user_access('administer ontology_documentation entities', $account) ||
+             user_access('view ontology_documentation entities', $account);
+    // Per la gestione della UI di amministrazione
+    elseif ($op == 'manage' || $op == 'update' || $op == 'delete')
+      return user_access('administer ontology_documentation entities', $account);
+    elseif ($op == 'edit')
+      return user_access('administer ontology_documentation entities', $account) ||
+             user_access('edit any ontology_documentation entities', $account)   ||
+             user_access('edit own ontology_documentation entities', $account)   &&
+             $account->uid == $entity_owner && $entity->entityType() == $entity_type;
+  }
+  else
+    return FALSE;
 }
