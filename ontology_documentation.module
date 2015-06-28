@@ -104,12 +104,14 @@ function ontology_documentation_entity_property_info() {
       'label' => t('Ontology documentation id'),
       'description' => t('The id of the ontology term'),
       'type' => 'integer',
+      'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'odid',
      ),
     'rid' => array(
       'label' => t('Ontology documentation revision id'),
       'description' => t('The revision id of the ontology term'),
       'type' => 'integer',
+      'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'rodid',
     ),
     'name' => array(
@@ -117,17 +119,20 @@ function ontology_documentation_entity_property_info() {
       'description' => t('The title of the ontology term'),
       'type' => 'text',
       'schema field' => 'title',
+      'setter callback' => 'entity_property_verbatim_set',
     ),
     'type' => array(
       'label' => t('Ontology documentation categoty'),
       'description' => t('The category of the ontology term'),
       'type' => 'entity',
+      'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'category',
     ),
     'lang' => array(
       'label' => t('Ontology documentation language'),
       'description' => t('The language of the ontology term'),
       'type' => 'text',
+      'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'language',
     ),
     'uid' => array(
@@ -140,12 +145,14 @@ function ontology_documentation_entity_property_info() {
       'label' => t('Ontology documentation created date'),
       'description' => t('The timestamp creation of the ontology term'),
       'type' => 'date',
+      'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'created',
     ),
     'modification_date' => array(
       'label' => t('Ontology documentation cached date'),
       'description' => t('The timestamp modification of the ontology term'),
       'type' => 'date',
+      'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'changed',
     ),
   );

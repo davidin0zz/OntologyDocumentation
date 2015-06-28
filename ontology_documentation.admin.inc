@@ -61,7 +61,7 @@ function ontology_documentation_form($form, &$form_state, $entity, $op) {
     // Definisco il vettore dei replacements
     $replacements = array();
     // Pattern per l'etichetta del campo
-    $patterns[0] = '/(<.+?>)(Descrizione)(<.+?>)\s/';
+    $patterns[0] = '/(<.+?>)(Descrizione)(<.+?>)\s*/';
     // Patter per il ritorno a capo
     $patterns[1] = '/\n/';
     // Elimino l'etichetta del campo
@@ -112,7 +112,7 @@ function ontology_documentation_form_submit($form, &$form_state) {
   // Sostituisco con il gruppo $2
   $replacements[0] = "$2";
   // Pattern per gli spazi tra i tag
-  $patterns[1] = "/(<.+?>)(\s*)(\w*)(\s*)(<.+?>)/";
+  $patterns[1] = "/(<[^>]*>)(\s*)(\w*)(\s*)(<[^\/>]*\/.+?>)/";
   // Sostituisco con i gruppi $1,$3,$5
   $replacements[1] = "$1$3$5";
 
@@ -135,12 +135,16 @@ function ontology_documentation_form_submit($form, &$form_state) {
   $entity = $form_state[__documentation_type__];
   // Creo il wrapper
   $wrapper = entity_metadata_wrapper(__documentation_type__, $entity);
-  // Immagazzino il valore del testo immesso dall'utente eliminando le linee vuote
+  // Recupero il titolo del termine
+  $title = strip_tags($form_state['values']['title']);
+  // Recupero il valore del testo immesso dall'utente eliminando le linee vuote
   $description = preg_replace($patterns, $replacements, $form_state['values']['description']);
   // Assegno il testo alla struttura
   $data['value']['content']['#markup'] = $description;
   // Renderizzo i tag
   $data['value'] = drupal_render($data['value']);
+  // Setto il titolo
+  $wrapper->name->set($title);
   // Setto data
   $wrapper->descrizione->set($data);
   // Salvo il contenuto
