@@ -1,156 +1,64 @@
 <?php
 
-function ontology_documentation_type_form($form, &$form_state, $entity_type, $op) {
+function ontology_documentation_type_form($form, &$form_state, $entity, $op) {
+  // L'operazione richiamata da entity_ui_get_form è edit
   if ($op == 'edit') {
-    $form['category'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Documentation type machine name'),
-      '#description' => t('A unique machine-readable name of this documentation type.'),
-      '#default_value' => isset($entity_type->category) ? $entity_type->category : '',
-      '#size' => '50',
-      '#disabled' => TRUE,
-    );
-    $form['title'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Documentation type name'),
-      '#description' => t('The human-readable name of this documentation type.'),
-      '#size' => '50',
-      '#default_value' => isset($entity_type->title) ? $entity_type->title : '',
-      '#required' => TRUE,
-    );
-    $form['description'] = array(
-      '#type' => 'textarea',
-      '#title' => t('Documentation type description'),
-      '#description' => t('A short description of this documentation type.'),
-      '#default_value' => isset($entity_type->description) ? $entity_type->description : '',
-      '#required' => TRUE,
-    );
-    $form['locked'] = array(
-      '#type' => 'radios',
-      '#title' => t('Is locked type?'),
-      '#description' => t('Enable deletion of this documentation type.'),
-      '#options' => array(
-        t('no'),
-        t('yes'),
-      ),
-      '#default_value' => isset($entity_type->locked) ? $entity_type->locked : 0,
-      '#required' => TRUE,
-    );
-    $form['submit'] = array(
-      '#type' => 'submit',
-      '#value' => t('Save'),
-      '#weight' => 50,
-    );
-    $form['cancel'] = array(
-      '#type' => 'button',
-      '#value' => t('Cancel'),
-      '#weight' => 50,
-    );
- }
+    // Creo il wrapper da passare al frontend
+    $form_wrapper = entity_metadata_wrapper(__documentation_type_type__, $entity);
+    // Recupero il template del form
+    $bundle_edit_form = ontology_documentation_get_util_item('bundle_edit_form');
+    // Recupero il tipo del bundle
+    $bundle_type = $form_wrapper->type->value();
+    // Recupero il nome del bundle
+    $bundle_name = $form_wrapper->name->value();
+    // Recupero la descrizione del bundle
+    $bundle_description = $form_wrapper->description->value();
+    // Imposto il tipo del bundle
+    $bundle_edit_form['bundle_type']['#default_value'] = $bundle_type;
+    // Imposto il nome del bundle
+    $bundle_edit_form['bundle_name']['#default_value'] = $bundle_name;
+    // Imposto la descrizione del bundle
+    $bundle_edit_form['bundle_description']['#default_value'] = $bundle_description;
+    // Ritorno il form completo
+    return $bundle_edit_form;
+  }
+}
 
-  return $form;
+function ontology_documentation_edit_type_form_cancel($form, &$form_state) {
+  drupal_goto(__documentation_type_base_url__);
 }
 
 function ontology_documentation_form($form, &$form_state, $entity, $op) {
   // L'operazione richiamata da entity_ui_get_form è edit
   if ($op == 'edit') {
-    // Definisco il vettore per il form
-    $edit_form = array();
-    // Definisco il vettore dei patterns
-    $patterns = array();
-    // Definisco il vettore dei replacements
-    $replacements = array();
-    // Pattern per l'etichetta del campo
-    $patterns[0] = '/(<.+?>)(Descrizione)(<.+?>)\s*/';
-    // Patter per il ritorno a capo
-    $patterns[1] = '/\n/';
-    // Elimino l'etichetta del campo
-    $replacements[0] =  '';
-    // Elimino ritorno a capo
-    $replacements[1] =  '';
-
-    // Creo il wrapper per accedere al valore corrente del campo descrizione
-    $entity_wrapper = entity_metadata_wrapper(__documentation_type__, $entity);
-    // Titolo
-    $title = $entity_wrapper->name->value();
-    // Estraggo il valore corrente
-    $current_description = preg_replace($patterns, $replacements, $entity_wrapper->descrizione->value->raw());
-
-    $edit_form['title'] = array(
-      '#type' => 'textfield',
-      '#title' => 'Titolo',
-      '#default_value' => $title,
-      '#size' => 45,
-      '#required' => TRUE,
-    );
-    $edit_form['description'] = array(
-      '#type' => 'textarea',
-      '#title' => 'Descrizione',
-      '#description' => t('Empty line in description will be deleted!'),
-      '#default_value' => $current_description,
-    );
-    $edit_form['submit'] = array(
-      '#type' => 'submit',
-      '#value' => 'Save',
-    );
-    $edit_form['cancel'] = array(
-      '#type' => 'button',
-      '#value' => 'Cancel',
-    );
-
+    // Recupero il template del form
+    $edit_form = ontology_documentation_get_util_item('edit_form');
+    // Creo il wrapper da passare al frontend
+    $edit_form_wrapper = entity_metadata_wrapper(__documentation_type__, $entity);
+    // Recupero il titolo
+    $entity_name = $edit_form_wrapper->name->value();
+    // Recupero la descrizione
+    $entity_description = str_replace('<h2>Descrizione</h2>', '', $edit_form_wrapper->descrizione->value->raw());
+    // Imposto il titolo
+    $edit_form['entity_name']['#default_value'] = $entity_name;
+    // Imposto la descriione
+    $edit_form['entity_description']['#default_value'] = trim($entity_description);
+    // Ritorno il form completo
     return $edit_form;
   }
 }
 
-function ontology_documentation_form_submit($form, &$form_state) {
-  // Definisco il vettore dei patterns
-  $patterns = array();
-  // Definisco il vettore dei replacements
-  $replacements = array();
-  // Pattern per gli spazi bianchi iniziali e finali del testo immesso
-  $patterns[0] = "/(^\s*)(.*?)(\s*$)/";
-  // Sostituisco con il gruppo $2
-  $replacements[0] = "$2";
-  // Pattern per gli spazi tra i tag
-  $patterns[1] = "/(<[^>]*>)(\s*)(\w*)(\s*)(<[^\/>]*\/.+?>)/";
-  // Sostituisco con i gruppi $1,$3,$5
-  $replacements[1] = "$1$3$5";
-
-  // Definisco la struttura per memorizzare il valore del testo
-  $data = array(
-    'value' => array(
-      'title' => array(
-        '#type' => 'html_tag',
-        '#tag' => 'h2',
-        '#value' => 'Descrizione',
-      ),
-      'content' => array(
-        '#markup' => '',
-      ),
-    ),
-    'format' => 'wiki_text',
-  );
-
-  // Recupero l'entità passata al form
-  $entity = $form_state[__documentation_type__];
+function ontology_documentation_edit_form_cancel($form, &$form_state) {
+  // Recupero l'entità
+  $edit_entity = $form_state[__documentation_type__];
   // Creo il wrapper
-  $wrapper = entity_metadata_wrapper(__documentation_type__, $entity);
-  // Recupero il titolo del termine
-  $title = strip_tags($form_state['values']['title']);
-  // Recupero il valore del testo immesso dall'utente eliminando le linee vuote
-  $description = preg_replace($patterns, $replacements, $form_state['values']['description']);
-  // Assegno il testo alla struttura
-  $data['value']['content']['#markup'] = $description;
-  // Renderizzo i tag
-  $data['value'] = drupal_render($data['value']);
-  // Setto il titolo
-  $wrapper->name->set($title);
-  // Setto data
-  $wrapper->descrizione->set($data);
-  // Salvo il contenuto
-  $wrapper->save();
-  // Rindirizzo l'utente alla pagina del termine
-  $form_state['redirect'] = 'ontology-documentation/'.$wrapper->getBundle().'/'.str_replace('_', '-', $wrapper->name->value());
+  $edit_submit_wrapper = entity_metadata_wrapper(__documentation_type__, $edit_entity);
+  // Recuper il bundle
+  $bundle = $edit_submit_wrapper->type->value();
+  // Recupero il nome del termine
+  $term_name = $edit_submit_wrapper->name->value();
+  // Ritorno alla pagina di visualizzazione termine
+  drupal_goto(__documentation_base_url__.'/'.$bundle.'/'.$term_name);
 }
 
 function ontology_documentation_type_form_submit($form, &$form_state) {
@@ -161,3 +69,23 @@ function ontology_documentation_type_form_submit($form, &$form_state) {
   ));
   $form_state['redirect'] = 'admin/structure/ontology-documentation-types';
 }
+
+function ontology_documentation_form_submit($form, &$form_state) {
+  // Recupero l'entità passata al form
+  $entity = $form_state[__documentation_type__];
+  // Creo il wrapper
+  $form_submit_wrapper = entity_metadata_wrapper(__documentation_type__, $entity);
+  // Recupero il titolo del termine
+  $title = strip_tags($form_state['values']['entity_name']);
+  // Recupero il valore del testo e ci appendo l'eticchetta del campo
+  $description = '<h2>Descrizione</h2>'.trim($form_state['values']['entity_description']);
+  // Setto il titolo
+  $form_submit_wrapper->name->set($title);
+  // Setto data
+  $form_submit_wrapper->descrizione->value->set($description);
+  // Salvo il contenuto
+  $form_submit_wrapper->save();
+  // Rindirizzo l'utente alla pagina del termine
+  $form_state['redirect'] = 'ontology-documentation/'.$form_submit_wrapper->getBundle().'/'.str_replace('_', '-', $form_submit_wrapper->name->value());
+}
+

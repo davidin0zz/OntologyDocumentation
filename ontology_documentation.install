@@ -10,7 +10,6 @@ define('__module_file__', __module_name__ . '.module');
 define('__shortcut_default_path__', 'admin/ontology-documentation/add');
 // Definisco il titolo per lo shortcut
 define('__shortcut_default_title__', 'Add ontology');
-
 // Includo il modulo
 require_once DRUPAL_ROOT. '/' . __module_file_path__ . '/' . __module_file__;
 
@@ -137,9 +136,6 @@ function ontology_documentation_enable() {
    * */
    //shortcut_admin_add_link($ontology_add_shortcut_link, $ontology_shortcut_default_set);
    //shortcut_set_save($ontology_shortcut_default_set);
-
-  // Svuoto la cache
-  cache_clear_all();
 }
 
 function ontology_documentation_disable() {

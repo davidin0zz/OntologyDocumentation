@@ -13,51 +13,28 @@ function ontology_documentation_attribute_create() {
 }
 
 function ontology_documentation_term_view($entity) {
-  drupal_set_title($entity->title);
   drupal_add_library('system', 'drupal.collapse');
+  drupal_set_title($entity->title);
   return entity_view(__documentation_type__, array($entity));
 }
 
+function ontology_documentation_config_form_cancel($form, &$form_state) {
+  drupal_goto('admin/config');
+}
+
 function ontology_documentation_config_form($form, &$form_state) {
-  $form['form_header'] = array(
-    '#type' => 'html_tag',
-    '#tag' => 'h2',
-    '#options' => array('class' => 'onto_form_header'),
-    '#value' => 'Ontology documentation upgrade form'
-  );
-  $form['form_delete_check'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Delete OWL documentation pages'),
-    '#description' => t('All the documentation will drop off'),
-    '#disabled' => variable_get('empty_owl_documentation', TRUE),
-    '#default_value' => FALSE,
-  );
-  $form['form_upgrade_check'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Upgrade OWL documentation pages'),
-    '#description' => t('Documentation pages will be upgraded'),
-    '#default_value' => TRUE,
-  );
-  $form['form_submit'] = array(
-    '#type' => 'submit',
-    '#value' => 'Ok',
-  );
-  $form['form_submit_cancel'] = array(
-    '#type' => 'button',
-    '#value' => 'Cancel',
-  );
-  return $form;
+  return ontology_documentation_get_util_item('config_form');
 }
 
 function ontology_documentation_config_form_submit($form, &$form_state) {
-  if ($form_state['values']['form_delete_check'] == 1 || $form_state['values']['form_upgrade_check'] ==1) {
+  if ($form_state['values']['config_form_delete_check'] == 1 || $form_state['values']['config_form_upgrade_check'] ==1) {
     $documentation_ids = ontology_documentation_get_id();
-    if ($form_state['values']['form_delete_check'] == 1) {
+    if ($form_state['values']['config_form_delete_check'] == 1) {
      ontology_documentation_delete($documentation_ids);
      drupal_set_message('Selected \'delete\' task has been succesfully completed!');
      variable_set('empty_owl_documentation', TRUE);
    }
-   if ($form_state['values']['form_upgrade_check'] == 1) {
+   if ($form_state['values']['config_form_upgrade_check'] == 1) {
     if (!empty($documentation_ids)) {
       ontology_documentation_create('UPDATE');
     }
@@ -101,105 +78,11 @@ function ontology_documentation_create($mode) {
 }
 
 function ontology_documentation_mastro_get_data($operation = NULL, $parameters = array(), $field = NULL, $bundle = NULL) {
-  $mastro_methods_per_ontology_field = &drupal_static('functions' . __FUNCTION__, array());
+  // Dichiaro statica la variabile
   $wsdl = &drupal_static('wsdl' . __FUNCTION__);
-
-  if (empty($mastro_methods_per_ontology_field)) {
-    $mastro_methods_per_ontology_field = array(
-      'occorrenza' => array(
-        'concept' => array(
-           'keys' => array('concept'),
-           'operation' => 'getConceptGraphMLLinks',
-        ),
-        'role' => array(
-          'keys' => array('role'),
-          'operation' => 'getRoleGraphMLLinks',
-        ),
-        'attribute' => array(
-          'keys' => array('attribute'),
-          'operation' => 'getAttributeGraphMLLinks',
-        ),
-      ),
-      'specializzazioni' => array(
-        'concept' => array(
-          'keys' => array('conceptName', 'renderingMode'),
-          'operation' => 'getAssertedSubAtomicConcepts',
-        ),
-        'role' => array(
-          'keys' => array('roleName', 'renderingMode'),
-          'operation' => 'getAssertedSubAtomicRoles',
-        ),
-      ),
-      'generalizzazioni' => array(
-        'concept' => array(
-          'keys' => array('conceptName', 'renderingMode'),
-          'operation' => 'getAssertedSuperAtomicConcepts',
-        ),
-        'role' => array(
-          'keys' => array('roleName', 'renderingMode'),
-          'operation' => 'getAssertedSuperAtomicRoles',
-        ),
-      ),
-      'tipizzazione_domain' => array(
-        'role' => array(
-          'keys' => array('roleName'),
-          'operation' => 'getRoleDomain',
-        ),
-        'attribute' => array(
-          'keys' => array('attributeName'),
-          'operation' => 'getAttributeDomain',
-        ),
-      ),
-      'tipizzazione_range' => array(
-        'role' => array(
-          'keys' => array('roleName'),
-          'operation' => 'getRoleRange',
-        ),
-        'attribute' => array(
-          'keys' => array('attributeName'),
-          'operation' => 'getAttributeRange',
-        ),
-      ),
-      'attributi_obbligatori' => array(
-        'concept' => array(
-          'keys' => array('conceptName'),
-          'operation' => 'getRelevantMandatoryAttributes',
-        ),
-      ),
-      'attributi_non_obbligatori' => array(
-        'concept' => array(
-          'keys' => array('conceptName'),
-          'operation' => 'getRelevantOptionalAttributes',
-        ),
-      ),
-      'ruoli_obbligatori' => array(
-        'concept' => array(
-          'keys' => array('conceptName'),
-          'operation' => 'getRelevantMandatoryRoles',
-        ),
-      ),
-      'ruoli_non_obbligatori' => array(
-        'concept' => array(
-          'keys' => array('conceptName'),
-          'operation' => 'getRelevantOptionalRoles',
-        ),
-      ),
-     'assiomi' => array(
-       'concept' => array(
-         'keys' => array('conceptName', 'axiomType', 'format'),
-         'operation' => 'getMastroAxiomsByConcept',
-       ),
-       'role' => array(
-         'keys' => array('roleName', 'axiomType', 'format'),
-         'operation' => 'getMastroAxiomsByRole',
-       ),
-       'attribute' => array(
-         'keys' => array('attributeName', 'axiomType', 'format'),
-         'operation'=> 'getMastroAxiomsByAttribute',
-       ),
-     ),
-    );
-  }
+  // Ottengo la struttura con i nomi dei metodi di mastro e le chiavi dei parametri
+  $mastro_methods_per_ontology_field = ontology_documentation_get_util_item('mastro_methods_structure');
+  // Se non è definito il wdsl, lo definisco
   if (!isset($wsdl)) {
     $wsdl = array(
         'url' => variable_get('ws_url'),
@@ -345,116 +228,16 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
   $entity_type = $wrapper->type();
   $bundle = $wrapper->getBundle();
   $term = $wrapper->name->value();
-  $graph_viewer = 'graphml-viewer';
-
-  // Positive inclusions axiomType => 0
-  // Negative inclusions axiomType => 1
-  // Denial assertions axiomType => 4
-  // Functiona and ID constraints axiomType => 2 and axiomType => 3
-  // Epistemic constraints axiomType => 5
-  $axiom_type = array(
-    'positive_inclusions' => array(0),
-    'negative_inclusions' => array(1),
-    'functional_and_id_contraints' => array(2, 3),
-    'denial_assertions' => array(4),
-    'epistemic_constraints' => array(5),
-  );
-  $link_obda_type = array(
-    'concept' => 0,
-    'role' => 1,
-    'attribute' => 2,
-  );
-  $field_data = array(
-    'label' => array(
-      '#theme' => 'html_tag',
-      '#tag' => 'h2',
-      '#value' => ucwords(str_replace('_', ' ', $field_name)),
-      '#printed' => TRUE,
-    ),
-    'page_link' =>array(
-      '#type' => 'link',
-      '#title' => '',
-      '#href' => '',
-      '#printed' => TRUE,
-    ),
-    'item_list' => array(
-      '#theme' => 'item_list',
-      '#items' => array(),
-      '#type' => 'ul',
-      '#pre_render' => array('ontology_documentation_item_list_child_render'),
-      '#printed' => TRUE,
-    ),
-    'description' => array(
-      '#markup' => '',
-      //'#tag' => 'p',
-      //'#value' => '',
-      '#printed' => TRUE,
-    ),
-    'fieldset_box' => array(
-      '#theme' => 'fieldset',
-      '#title' => '',
-      '#children' => array(
-        'simple' => array(
-          '#theme' => 'item_list',
-          '#items' => array(),
-          '#type' => 'ul',
-          '#printed' => TRUE,
-          '#pre_render' => array('ontology_documentation_item_list_child_render'),
-        ),
-        'axioms' => array(
-          'positive_inclusions' => array(
-            '#theme' => 'item_list',
-            '#items' => array(),
-            '#title' => t('Positive inclusions'),
-            '#type' => 'ul',
-            '#printed' => TRUE,
-            '#pre_render' => array('ontology_documentation_item_list_child_render'),
-          ),
-          'negative_inclusions' => array(
-            '#theme' => 'item_list',
-            '#items' => array(),
-            '#title' => t('Negative inclusions'),
-            '#type' => 'ul',
-            '#printed' => TRUE,
-            '#pre_render' => array('ontology_documentation_item_list_child_render'),
-          ),
-          'denial_assertions' => array(
-            '#theme' => 'item_list',
-            '#items' => array(),
-            '#title' => t('Denial assertions'),
-            '#type' => 'ul',
-            '#printed' => TRUE,
-            '#pre_render' => array('ontology_documentation_item_list_child_render'),
-           ),
-          'functional_and_id_contraints' => array(
-            '#theme' => 'item_list',
-            '#items' => array(),
-            '#title' => t('Functional and ID constraints'),
-            '#type' => 'ul',
-            '#printed' => TRUE,
-            '#pre_render' => array('ontology_documentation_item_list_child_render'),
-          ),
-          'epistemic_constraints' => array(
-            '#theme' => 'item_list',
-            '#items' => array(),
-            '#title' => t('Epistemic constraints'),
-            '#type' => 'ul',
-            '#printed' => TRUE,
-            '#pre_render' => array('ontology_documentation_item_list_child_render'),
-          ),
-        ),
-      ),
-      '#attributes' => array(
-        'class' => array(
-          'collapsible',
-          'collapsed',
-        ),
-      ),
-      '#printed' => TRUE,
-      '#pre_render' => array('ontology_documentation_fieldset_child_reder'),
-    ),
-  );
-
+  // Recupero il percorso di base del graphml viewer
+  $graph_viewer =  ontology_documentation_get_util_item('graphml_viewer_path');
+  // Recupero i tipi di assiomi
+  $axiom_type = ontology_documentation_get_util_item('mastro_axiom_types');
+  // Recupero i tipi di link
+  $link_obda_type = ontology_documentation_get_util_item('obda_types');
+  // Recupero la struttura dati dei campi
+  $field_data = ontology_documentation_get_util_item('fields_data_structure');
+  // Imposto il valore dell'etichetta del campo
+  $field_data['label']['#value'] = ucwords(str_replace('_', ' ', $field_name));
   // Imposto il tipo di formato del testo
   $wrapper->$field_name->format->set($text_format);
 
@@ -552,9 +335,10 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       $field_data['fieldset_box']['#children']['axioms']['positive_inclusions']['#printed'] = FALSE;
       $field_data['fieldset_box']['#children']['axioms']['negative_inclusions']['#printed'] = FALSE;
       $field_data['fieldset_box']['#children']['axioms']['denial_assertions']['#printed'] = FALSE;
-      $field_data['fieldset_box']['#children']['axioms']['functional_and_id_contraints']['#printed'] = FALSE;
+      $field_data['fieldset_box']['#children']['axioms']['functional_and_ID_contraints']['#printed'] = FALSE;
       $field_data['fieldset_box']['#children']['axioms']['epistemic_constraints']['#printed'] = FALSE;
       foreach ($field_data['fieldset_box']['#children']['axioms'] as $axiom_type_key => $axiom) {
+        $field_data['fieldset_box']['#children']['axioms'][$axiom_type_key]['#title'] = t(ucwords(str_replace('_', ' ', $axiom_type_key)));
         foreach ($axiom_type[$axiom_type_key] as $axiom_type_integer) {
           $axioms_result = ontology_documentation_mastro_get_data(NULL, array($term, $axiom_type_integer, FALSE), $field_name, $bundle);
           $field_data['fieldset_box']['#children']['axioms'][$axiom_type_key]['#items'] = $axioms_result;
