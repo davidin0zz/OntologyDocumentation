@@ -13,9 +13,9 @@ define('__reasoning_relative_path__', 'intensional-reasoning');
 // Definisco l'url per le pagina dei mappings
 define('__mappings_relative_path__', 'mappings/ontology');
 // Definisco il nome della classe di frontend
-define('__documentation_type_front__', __documentation_type__ . '.inc');
+define('__documentation_type_util__', __documentation_type__ . '.util.inc');
 // Includo la classe per il frontend
-require_once DRUPAL_ROOT . '/'. drupal_get_path('module', __documentation_type__) . '/' . __documentation_type_front__;
+require_once DRUPAL_ROOT . '/'. drupal_get_path('module', __documentation_type__) . '/' . __documentation_type_util__;
 
 /**
  * Implements hook_help().
@@ -104,6 +104,23 @@ function ontology_documentation_entity_info() {
 }
 
 /**
+ * Implements hook_entity_info_alter().
+ */
+function ontology_documentation_entity_info_alter(&$entity_info) {
+  foreach (ontology_documentation_util('get_bundles', 'ALL') as $bundle) {
+    $entity_info['ontology_documentation']['bundles'][$bundle['machine_name']] = array(
+      'label' => $bundle['human_label'],
+      'uri callback' => 'entity_class_uri',
+      'admin' => array(
+        'path' => 'admin/structure/ontology-documentation-types/manage/%ontology_documentation_type',
+        'bundle argument' => 4,
+        'real path' => 'admin/structure/ontology-documentation-types/manage/' . $bundle['machine_name'],
+        ),
+    );
+  }
+}
+
+/**
  * Implements hook_entity_property_info().
  */
 function ontology_documentation_entity_property_info() {
@@ -166,7 +183,7 @@ function ontology_documentation_entity_property_info() {
       'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'changed',
     ),
-    'is_published' => array(
+    'state' => array(
       'label' => t(__documentation_type__.' status'),
       'description' => t('The status of the ontology term'),
       'type' => 'integer',
@@ -202,28 +219,12 @@ function ontology_documentation_entity_property_info() {
 }
 
 /**
- * Implements hook_entity_info_alter().
- */
-function ontology_documentation_entity_info_alter(&$entity_info) {
-  foreach (ontology_documentation_get_bundles() as $bundle) {
-    $entity_info['ontology_documentation']['bundles'][$bundle['machine_name']] = array(
-      'label' => $bundle['human_label'],
-      'uri callback' => 'entity_class_uri',
-      'admin' => array(
-        'path' => 'admin/structure/ontology-documentation-types/manage/%ontology_documentation_type',
-        'bundle argument' => 4,
-        'real path' => 'admin/structure/ontology-documentation-types/manage/' . $bundle['machine_name'],
-        ),
-    );
-  }
-}
-
-/**
  * Implements hook_admin_paths().
  */
 function ontology_documentation_admin_paths() {
   $paths = array(
     __documentation_base_url__.'/*/*/edit' => TRUE,
+   __documentation_base_url__.'/*/*/edit/add-revision' => TRUE,
   );
   return $paths;
 }
@@ -237,10 +238,10 @@ function ontology_documentation_menu() {
   $items['admin/config/mastro/'.__documentation_base_url__] = array(
     'title' => 'Ontology Documentation',
     'description' => 'Upgrade OWL documentation pages',
+    'access callback' => 'entity_access',
+    'access arguments' => array('update', __documentation_type__, NULL, NULL),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('ontology_documentation_config_form'),
-    'access callback' => 'entity_access',
-    'access arguments' => array('edit', __documentation_type__, NULL, NULL),
     'type' => MENU_NORMAL_ITEM,
     'file' => 'ontology_documentation.callback.inc',
   );
@@ -263,12 +264,22 @@ function ontology_documentation_menu() {
   $items[__documentation_base_url__.'/%/%ontology_documentation/edit'] = array(
     'title' => 'Edit',
     'load arguments' => array(__documentation_type__, 1),
+    'access callback' => 'entity_access',
+    'access arguments' => array('update', __documentation_type__, 2, NULL),
     'page callback' => 'entity_ui_get_form',
     'page arguments' => array('ontology_documentation', 2, 'edit'),
-    'access callback' => 'entity_access',
-    'access arguments' => array('edit', __documentation_type__, 2, NULL),
     'file' => 'ontology_documentation.admin.inc',
     'type' => MENU_LOCAL_TASK,
+  );
+  $items[__documentation_base_url__.'/%/%ontology_documentation/edit/add-revision'] = array(
+    'title' => 'Create new revision',
+    'load arguments' => array(__documentation_type__, 1),
+    'access callback' => 'entity_access',
+    'access arguments'=> array('create', __documentation_type__, 2, NULL),
+    'page callback' => array('drupal_get_form'),
+    'page arguments' => array('ontology_documentation_add_revision', 2),
+    'file' => 'ontology_documentation.callback.inc',
+    'type' => MENU_LOCAL_ACTION,
   );
 
  /**
@@ -337,14 +348,13 @@ function ontology_documentation_preprocess_field(&$variables) {
     $variables['label_hidden'] = TRUE;
   }
 }
-
-function ontology_documentation_load($entity_name, $entity_type = NULL, $bundle = NULL) {
-  // Cancello la cache nel caso lo stato di un termine viene
-  // modificato dopo che la pagina è stata caricata
-  cache_clear_all();
-  // Inizializzo la variabile di stato
-  //$is_published = 1;
-  // Sostituisco nel nome del termine i trattini con gli underscore
+// Carica l'entità da visualizzare
+function ontology_documentation_load($entity_name, $entity_type, $bundle) {
+  // Se almeno un parametro è o non settato o vuoto lancio l'eccezione
+  if (!$entity_name || !$entity_type || !$bundle) {
+    throw new Exception('ontology_documentation_load(): missing parameters');
+  }
+  // Sostituisco gli hyphen con gli underscore
   $entity_name = str_replace('-', '_', $entity_name);
   // Creo l'oggetto wrapper per la query
   $entity_query = new EntityFieldQuery();
@@ -358,68 +368,38 @@ function ontology_documentation_load($entity_name, $entity_type = NULL, $bundle 
     // Ne estraggo l'id
     $id = key($entity_query_response[$entity_type]);
     // Carico l'entità
-    $entity = entity_load_unchanged($entity_type, $id);
+    $entity = entity_load_single($entity_type, $id);
     // Creo il wrapper
     $entity_wrapper = entity_metadata_wrapper(__documentation_type__, $entity);
     // Recupero lo stato
-    $is_published = $entity_wrapper->is_published->raw();
-    // Se l'entità è o non pubblicata ma si posside l'autorizzazione ad amministrarla,
-    // o pubblicata, carica la pagina con il suo contentuo
+    $is_published = $entity_wrapper->state->value();
+    // Se l'entità è non pubblicata ma si posside l'autorizzazione ad amministrarla o
+    // pubblicata, carica la pagina con il suo contentuo
     if(!$is_published && user_access('administer ontology_documentation entities') || $is_published) {
       return $entity;
     }
+    // Altrimenti ritorno FALSE
     else {
       return FALSE;
     }
   }
   return FALSE;
 }
-
-function ontology_documentation_type_load($bundle_type_name) {
-  $entity = entity_load('ontology_documentation_type', array($bundle_type_name));
-  return reset($entity);
-}
-
-function ontology_documentation_get_bundles($condition = 'ALL') {
-  $bundles = &drupal_static(__FUNCTION__,array());
-
-  if (empty($bundles)) {
-    $bundles += array(
-      array(
-       'machine_name' => 'concept',
-       'human_label' => 'Concept',
-       'description' => 'Describe a specific owl concept',
-      ),
-      array(
-       'machine_name' => 'role',
-       'human_label' => 'Role',
-       'description' => 'Describe a specific owl role',
-      ),
-      array(
-        'machine_name' => 'attribute',
-        'human_label' => 'Attribute',
-        'description' => 'Describe a sepcific owl attribute',
-      ),
-    );
+// Carica il bundle da visualizzare
+function ontology_documentation_type_load($bundle_type) {
+  // Se il tipo di bundle è vuoto o non settato lancio l'eccezione
+  if (!$bundle_type) {
+    throw new Exception('ontology_documentation_type_load(): missing parameter.');
   }
-
-  switch ($condition) {
-    case 'ALL':
-      // Tutti e tre
-      return array_slice($bundles, 0,3);
-      break;
-    case 'WITH_DOMAIN_AND_CODOMAIN':
-      // Role,Attribute
-      return array_slice($bundles, 1,2);
-      break;
-    case 'WITH_INHERITANCE':
-      // Cocept,Role
-      return array_slice($bundles, 0,2);
-      break;
-    case 'WITH_ATTRIBUTES_AND_ROLES':
-      // Concept
-      return array_slice($bundles, 0,1);
-      break;
+  // Carico il bundle
+  $bundle = entity_load_single('ontology_documentation_type', $bundle_type);
+  // Se non è FALSE ritorno il bundle
+  if ($bundle) {
+    return $bundle;
+  }
+  // Altrimenti ritorno FALSE
+  else {
+    return FALSE;
   }
 }
 
@@ -458,37 +438,34 @@ function ontology_documentation_permission() {
 function ontology_documentation_access($op, $entity, $account, $entity_type) {
   global $user;
 
-  if (!isset($account)) {
-    $account = $user;
+  if ($entity_type == __documentation_type_type__) {
+    $owner = NULL;
   }
-  // CONTROLLARE QUI!!
-  if (isset($entity->uid))
-    $entity_owner = $entity->uid;
-  else
-    $entity_owner = FALSE;
+  elseif (isset($entity) && $entity_type == __documentation_type__) {
+    $owner = $entity->uid;
+  }
 
-  if (!empty($op)) {
-    if ($op == 'create')
-      return user_access('administer ontology_documentation entities', $account) ||
-             user_access('create ontology_documentation entities', $account);
-    elseif ($op == 'view')
-      return user_access('administer ontology_documentation entities', $account) ||
-             user_access('view ontology_documentation entities', $account);
-    // Per la gestione della UI di amministrazione
-    elseif ($op == 'manage' || $op == 'update' || $op == 'delete')
-      return user_access('administer ontology_documentation entities', $account);
-    elseif ($op == 'edit')
-      return user_access('administer ontology_documentation entities', $account) ||
-             user_access('edit any ontology_documentation entities', $account)   ||
-             user_access('edit own ontology_documentation entities', $account)   &&
-             $account->uid == $entity_owner && $entity->entityType() == $entity_type;
+  if ($op == 'create') {
+    return user_access('administer ontology_documentation entities', $user) ||
+           user_access('create ontology_documentation entities', $user);
   }
-  else
-    return FALSE;
+  elseif ($op == 'view') {
+    return user_access('administer ontology_documentation entities', $user) ||
+           user_access('view ontology_documentation entities', $user);
+  }
+  elseif ($op == 'update' || $op == 'delete') {
+    return user_access('administer ontology_documentation entities', $user)   ||
+           user_access('update any ontology_documentation entities', $user)   ||
+           user_access('update own ontology_documentation entities', $user)   &&
+           $user->uid == $entity_owner && $entity->entityType() == $entity_type;
+  }
 }
 
-function ontology_documentation_get_util_item($item_name, $parameters = NULL) {
+function ontology_documentation_util($item_name, $parameters = NULL) {
   switch ($item_name) {
+    case 'get_bundles':
+      return OntologyDocumentationUtil::getBundles($parameters);
+      break;
     case 'config_form':
       return OntologyDocumentationUtil::getConfigForm();
       break;

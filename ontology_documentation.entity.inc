@@ -13,7 +13,7 @@ class OntologyDocumentation extends Entity {
       'uid' => get_mastro_uid(),
       'created' => REQUEST_TIME,
       'changed' => REQUEST_TIME,
-      'status' => 1,
+      //'state' => 1,
     );
     parent::__construct(array_merge($ontologyDocumentationDataArray, $values), $entity_type);
   }

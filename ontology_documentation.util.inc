@@ -204,6 +204,41 @@ class OntologyDocumentationUtil {
     ),
   );
 
+  public static function getBundles($condition = 'ALL') {
+    $bundles = &drupal_static(__FUNCTION__,array());
+    if (empty($bundles)) {
+      $bundles += array(
+        array(
+         'machine_name' => 'concept',
+         'human_label' => 'Concept',
+         'description' => 'Describe a specific owl concept',
+        ),
+        array(
+         'machine_name' => 'role',
+         'human_label' => 'Role',
+         'description' => 'Describe a specific owl role',
+        ),
+        array(
+          'machine_name' => 'attribute',
+          'human_label' => 'Attribute',
+          'description' => 'Describe a sepcific owl attribute',
+        ),
+      );
+    }
+    if ($condition == 'ALL') {
+      return array_slice($bundles, 0,3);
+    }
+    elseif ($condition == 'WITH_DOMAIN_AND_CODOMAIN') {
+      return array_slice($bundles, 1,2);
+    }
+    elseif ($condition == 'WITH_INHERITANCE') {
+      return array_slice($bundles, 0,2);
+    }
+    else {
+      return array_slice($bundles, 0,1);
+    }
+  }
+
   public static function getConfigForm() {
     $config_form = array();
 
@@ -253,17 +288,16 @@ class OntologyDocumentationUtil {
     $edit_form['entity_description'] = array(
       '#type' => 'textarea',
       '#title' => t('Descrizione'),
+      '#rows' => 15,
       '#default_value' => '',
     );
-    $edit_form['entity_status'] = array(
+    $edit_form['entity_state'] = array(
       '#type' => 'select',
-      '#title' => t('Text Format'),
+      '#title' => t('State'),
       '#default_value' => '',
       '#options' => array(
-        0 => t('Plain text'),
-        1 => t('Wiki text'),
-        2 => t('Filtered html'),
-        3 => t('Full html'),
+        0 => t('Unpublished'),
+        1 => t('Published'),
        ),
     );
     $edit_form['entity_submit'] = array(

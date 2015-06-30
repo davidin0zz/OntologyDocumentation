@@ -27,10 +27,10 @@ $ontology_add_shortcut_link = array(
 
 global $all_bundles;
 // Definisce i bundles da applicare ai campi rilevanti
-$all_bundles = ontology_documentation_get_bundles();
-$role_attribute_bundles = ontology_documentation_get_bundles('WITH_DOMAIN_AND_CODOMAIN');
-$concept_role_bundles = ontology_documentation_get_bundles('WITH_INHERITANCE');
-$concept_bundles = ontology_documentation_get_bundles('WITH_ATTRIBUTES_AND_ROLES');
+$all_bundles = ontology_documentation_util('get_bundles', 'ALL');
+$role_attribute_bundles = ontology_documentation_util('get_bundles', 'WITH_DOMAIN_AND_CODOMAIN');
+$concept_role_bundles = ontology_documentation_util('get_bundles', 'WITH_INHERITANCE');
+$concept_bundles = ontology_documentation_util('get_bundles', 'WITH_ATTRIBUTES_AND_ROLES');
 
 // Specifica quali bundles posseggono quali campi
 global $bundles_fields;
@@ -237,7 +237,7 @@ function ontology_documentation_schema() {
       'user_uid' => array('uid'),
       'entity_created' => array('created'),
       'entity_changed' => array('changed'),
-      'status' => array('status'),
+      'entity_state' => array('status'),
     ),
     'unique keys' => array(
       'odid' => array('odid'),

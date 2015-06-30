@@ -13,6 +13,9 @@ class OntologyDocumentationTypeUIController extends EntityDefaultUIController {
     $items = parent::hook_menu();
     $items[$this->path]['title'] = 'Ontology types';
     $items[$this->path]['weight'] = -1;
+    // Previene la visualizzare del pannello di amministrazione dell'entità
+    // all'utente autenticato con il solo permesso di 'view'
+    $items[$this->path]['access arguments'] = array('update', $this->entityType);
     return $items;
   }
 }

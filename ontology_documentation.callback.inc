@@ -18,12 +18,16 @@ function ontology_documentation_term_view($entity) {
   return entity_view(__documentation_type__, array($entity));
 }
 
+function ontology_documentation_add_revision($form, &$form_state, $entity) {
+  return array();
+}
+
 function ontology_documentation_config_form_cancel($form, &$form_state) {
   drupal_goto('admin/config');
 }
 
 function ontology_documentation_config_form($form, &$form_state) {
-  return ontology_documentation_get_util_item('config_form');
+  return ontology_documentation_util('config_form');
 }
 
 function ontology_documentation_config_form_submit($form, &$form_state) {
@@ -81,7 +85,7 @@ function ontology_documentation_mastro_get_data($operation = NULL, $parameters =
   // Dichiaro statica la variabile
   $wsdl = &drupal_static('wsdl' . __FUNCTION__);
   // Ottengo la struttura con i nomi dei metodi di mastro e le chiavi dei parametri
-  $mastro_methods_per_ontology_field = ontology_documentation_get_util_item('mastro_methods_structure');
+  $mastro_methods_per_ontology_field = ontology_documentation_util('mastro_methods_structure');
   // Se non è definito il wdsl, lo definisco
   if (!isset($wsdl)) {
     $wsdl = array(
@@ -229,13 +233,13 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
   $bundle = $wrapper->getBundle();
   $term = $wrapper->name->value();
   // Recupero il percorso di base del graphml viewer
-  $graph_viewer =  ontology_documentation_get_util_item('graphml_viewer_path');
+  $graph_viewer =  ontology_documentation_util('graphml_viewer_path');
   // Recupero i tipi di assiomi
-  $axiom_type = ontology_documentation_get_util_item('mastro_axiom_types');
+  $axiom_type = ontology_documentation_util('mastro_axiom_types');
   // Recupero i tipi di link
-  $link_obda_type = ontology_documentation_get_util_item('obda_types');
+  $link_obda_type = ontology_documentation_util('obda_types');
   // Recupero la struttura dati dei campi
-  $field_data = ontology_documentation_get_util_item('fields_data_structure');
+  $field_data = ontology_documentation_util('fields_data_structure');
   // Imposto il valore dell'etichetta del campo
   $field_data['label']['#value'] = ucwords(str_replace('_', ' ', $field_name));
   // Imposto il tipo di formato del testo
