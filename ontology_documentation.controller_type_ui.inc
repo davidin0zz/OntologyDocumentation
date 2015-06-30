@@ -20,7 +20,6 @@ class OntologyDocumentationTypeUIController extends EntityDefaultUIController {
     // Disabilito gli hook_menu non necessari
     // list,clone,add,delete (%)
     $menu_hooks = array_keys($items);
-    dpm($items);
     foreach ($menu_hooks as $menu_hook) {
       $url_array = explode('/', $menu_hook);
       if (in_array('list', $url_array) || in_array('clone', $url_array) ||
