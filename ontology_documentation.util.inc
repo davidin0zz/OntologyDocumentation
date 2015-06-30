@@ -274,7 +274,7 @@ class OntologyDocumentationUtil {
     return $config_form;
   }
 
-  public static function getEditTermForm() {
+  public static function getEntityEditForm() {
     // Dichiaro il vettore per il form
     $edit_form = array();
 

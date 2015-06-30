@@ -4,11 +4,19 @@ class OntologyDocumentationUIController extends EntityDefaultUIController {
   function hook_menu() {
     $items = parent::hook_menu();
     // $this->path = admin/ontology-documentation
-    $items[$this->path]['title'] = 'Ontology';
-    $items[$this->path]['weight'] = -10;
+    $items[$this->path]['access callback'] = 'entity_access';
     // Previene la visualizzare del pannello di amministrazione dell'entità
     // all'utente autenticato con il solo permesso di 'view'
     $items[$this->path]['access arguments'] = array('update', $this->entityType);
+    $items[$this->path]['weight'] = -10;
+    // Disabilito gli hook_menu non necessari
+    $menu_hooks = array_keys($items);
+    foreach ($menu_hooks as $menu_hook) {
+      $url_array = explode('/', $menu_hook);
+      if (in_array('list', $url_array) || in_array('clone', $url_array)) {
+        unset($items[$menu_hook]);
+      }
+    }
     return $items;
   }
 }

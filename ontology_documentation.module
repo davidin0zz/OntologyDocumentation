@@ -46,6 +46,7 @@ function ontology_documentation_entity_info() {
 
   $entity_info['ontology_documentation'] = array(
     'label' => 'Ontology documentation',
+    'plural label' => 'Ontology Entities',
     'entity class' => 'OntologyDocumentation',
     'controller class' => 'OntologyDocumentationController',
     'views controller class' => 'EntityDefaultViewsController',
@@ -80,6 +81,7 @@ function ontology_documentation_entity_info() {
   );
   $entity_info['ontology_documentation_type'] = array(
     'label' => 'Ontology documentation type',
+    'plural label' => 'Ontology Entities types',
     'entity class' => 'OntologyDocumentationType',
     'controller class' => 'OntologyDocumentationTypeController',
     'base table' => 'ontology_documentation_type',
@@ -469,8 +471,8 @@ function ontology_documentation_util($item_name, $parameters = NULL) {
     case 'config_form':
       return OntologyDocumentationUtil::getConfigForm();
       break;
-    case 'edit_form':
-      return OntologyDocumentationUtil::getEditTermForm();
+    case 'entity_edit_form':
+      return OntologyDocumentationUtil::getEntityEditForm();
       break;
     case 'bundle_edit_form':
       return OntologyDocumentationUtil::getBundleEditForm();

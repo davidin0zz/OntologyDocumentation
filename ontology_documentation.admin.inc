@@ -32,7 +32,7 @@ function ontology_documentation_form($form, &$form_state, $entity, $op) {
   // L'operazione richiamata da entity_ui_get_form è edit
   if ($op == 'edit') {
     // Recupero il template del form
-    $edit_form = ontology_documentation_util('edit_form');
+    $edit_form = ontology_documentation_util('entity_edit_form');
     // Creo il wrapper da passare al frontend
     $edit_form_wrapper = entity_metadata_wrapper(__documentation_type__, $entity);
     // Recupero il titolo
