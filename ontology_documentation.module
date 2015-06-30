@@ -58,7 +58,7 @@ function ontology_documentation_entity_info() {
     'base table' => __documentation_type__,
     'revision table' => __documentation_type__.'_revision',
     'fieldable' => TRUE,
-    'entity keys' => array(
+     'entity keys' => array(
       'id' => 'odid',
       'revision' => 'rodid',
       'bundle' => 'category',
@@ -95,6 +95,7 @@ function ontology_documentation_entity_info() {
     'entity keys' => array(
       'id' => 'category',
       'label' => 'title',
+      'status' => 'locked',
     ),
     'module' => 'ontology_documentation',
     'label callback' => 'entity_class_label',

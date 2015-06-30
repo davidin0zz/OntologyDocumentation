@@ -325,7 +325,7 @@ class OntologyDocumentationUtil {
       '#title' => t('Documentation bundle machine name'),
       '#description' => t('A unique machine-readable name of this documentation bundle.'),
       '#default_value' => '',
-      '#size' => 45,
+      '#size' => 35,
       '#disabled' => TRUE,
     );
     // Definisco il campo per editare il nome del bundle
@@ -333,7 +333,7 @@ class OntologyDocumentationUtil {
       '#type' => 'textfield',
       '#title' => t('Documentation bundle name'),
       '#description' => t('The human-readable name of this documentation bundle.'),
-      '#size' => 45,
+      '#size' => 35,
       '#default_value' => '',
       '#required' => TRUE,
     );

@@ -2,7 +2,7 @@
 
 class OntologyDocumentation extends Entity {
   public function defaultUri() {
-    return array('path' => 'ontology-documentation/'. $this->category . '/' . str_replace('_', '-', $this->label()));
+    return array('path' => __documentation_view_path__.'/'.$this->category.'/'. str_replace('_', '-', $this->label()));
   }
   public function defaultLabel() {
     return $this->getTranslation($this->entityInfo['entity keys']['label']);
@@ -13,7 +13,6 @@ class OntologyDocumentation extends Entity {
       'uid' => get_mastro_uid(),
       'created' => REQUEST_TIME,
       'changed' => REQUEST_TIME,
-      //'state' => 1,
     );
     parent::__construct(array_merge($ontologyDocumentationDataArray, $values), $entity_type);
   }

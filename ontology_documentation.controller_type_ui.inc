@@ -29,4 +29,32 @@ class OntologyDocumentationTypeUIController extends EntityDefaultUIController {
     }
     return $items;
   }
+  protected function overviewTableRow($conditions, $id, $entity, $additional_cols = array()) {
+    $row = array();
+    $label = $entity->title;
+    $description = $entity->description;
+
+    // Aggiungo il nome del bundle e la descrizione
+    $row[] = array(
+      'data' => array(
+        'label' => array(
+          '#markup' => $label,
+        ),
+        'description' => array(
+          '#type'=> 'html_tag',
+          '#tag' => 'div',
+          '#value' => $description,
+          '#attributes' => array('class' => 'description'),
+        )
+      ),
+    );
+    // Aggiungo l'operazione di edit
+    $row[] = l('edit',__documentation_bundle_admin_path__.'/manage/'.$id);
+    // Aggiunto l'operazione di manage fields
+    $row[] = l('manage fields',__documentation_bundle_admin_path__.'/manage/'.$id.'/fields');
+    // Aggiunto l'operazione di manage displays
+    $row[] = l('manage display',__documentation_bundle_admin_path__.'/manage/'.$id.'/display');
+
+    return $row;
+  }
 }
