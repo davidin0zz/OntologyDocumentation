@@ -1,0 +1,17 @@
+div.form-item-entity-description {
+  margin-bottom: 5px;
+  padding: 0px;
+}
+
+div.form-item-entity-state {
+  margin: 0 0 70px 0;
+  padding: 3px;
+}
+
+div.form-item-entity-state label{
+  display: inline;
+}
+
+.entity-state {
+  margin-left: 0px;
+}

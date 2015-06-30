@@ -13,7 +13,7 @@ class OntologyDocumentationUIController extends EntityDefaultUIController {
     $menu_hooks = array_keys($items);
     foreach ($menu_hooks as $menu_hook) {
       $url_array = explode('/', $menu_hook);
-      if (in_array('list', $url_array) || in_array('clone', $url_array)) {
+      if (in_array('list', $url_array) || in_array('clone', $url_array) || in_array('add', $url_array)) {
         unset($items[$menu_hook]);
       }
     }

@@ -4,7 +4,7 @@ function ontology_documentation_type_form($form, &$form_state, $entity, $op) {
   // L'operazione richiamata da entity_ui_get_form è edit
   if ($op == 'edit') {
     // Creo il wrapper da passare al frontend
-    $form_wrapper = entity_metadata_wrapper(__documentation_type_type__, $entity);
+    $form_wrapper = entity_metadata_wrapper(__documentation_type_bundle__, $entity);
     // Recupero il template del form
     $bundle_edit_form = ontology_documentation_util('bundle_edit_form');
     // Recupero il tipo del bundle
@@ -24,10 +24,6 @@ function ontology_documentation_type_form($form, &$form_state, $entity, $op) {
   }
 }
 
-function ontology_documentation_edit_type_form_cancel($form, &$form_state) {
-  drupal_goto(__documentation_type_base_url__);
-}
-
 function ontology_documentation_form($form, &$form_state, $entity, $op) {
   // L'operazione richiamata da entity_ui_get_form è edit
   if ($op == 'edit') {
@@ -35,6 +31,8 @@ function ontology_documentation_form($form, &$form_state, $entity, $op) {
     $edit_form = ontology_documentation_util('entity_edit_form');
     // Creo il wrapper da passare al frontend
     $edit_form_wrapper = entity_metadata_wrapper(__documentation_type__, $entity);
+    // Recupero il nome del bundle
+    $entity_bundle_name = $edit_form_wrapper->type->value();
     // Recupero il titolo
     $entity_name = $edit_form_wrapper->name->value();
     // Recupero la descrizione
@@ -52,19 +50,6 @@ function ontology_documentation_form($form, &$form_state, $entity, $op) {
   }
 }
 
-function ontology_documentation_edit_form_cancel($form, &$form_state) {
-  // Recupero l'entità
-  $edit_entity = $form_state[__documentation_type__];
-  // Creo il wrapper
-  $edit_submit_wrapper = entity_metadata_wrapper(__documentation_type__, $edit_entity);
-  // Recuper il bundle
-  $bundle = $edit_submit_wrapper->type->value();
-  // Recupero il nome del termine
-  $term_name = str_replace('_', '-', $edit_submit_wrapper->name->value());
-  // Ritorno alla pagina di visualizzazione termine
-  drupal_goto(__documentation_base_url__.'/'.$bundle.'/'.$term_name);
-}
-
 function ontology_documentation_type_form_submit($form, &$form_state) {
   $entity_type = entity_ui_form_submit_build_entity($form, $form_state);
   $entity_type->save();
@@ -79,6 +64,8 @@ function ontology_documentation_form_submit($form, &$form_state) {
   $entity = $form_state[__documentation_type__];
   // Creo il wrapper
   $form_submit_wrapper = entity_metadata_wrapper(__documentation_type__, $entity);
+  // Recupero il nome del bundle dell'entità chiamante
+  $entity_bundle_name = $form_submit_wrapper->type->value();
   // Recupero il titolo del termine
   $title = strip_tags($form_state['values']['entity_name']);
   // Recupero il valore del testo e ci appendo l'eticchetta del campo
@@ -94,6 +81,6 @@ function ontology_documentation_form_submit($form, &$form_state) {
   // Salvo il contenuto
   $form_submit_wrapper->save();
   // Rindirizzo l'utente alla pagina del termine
-  $form_state['redirect'] = 'ontology-documentation/'.$form_submit_wrapper->getBundle().'/'.str_replace('_', '-', $form_submit_wrapper->name->value());
+  $form_state['redirect'] = __documentation_view_path__.'/'.$entity_bundle_name.'/'.str_replace('_', '-', $title);
 }
 

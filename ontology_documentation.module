@@ -3,19 +3,24 @@
 // Definisco il tipo di entità da gestire
 define('__documentation_type__', 'ontology_documentation');
 // Definisco il tipo di bundle da gestire
-define('__documentation_type_type__', __documentation_type__.'_type');
-// Definisco l'url per le pagina della docoumentazione
-define('__documentation_base_url__', 'ontology-documentation');
-// Definisco l'url per la pagina di gestione bundle
-define('__documentation_type_base_url__', 'admin/structure/'.__documentation_base_url__.'-types');
+define('__documentation_type_bundle__', __documentation_type__.'_type');
+// Definisco il path per le pagine di documentazione
+define('__documentation_view_path__', str_replace('_', '-', __documentation_type__));
+// Definisco l'url per la pagina di gestione delle entità
+define('__documentation_admin_path__', 'admin/'.__documentation_view_path__);
+// Definisco il path per la pagina di gestione bundle
+define('__documentation_bundle_admin_path__', 'admin/structure/'.str_replace('_', '-', __documentation_type_bundle__));
 // Definisco l'url per le pagina di ragionamento
 define('__reasoning_relative_path__', 'intensional-reasoning');
 // Definisco l'url per le pagina dei mappings
 define('__mappings_relative_path__', 'mappings/ontology');
 // Definisco il nome della classe di frontend
-define('__documentation_type_util__', __documentation_type__ . '.util.inc');
-// Includo la classe per il frontend
-require_once DRUPAL_ROOT . '/'. drupal_get_path('module', __documentation_type__) . '/' . __documentation_type_util__;
+define('__documentation_type_util__', __documentation_type__.'.util.inc');
+// Definisco il percorso del modulo
+define('__module_path__', drupal_get_path('module', __documentation_type__));
+
+// Includo la classe di utility
+require_once DRUPAL_ROOT.'/'.__module_path__.'/'.__documentation_type_util__;
 
 /**
  * Implements hook_help().
@@ -44,14 +49,14 @@ function ontology_documentation_help($path, $arg) {
 function ontology_documentation_entity_info() {
   $entity_info = array();
 
-  $entity_info['ontology_documentation'] = array(
+  $entity_info[__documentation_type__] = array(
     'label' => 'Ontology documentation',
     'plural label' => 'Ontology Entities',
     'entity class' => 'OntologyDocumentation',
     'controller class' => 'OntologyDocumentationController',
     'views controller class' => 'EntityDefaultViewsController',
-    'base table' => 'ontology_documentation',
-    'revision table' => 'ontology_documentation_revision',
+    'base table' => __documentation_type__,
+    'revision table' => __documentation_type__.'_revision',
     'fieldable' => TRUE,
     'entity keys' => array(
       'id' => 'odid',
@@ -74,19 +79,19 @@ function ontology_documentation_entity_info() {
     'uri callback' => 'entity_class_uri',
     'access callback' => 'ontology_documentation_access',
     'admin ui' => array(
-      'path' => 'admin/ontology-documentation',
+      'path' => __documentation_admin_path__,
       'file' => 'ontology_documentation.admin.inc',
       'controller class' => 'OntologyDocumentationUIController',
     ),
   );
-  $entity_info['ontology_documentation_type'] = array(
+  $entity_info[__documentation_type_bundle__] = array(
     'label' => 'Ontology documentation type',
     'plural label' => 'Ontology Entities types',
     'entity class' => 'OntologyDocumentationType',
     'controller class' => 'OntologyDocumentationTypeController',
-    'base table' => 'ontology_documentation_type',
+    'base table' => __documentation_type_bundle__,
     'fieldable' => FALSE,
-    'bundle of' => 'ontology_documentation',
+    'bundle of' => __documentation_type__,
     'entity keys' => array(
       'id' => 'category',
       'label' => 'title',
@@ -96,7 +101,7 @@ function ontology_documentation_entity_info() {
     'uri callback' => 'entity_class_uri',
     'access callback' => 'ontology_documentation_access',
     'admin ui' => array(
-      'path' => 'admin/structure/ontology-documentation-types',
+      'path' => __documentation_bundle_admin_path__,
       'file' => 'ontology_documentation.admin.inc',
       'controller class' => 'OntologyDocumentationTypeUIController',
     ),
@@ -114,9 +119,9 @@ function ontology_documentation_entity_info_alter(&$entity_info) {
       'label' => $bundle['human_label'],
       'uri callback' => 'entity_class_uri',
       'admin' => array(
-        'path' => 'admin/structure/ontology-documentation-types/manage/%ontology_documentation_type',
+        'path' => __documentation_bundle_admin_path__.'/manage/%'.__documentation_type_bundle__,
         'bundle argument' => 4,
-        'real path' => 'admin/structure/ontology-documentation-types/manage/' . $bundle['machine_name'],
+        'real path' => __documentation_bundle_admin_path__.'/manage/'.$bundle['machine_name'],
         ),
     );
   }
@@ -194,23 +199,23 @@ function ontology_documentation_entity_property_info() {
     ),
   );
   // Metto a conoscenza il wrapper delle proprietà possedute da __documentation_type_type__
-  $entity_property_info[__documentation_type_type__]['properties'] = array(
+  $entity_property_info[__documentation_type_bundle__]['properties'] = array(
     'type' => array(
-      'label' => t(__documentation_type_type__.' category'),
+      'label' => t(__documentation_type_bundle__.' category'),
       'description' => t('The category of the bundle'),
       'type' => 'text',
       'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'category',
      ),
     'name' => array(
-      'label' => t(__documentation_type_type__.' title'),
+      'label' => t(__documentation_type_bundle__.' title'),
       'description' => t('The title of the bundle'),
       'type' => 'text',
       'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'title',
     ),
     'description' => array(
-      'label' => t(__documentation_type_type__.' description'),
+      'label' => t(__documentation_type_bundle__.' description'),
       'description' => t('The description of the bundle'),
       'type' => 'text',
       'setter callback' => 'entity_property_verbatim_set',
@@ -225,8 +230,8 @@ function ontology_documentation_entity_property_info() {
  */
 function ontology_documentation_admin_paths() {
   $paths = array(
-    __documentation_base_url__.'/*/*/edit' => TRUE,
-   __documentation_base_url__.'/*/*/edit/add-revision' => TRUE,
+    __documentation_view_path__.'/*/*/edit' => TRUE,
+   __documentation_view_path__.'/*/*/edit/add-revision' => TRUE,
   );
   return $paths;
 }
@@ -237,7 +242,7 @@ function ontology_documentation_admin_paths() {
 function ontology_documentation_menu() {
   $items = array();
 
-  $items['admin/config/mastro/'.__documentation_base_url__] = array(
+  $items['admin/config/mastro/'.__documentation_view_path__] = array(
     'title' => 'Ontology Documentation',
     'description' => 'Upgrade OWL documentation pages',
     'access callback' => 'entity_access',
@@ -247,7 +252,7 @@ function ontology_documentation_menu() {
     'type' => MENU_NORMAL_ITEM,
     'file' => 'ontology_documentation.callback.inc',
   );
-  $items[__documentation_base_url__.'/%/%ontology_documentation'] = array(
+  $items[__documentation_view_path__.'/%/%ontology_documentation'] = array(
     'title' => 'Root',
     'load arguments' => array(__documentation_type__, 1),
     'access callback' => 'entity_access',
@@ -257,13 +262,13 @@ function ontology_documentation_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'ontology_documentation.callback.inc',
   );
-  $items[__documentation_base_url__.'/%/%ontology_documentation/view'] = array(
+  $items[__documentation_view_path__.'/%/%ontology_documentation/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'file' => 'ontology_documentation.callback.inc',
     'weight' => -1,
   );
-  $items[__documentation_base_url__.'/%/%ontology_documentation/edit'] = array(
+  $items[__documentation_view_path__.'/%/%ontology_documentation/edit'] = array(
     'title' => 'Edit',
     'load arguments' => array(__documentation_type__, 1),
     'access callback' => 'entity_access',
@@ -273,7 +278,7 @@ function ontology_documentation_menu() {
     'file' => 'ontology_documentation.admin.inc',
     'type' => MENU_LOCAL_TASK,
   );
-  $items[__documentation_base_url__.'/%/%ontology_documentation/edit/add-revision'] = array(
+  $items[__documentation_view_path__.'/%/%ontology_documentation/edit/add-revision'] = array(
     'title' => 'Create new revision',
     'load arguments' => array(__documentation_type__, 1),
     'access callback' => 'entity_access',
@@ -332,16 +337,6 @@ function ontology_documentation_menu() {
   */
 
   return $items;
-}
-
-// Altero gli entry di menu della UI
-function ontology_documentation_menu_alter(&$items) {
-  if (isset($items['admin/ontology-documentation/add'])) {
-    unset($items['admin/ontology-documentation/add']);
-  }
-  if (isset($items['admin/structure/ontology-documentation-types/add'])) {
-    unset($items['admin/structure/ontology-documentation-types/add']);
-  }
 }
 
 // Nascondo il titolo dei campi per ogni campo di tipo '__documentation_type__'
@@ -440,7 +435,7 @@ function ontology_documentation_permission() {
 function ontology_documentation_access($op, $entity, $account, $entity_type) {
   global $user;
 
-  if ($entity_type == __documentation_type_type__) {
+  if ($entity_type == __documentation_type_bundle__) {
     $owner = NULL;
   }
   elseif (isset($entity) && $entity_type == __documentation_type__) {

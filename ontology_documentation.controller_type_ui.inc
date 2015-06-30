@@ -18,10 +18,13 @@ class OntologyDocumentationTypeUIController extends EntityDefaultUIController {
     $items[$this->path]['access arguments'] = array('update', $this->entityType);
     $items[$this->path]['weight'] = -10;
     // Disabilito gli hook_menu non necessari
+    // list,clone,add,delete (%)
     $menu_hooks = array_keys($items);
+    dpm($items);
     foreach ($menu_hooks as $menu_hook) {
       $url_array = explode('/', $menu_hook);
-      if (in_array('list', $url_array) || in_array('clone', $url_array)) {
+      if (in_array('list', $url_array) || in_array('clone', $url_array) ||
+          in_array('add', $url_array)  || in_array('%', $url_array)) {
         unset($items[$menu_hook]);
       }
     }

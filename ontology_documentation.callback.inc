@@ -250,7 +250,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       $field_data['label']['#printed'] = FALSE;
       $field_data['page_link']['#printed'] = FALSE;
       $field_data['page_link']['#title'] = $bundle.'s';
-      $field_data['page_link']['#href'] = __documentation_base_url__.'/'.$bundle.'s';
+      $field_data['page_link']['#href'] = __documentation_view_path__.'/'.$bundle.'s';
       $wrapper->$field_name->value->set(drupal_render($field_data));
       break;
     case 'descrizione':
@@ -284,7 +284,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
         $field_data['page_link']['#printed'] = FALSE;
         foreach ($specializations as $index => $item) {
           $field_data['page_link']['#title'] = $item;
-          $field_data['page_link']['#href'] = __documentation_base_url__.'/'.$bundle.'/'.str_replace('_', '-', $item);
+          $field_data['page_link']['#href'] = __documentation_view_path__.'/'.$bundle.'/'.str_replace('_', '-', $item);
           $field_data['item_list']['#items'][$index] = array('data' => $field_data['page_link']);
         }
         $field_data['page_link']['#printed'] = TRUE;
@@ -320,7 +320,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
         $field_data['page_link']['#printed'] = FALSE;
         foreach ($mandatory_attributes as $index => $attribute) {
           $field_data['page_link']['#title'] = $attribute;
-          $field_data['page_link']['#href'] = __documentation_base_url__.'/'.$current_field_bundle.'/'.str_replace('_', '-', $attribute);
+          $field_data['page_link']['#href'] = __documentation_view_path__.'/'.$current_field_bundle.'/'.str_replace('_', '-', $attribute);
           $field_data['item_list']['#items'][$index] = array('data' => $field_data['page_link']);
         }
         $field_data['page_link']['#printed'] = TRUE;

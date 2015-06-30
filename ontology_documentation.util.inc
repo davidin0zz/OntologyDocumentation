@@ -280,20 +280,23 @@ class OntologyDocumentationUtil {
 
     $edit_form['entity_name'] = array(
       '#type' => 'textfield',
-      '#title' => t('Titolo'),
+      '#title' => t('Title'),
       '#default_value' => '',
       '#size' => 45,
       '#required' => TRUE,
     );
     $edit_form['entity_description'] = array(
       '#type' => 'textarea',
-      '#title' => t('Descrizione'),
-      '#rows' => 15,
+      '#title' => t('Description'),
+      '#rows' => 12,
       '#default_value' => '',
     );
     $edit_form['entity_state'] = array(
       '#type' => 'select',
-      '#title' => t('State'),
+      '#title' => t('Page status:'),
+      '#attributes' => array(
+        'class' => array('entity-state'),
+       ),
       '#default_value' => '',
       '#options' => array(
         0 => t('Unpublished'),
@@ -304,10 +307,9 @@ class OntologyDocumentationUtil {
       '#type' => 'submit',
       '#value' => t('Save'),
     );
-    $edit_form['entity_cancel'] = array(
-      '#type' => 'submit',
-      '#value' => t('Cancel'),
-      '#submit' => array('ontology_documentation_edit_form_cancel'),
+    // Appendo il foglio di stile
+    $edit_form['#attached']['css'] = array(
+      __module_path__ .'/css/entity_edit_form.css',
     );
 
     return $edit_form;
@@ -323,14 +325,15 @@ class OntologyDocumentationUtil {
       '#title' => t('Documentation bundle machine name'),
       '#description' => t('A unique machine-readable name of this documentation bundle.'),
       '#default_value' => '',
-      '#size' => 55,
+      '#size' => 45,
+      '#disabled' => TRUE,
     );
     // Definisco il campo per editare il nome del bundle
     $bundle_edit_form['bundle_name'] = array(
       '#type' => 'textfield',
       '#title' => t('Documentation bundle name'),
       '#description' => t('The human-readable name of this documentation bundle.'),
-      '#size' => 55,
+      '#size' => 45,
       '#default_value' => '',
       '#required' => TRUE,
     );
@@ -339,17 +342,13 @@ class OntologyDocumentationUtil {
       '#type' => 'textarea',
       '#title' => t('Documentation bundle description'),
       '#description' => t('A short description of this documentation bundle.'),
+      '#rows' => 4,
       '#default_value' => '',
       '#required' => TRUE,
     );
     $bundle_edit_form['bundle_submit'] = array(
       '#type' => 'submit',
       '#value' => t('Save'),
-    );
-    $bundle_edit_form['bundle_cancel'] = array(
-      '#type' => 'submit',
-      '#value' => t('Cancel'),
-      '#submit callback' => array('ontology_documentation_edit_type_form_cancel'),
     );
 
     return $bundle_edit_form;
