@@ -228,7 +228,7 @@ function ontology_documentation_schema() {
         'description' => 'Pubblicata o no',
         'type' => 'int',
         'not null' => TRUE,
-        'default' => 1,
+        'default' => 0,
       ),
     ),
     'indexes' => array(

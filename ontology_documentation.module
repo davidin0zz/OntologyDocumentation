@@ -175,6 +175,7 @@ function ontology_documentation_entity_property_info() {
       'label' => t(__documentation_type__.' uid'),
       'description' => t('The user id creator of the ontology term'),
       'type' => 'integer',
+      'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'uid',
     ),
     'creation_date' => array(
@@ -461,6 +462,9 @@ function ontology_documentation_access($op, $entity, $account, $entity_type) {
 
 function ontology_documentation_util($item_name, $parameters = NULL) {
   switch ($item_name) {
+    case 'get_mastro_uid':
+      return OntologyDocumentationUtil::getMastroUid();
+      break;
     case 'get_bundles':
       return OntologyDocumentationUtil::getBundles($parameters);
       break;

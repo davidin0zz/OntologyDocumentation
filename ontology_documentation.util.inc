@@ -204,6 +204,10 @@ class OntologyDocumentationUtil {
     ),
   );
 
+  public static function getMastroUid() {
+    return get_mastro_uid();
+  }
+
   public static function getBundles($condition = 'ALL') {
     $bundles = &drupal_static(__FUNCTION__,array());
     if (empty($bundles)) {

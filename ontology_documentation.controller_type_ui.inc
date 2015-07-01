@@ -1,15 +1,8 @@
 <?php
 
 class OntologyDocumentationTypeUIController extends EntityDefaultUIController {
-  function overviewTableHeaders($conditions, $rows, $additional_header = array()) {
-     array_unshift($additional_header, t('NAME'));
-     $additional_header[] = array(
-       'data' => 'OPERATIONS',
-       'colspan' => $this->operationCount(),
-     );
-    return $additional_header;
-  }
-  function hook_menu() {
+
+  public function hook_menu() {
     $items = parent::hook_menu();
     //$this->path = 'admin/ontology-documentation
     $items[$this->path]['access callback'] = 'entity_access';
@@ -29,6 +22,16 @@ class OntologyDocumentationTypeUIController extends EntityDefaultUIController {
     }
     return $items;
   }
+
+  public function overviewTableHeaders($conditions, $rows, $additional_header = array()) {
+    array_unshift($additional_header, t('NAME'));
+    $additional_header[] = array(
+      'data' => 'OPERATIONS',
+      'colspan' => $this->operationCount(),
+    );
+    return $additional_header;
+  }
+
   protected function overviewTableRow($conditions, $id, $entity, $additional_cols = array()) {
     $row = array();
     $label = $entity->title;
@@ -54,7 +57,7 @@ class OntologyDocumentationTypeUIController extends EntityDefaultUIController {
     $row[] = l('manage fields',__documentation_bundle_admin_path__.'/manage/'.$id.'/fields');
     // Aggiunto l'operazione di manage displays
     $row[] = l('manage display',__documentation_bundle_admin_path__.'/manage/'.$id.'/display');
-
+    // Ritorno la riga
     return $row;
   }
 }

@@ -1,7 +1,8 @@
 <?php
 
 class OntologyDocumentationUIController extends EntityDefaultUIController {
-  function hook_menu() {
+
+  public function hook_menu() {
     $items = parent::hook_menu();
     // $this->path = admin/ontology-documentation
     $items[$this->path]['access callback'] = 'entity_access';
@@ -18,5 +19,60 @@ class OntologyDocumentationUIController extends EntityDefaultUIController {
       }
     }
     return $items;
+  }
+
+  public function overviewTableHeaders($conditions, $rows, $additional_header = array()) {
+    // Aggiungo l'header per il nome
+    $additional_header[] = array('data' => 'NAME');
+    // Aggiunto l'header per il tipo
+    $additional_header[] = array('data' => 'TYPE');
+    // Aggiungo l'header per l'autore
+    $additional_header[] = array('data' => 'AUTHOR');
+    // Aggiungo l'header per la data di ultimo aggiornamento
+    $additional_header[] = array('data' => 'UPDATED');
+    // Aggiungo l'header per lo stato
+    $additional_header[] = array('data' => 'STATUS');
+    // Aggiungo l'header per le operazioni
+    $additional_header[] = array('data' => 'OPERATIONS', 'colspan' => 2);
+    // Ritorno l'header
+    return $additional_header;
+  }
+
+  protected function overviewTableRow($conditions, $id, $entity, $additional_cols = array()) {
+    $row = array();
+    // Recupero il nome dell'entità
+    $entity_name = $entity->title;
+    // Recupero il tipo dell'entità
+    $entity_type = $entity->category;
+    // Recupero l'user id dell'entità
+    $entity_user_owner = user_load($entity->uid)->name;
+    // Creo la data di ultima modifica formattata dal timestamp
+    $entity_updated_data = format_date($entity->changed, 'short');
+    // Recupero lo stato
+    $entity_status = $entity->status ? 'PUBLISHED' : 'UNPUBLISHED';
+
+    // Aggiungo il nome dell'entità
+    $row[] = l($entity_name, __documentation_view_path__.'/'.$entity_type.'/'.str_replace('_', '-', $entity_name));
+    // Aggiungo il tipo dell'entità
+    $row[] = ucwords($entity_type);
+    // Aggiungo l'autore
+    $row[] = $entity_user_owner;
+    // Aggiungo la data di ultima modifica
+    $row[] = $entity_updated_data;
+    // Aggiungo lo stato e la classe per cambio colore con css
+    $row[] = array(
+      'data' => array(
+        '#type' => 'html_tag',
+        '#tag' => 'label',
+        '#value' => $entity_status,
+        '#attributes' => array('class' => strtolower($entity_status)),
+      ),
+    );
+    // Aggiungo l'operazione di edit
+    $row[] = l('edit',__documentation_admin_path__.'/manage/'.$id);
+    // Aggiunto l'operazione cancellazione
+    $row[] = l('delete',__documentation_admin_path__.'/manage/'.$id.'/delete');
+    // Ritorna la riga
+    return $row;
   }
 }

@@ -67,6 +67,8 @@ function ontology_documentation_type_form_submit($form, &$form_state) {
 }
 
 function ontology_documentation_form_submit($form, &$form_state) {
+  global $user;
+  dpm($form_state);
   // Recupero l'entità passata al form
   $entity = $form_state[__documentation_type__];
   // Creo il wrapper
@@ -77,6 +79,10 @@ function ontology_documentation_form_submit($form, &$form_state) {
   $entity_title = strip_tags($form_state['values']['entity_name']);
   // Recupero il valore del testo e ci appendo l'eticchetta del campo
   $description = '<h2>Descrizione</h2>'.trim($form_state['values']['entity_description']);
+  // Setto il nuovo autore della modifica
+  $form_submit_wrapper->uid->set($user->uid);
+  //  Setto la nuova data di modifica
+  $form_submit_wrapper->modification_date->set(REQUEST_TIME);
   // Setto il titolo
   $form_submit_wrapper->name->set(strip_tags($form_state['values']['entity_name']));
   // Setto data
