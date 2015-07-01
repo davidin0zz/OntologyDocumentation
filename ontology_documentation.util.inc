@@ -252,6 +252,7 @@ class OntologyDocumentationUtil {
       '#options' => array('class' => 'onto_form_header'),
       '#value' => 'Ontology documentation upgrade form'
     );
+
     $config_form['config_form_delete_check'] = array(
       '#type' => 'checkbox',
       '#title' => t('Delete OWL documentation pages'),
@@ -259,16 +260,19 @@ class OntologyDocumentationUtil {
       '#disabled' => variable_get('empty_owl_documentation', TRUE),
       '#default_value' => FALSE,
     );
+
     $config_form['config_form_upgrade_check'] = array(
       '#type' => 'checkbox',
       '#title' => t('Upgrade OWL documentation pages'),
       '#description' => t('Documentation pages will be upgraded'),
       '#default_value' => TRUE,
     );
+
     $config_form['config_form_submit'] = array(
       '#type' => 'submit',
       '#value' => 'Ok',
     );
+
     $config_form['config_form_submit_cancel'] = array(
       '#type' => 'submit',
       '#value' => 'Cancel',
@@ -286,20 +290,23 @@ class OntologyDocumentationUtil {
       '#type' => 'fieldset',
       '#title' => t('Edit entity'),
     );
-    $edit_form['fieldset']['entity_name'] = array(
+
+    $edit_form['fieldset']['name'] = array(
       '#type' => 'textfield',
       '#title' => t('Title'),
       '#default_value' => '',
       '#size' => 45,
       '#required' => TRUE,
     );
-    $edit_form['fieldset']['entity_description'] = array(
+
+    $edit_form['fieldset']['description'] = array(
       '#type' => 'textarea',
       '#title' => t('Description'),
       '#rows' => 12,
       '#default_value' => '',
     );
-    $edit_form['fieldset']['entity_state'] = array(
+
+    $edit_form['fieldset']['state'] = array(
       '#type' => 'select',
       '#title' => t('Page status:'),
       '#attributes' => array(
@@ -311,10 +318,13 @@ class OntologyDocumentationUtil {
         1 => t('Published'),
        ),
     );
-    $edit_form['entity_submit'] = array(
+
+    $edit_form['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Save'),
+      '#validate' => array('ontology_documentation_edit_form_validate'),
     );
+
     // Appendo il foglio di stile
     $edit_form['fieldset']['#attached']['css'] = array(
       __module_path__ .'/css/entity_edit_form.css',
@@ -331,6 +341,7 @@ class OntologyDocumentationUtil {
       '#type' => 'fieldset',
       '#title' => 'Create new revision',
     );
+
     $entity_revision_form['fieldset']['entity_revision_comment'] = array(
       '#type' => 'textfield',
       '#title' => t('Revision comment'),
@@ -339,6 +350,7 @@ class OntologyDocumentationUtil {
       '#size' => 35,
       '#required' => TRUE,
     );
+
     $entity_revision_form['fieldset']['entity_revision_name'] = array(
       '#type' => 'textfield',
       '#title' => t('Title'),
@@ -347,12 +359,14 @@ class OntologyDocumentationUtil {
       '#size' => 35,
       '#required' => TRUE,
     );
+
     $entity_revision_form['fieldset']['entity_revision_description'] = array(
       '#type' => 'textarea',
       '#title' => t('Description'),
       '#description' => t('Entity description for the new revision.'),
       '#size' => 35,
     );
+
     $entity_revision_form['entity_revision_submit'] = array(
       '#type' => 'submit',
       '#value' => t('Create'),
@@ -370,7 +384,7 @@ class OntologyDocumentationUtil {
       '#title' => t('Edit bundle'),
     );
     // Definisco il campo per editare il machine_name del bundle
-    $bundle_edit_form['fieldset']['bundle_type'] = array(
+    $bundle_edit_form['fieldset']['type'] = array(
       '#type' => 'textfield',
       '#title' => t('Documentation bundle machine name'),
       '#description' => t('A unique machine-readable name of this documentation bundle.'),
@@ -379,7 +393,7 @@ class OntologyDocumentationUtil {
       '#disabled' => TRUE,
     );
     // Definisco il campo per editare il nome del bundle
-    $bundle_edit_form['fieldset']['bundle_name'] = array(
+    $bundle_edit_form['fieldset']['name'] = array(
       '#type' => 'textfield',
       '#title' => t('Documentation bundle name'),
       '#description' => t('The human-readable name of this documentation bundle.'),
@@ -388,7 +402,7 @@ class OntologyDocumentationUtil {
       '#required' => TRUE,
     );
     // Definisco il campo per editare la descrizione del bundle
-    $bundle_edit_form['fieldset']['bundle_description'] = array(
+    $bundle_edit_form['fieldset']['description'] = array(
       '#type' => 'textarea',
       '#title' => t('Documentation bundle description'),
       '#description' => t('A short description of this documentation bundle.'),
@@ -396,9 +410,10 @@ class OntologyDocumentationUtil {
       '#default_value' => '',
       '#required' => TRUE,
     );
-    $bundle_edit_form['bundle_submit'] = array(
+    $bundle_edit_form['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Save'),
+      '#validate' => array('ontology_documentation_edit_form_validate'),
     );
 
     return $bundle_edit_form;
