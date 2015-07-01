@@ -8,11 +8,11 @@ function ontology_documentation_type_form($form, &$form_state, $entity, $op) {
     // Recupero il template del form
     $bundle_edit_form = ontology_documentation_util('bundle_edit_form');
     // Imposto il tipo del bundle
-    $bundle_edit_form['bundle_type']['#default_value'] = $form_wrapper->type->value();
+    $bundle_edit_form['fieldset']['bundle_type']['#default_value'] = $form_wrapper->type->value();
     // Imposto il nome del bundle
-    $bundle_edit_form['bundle_name']['#default_value'] = $form_wrapper->name->value();;
+    $bundle_edit_form['fieldset']['bundle_name']['#default_value'] = $form_wrapper->name->value();;
     // Imposto la descrizione del bundle
-    $bundle_edit_form['bundle_description']['#default_value'] = $form_wrapper->description->value();
+    $bundle_edit_form['fieldset']['bundle_description']['#default_value'] = $form_wrapper->description->value();
     // Ritorno il form completo
     return $bundle_edit_form;
   }
@@ -21,20 +21,33 @@ function ontology_documentation_type_form($form, &$form_state, $entity, $op) {
 function ontology_documentation_form($form, &$form_state, $entity, $op) {
   // L'operazione richiamata da entity_ui_get_form è edit
   if ($op == 'edit') {
-    // Recupero il template del form
-    $edit_form = ontology_documentation_util('entity_edit_form');
     // Creo il wrapper
     $edit_form_wrapper = entity_metadata_wrapper(__documentation_type__, $entity);
+    // Recupero il template del form
+    $edit_form = ontology_documentation_util('entity_edit_form');
     // Recupero la descrizione
     $entity_description = str_replace('<h2>Descrizione</h2>', '', $edit_form_wrapper->descrizione->value->raw());
     // Imposto il titolo
-    $edit_form['entity_name']['#default_value'] = $edit_form_wrapper->name->value();
+    $edit_form['fieldset']['entity_name']['#default_value'] = $edit_form_wrapper->name->value();
     // Imposto la descriione
-    $edit_form['entity_description']['#default_value'] = trim($entity_description);
+    $edit_form['fieldset']['entity_description']['#default_value'] = trim($entity_description);
     // Imposto lo stato
-    $edit_form['entity_state']['#default_value'] = $edit_form_wrapper->state->value();
+    $edit_form['fieldset']['entity_state']['#default_value'] = $edit_form_wrapper->state->value();
     // Ritorno il form completo
     return $edit_form;
+  }
+  // Form per la creazione della revisione
+  if ($op == 'create') {
+    // Creo il weapper
+    $entity_revision_wrapper = entity_metadata_wrapper(__documentation_type__, $entity);
+    // Recupero il template del form
+    $entity_revision_form = ontology_documentation_util('entity_revision_form');
+    // Imposto il nome dell'entità
+    $entity_revision_form['fieldset']['entity_revision_name']['#default_value'] = $entity_revision_wrapper->name->value();
+    // Imposto la desrizione dell'entità
+    $entity_revision_form['fieldset']['entity_revision_description']['#default_value'] = str_replace('<h2>Descrizione</h2>', '', $entity_revision_wrapper->descrizione->value->raw());
+
+    return $entity_revision_form;
   }
 }
 

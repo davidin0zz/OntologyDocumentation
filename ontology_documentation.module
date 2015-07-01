@@ -284,9 +284,9 @@ function ontology_documentation_menu() {
     'load arguments' => array(__documentation_type__, 1),
     'access callback' => 'entity_access',
     'access arguments'=> array('create', __documentation_type__, 2, NULL),
-    'page callback' => array('drupal_get_form'),
-    'page arguments' => array('ontology_documentation_add_revision', 2),
-    'file' => 'ontology_documentation.callback.inc',
+    'page callback' => 'entity_ui_get_form',
+    'page arguments' => array('ontology_documentation', 2, 'create'),
+    'file' => 'ontology_documentation.admin.inc',
     'type' => MENU_LOCAL_ACTION,
   );
 
@@ -469,6 +469,9 @@ function ontology_documentation_util($item_name, $parameters = NULL) {
       break;
     case 'entity_edit_form':
       return OntologyDocumentationUtil::getEntityEditForm();
+      break;
+    case 'entity_revision_form':
+      return OntologyDocumentationUtil::getEntityRevisionForm();
       break;
     case 'bundle_edit_form':
       return OntologyDocumentationUtil::getBundleEditForm();

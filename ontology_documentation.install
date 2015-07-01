@@ -273,6 +273,13 @@ function ontology_documentation_schema() {
         'not null' => TRUE,
         'default' => 'concept',
       ),
+      'comment' => array(
+        'description' => 'Commento revisione',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
       'language' => array(
         'description' => 'Lingua',
         'type' => 'varchar',

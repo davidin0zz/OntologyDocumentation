@@ -108,7 +108,9 @@ function ontology_documentation_mastro_get_data($operation = NULL, $parameters =
   if (property_exists($result, 'return')) {
     return is_array($result->return) ? $result->return : array($result->return);
   }
-  return array();
+  else {
+    return array();
+  }
 }
 
 function  ontology_documentation_save(&$wrapper) {
