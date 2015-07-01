@@ -1,0 +1,7 @@
+td.unpublished a{
+  color: red;
+}
+
+td.unpublished {
+  color: red;
+}

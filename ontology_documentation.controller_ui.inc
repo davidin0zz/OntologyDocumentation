@@ -18,6 +18,7 @@ class OntologyDocumentationUIController extends EntityDefaultUIController {
         unset($items[$menu_hook]);
       }
     }
+    // Ritorno i nuovi uri di menu
     return $items;
   }
 
@@ -40,8 +41,11 @@ class OntologyDocumentationUIController extends EntityDefaultUIController {
 
   protected function overviewTableRow($conditions, $id, $entity, $additional_cols = array()) {
     $row = array();
+    $options = array();
     // Recupero il nome dell'entità
     $entity_name = $entity->title;
+    // Recupero l'uri dell'entità
+    $entity_uri = $entity->uri();
     // Recupero il tipo dell'entità
     $entity_type = $entity->category;
     // Recupero l'user id dell'entità
@@ -52,7 +56,14 @@ class OntologyDocumentationUIController extends EntityDefaultUIController {
     $entity_status = $entity->status ? 'PUBLISHED' : 'UNPUBLISHED';
 
     // Aggiungo il nome dell'entità
-    $row[] = l($entity_name, __documentation_view_path__.'/'.$entity_type.'/'.str_replace('_', '-', $entity_name));
+    $row[] = array(
+      'data' => array(
+        '#type' => 'link',
+        '#title' => $entity_name,
+        '#href' => current($entity_uri),
+      ),
+      'class' => array(strtolower($entity_status)),
+    );
     // Aggiungo il tipo dell'entità
     $row[] = ucwords($entity_type);
     // Aggiungo l'autore
@@ -62,11 +73,9 @@ class OntologyDocumentationUIController extends EntityDefaultUIController {
     // Aggiungo lo stato e la classe per cambio colore con css
     $row[] = array(
       'data' => array(
-        '#type' => 'html_tag',
-        '#tag' => 'label',
-        '#value' => $entity_status,
-        '#attributes' => array('class' => strtolower($entity_status)),
-      ),
+        '#markup' => $entity_status,
+       ),
+      'class' => array(strtolower($entity_status)),
     );
     // Aggiungo l'operazione di edit
     $row[] = l('edit',__documentation_admin_path__.'/manage/'.$id);

@@ -10,7 +10,7 @@ function ontology_documentation_type_form($form, &$form_state, $entity, $op) {
     // Imposto il tipo del bundle
     $bundle_edit_form['fieldset']['bundle_type']['#default_value'] = $form_wrapper->type->value();
     // Imposto il nome del bundle
-    $bundle_edit_form['fieldset']['bundle_name']['#default_value'] = $form_wrapper->name->value();;
+    $bundle_edit_form['fieldset']['bundle_name']['#default_value'] = $form_wrapper->name->value();
     // Imposto la descrizione del bundle
     $bundle_edit_form['fieldset']['bundle_description']['#default_value'] = $form_wrapper->description->value();
     // Ritorno il form completo
@@ -68,7 +68,6 @@ function ontology_documentation_type_form_submit($form, &$form_state) {
 
 function ontology_documentation_form_submit($form, &$form_state) {
   global $user;
-  dpm($form_state);
   // Recupero l'entità passata al form
   $entity = $form_state[__documentation_type__];
   // Creo il wrapper

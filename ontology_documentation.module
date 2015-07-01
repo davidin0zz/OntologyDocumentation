@@ -116,7 +116,7 @@ function ontology_documentation_entity_info() {
  */
 function ontology_documentation_entity_info_alter(&$entity_info) {
   foreach (ontology_documentation_util('get_bundles', 'ALL') as $bundle) {
-    $entity_info['ontology_documentation']['bundles'][$bundle['machine_name']] = array(
+    $entity_info[__documentation_type__]['bundles'][$bundle['machine_name']] = array(
       'label' => $bundle['human_label'],
       'uri callback' => 'entity_class_uri',
       'admin' => array(
@@ -126,6 +126,14 @@ function ontology_documentation_entity_info_alter(&$entity_info) {
         ),
     );
   }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function ontology_documentation_form_ontology_documentation_overview_form_alter(&$form, &$form_state, $form_id) {
+  // Aggiungo il css alla tabella
+  $form['table']['#attached']['css'] = array(__module_path__ .'/css/entity_table_form.css');
 }
 
 /**
