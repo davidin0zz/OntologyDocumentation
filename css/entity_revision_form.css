@@ -1,0 +1,8 @@
+textarea.entity-revision-comment {
+  width: 300px;
+  overflow-x: hidden;
+}
+
+textarea.entity-revision-comment + div.grippie {
+	display: none;
+}

@@ -342,16 +342,7 @@ class OntologyDocumentationUtil {
       '#title' => 'Create new revision',
     );
 
-    $entity_revision_form['fieldset']['entity_revision_comment'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Revision comment'),
-      '#description' => t('A comment for the new revision.'),
-      '#default_value' => 'A fantastic new revision',
-      '#size' => 35,
-      '#required' => TRUE,
-    );
-
-    $entity_revision_form['fieldset']['entity_revision_name'] = array(
+    $entity_revision_form['fieldset']['name'] = array(
       '#type' => 'textfield',
       '#title' => t('Title'),
       '#description' => t('Entity title for the new revision.'),
@@ -360,16 +351,32 @@ class OntologyDocumentationUtil {
       '#required' => TRUE,
     );
 
-    $entity_revision_form['fieldset']['entity_revision_description'] = array(
+    $entity_revision_form['fieldset']['description'] = array(
       '#type' => 'textarea',
       '#title' => t('Description'),
       '#description' => t('Entity description for the new revision.'),
-      '#size' => 35,
+      '#rows' => 12,
     );
 
-    $entity_revision_form['entity_revision_submit'] = array(
+    $entity_revision_form['fieldset']['comment'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Revision comment'),
+      '#description' => t('A comment for the new revision.'),
+      '#default_value' => 'A fantastic new revision',
+      '#rows' => 5,
+      '#attributes' => array('class' => array('entity-revision-comment')),
+      '#required' => TRUE,
+    );
+
+    // Appendo il foglio di stile
+    $entity_revision_form['fieldset']['#attached']['css'] = array(
+      __module_path__ .'/css/entity_revision_form.css',
+    );
+
+    $entity_revision_form['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Create'),
+      '#validate' => array('ontology_documentation_edit_form_validate'),
     );
 
     return $entity_revision_form;
@@ -383,6 +390,7 @@ class OntologyDocumentationUtil {
       '#type' => 'fieldset',
       '#title' => t('Edit bundle'),
     );
+
     // Definisco il campo per editare il machine_name del bundle
     $bundle_edit_form['fieldset']['type'] = array(
       '#type' => 'textfield',
@@ -392,6 +400,7 @@ class OntologyDocumentationUtil {
       '#size' => 35,
       '#disabled' => TRUE,
     );
+
     // Definisco il campo per editare il nome del bundle
     $bundle_edit_form['fieldset']['name'] = array(
       '#type' => 'textfield',
@@ -401,6 +410,7 @@ class OntologyDocumentationUtil {
       '#default_value' => '',
       '#required' => TRUE,
     );
+
     // Definisco il campo per editare la descrizione del bundle
     $bundle_edit_form['fieldset']['description'] = array(
       '#type' => 'textarea',
@@ -410,6 +420,7 @@ class OntologyDocumentationUtil {
       '#default_value' => '',
       '#required' => TRUE,
     );
+
     $bundle_edit_form['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Save'),
