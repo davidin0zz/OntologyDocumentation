@@ -246,14 +246,14 @@ class OntologyDocumentationUtil {
   public static function getConfigForm() {
     $config_form = array();
 
-    $config_form['config_form_header'] = array(
+    $config_form['header'] = array(
       '#type' => 'html_tag',
       '#tag' => 'h2',
       '#options' => array('class' => 'onto_form_header'),
       '#value' => 'Ontology documentation upgrade form'
     );
 
-    $config_form['config_form_delete_check'] = array(
+    $config_form['delete_check'] = array(
       '#type' => 'checkbox',
       '#title' => t('Delete OWL documentation pages'),
       '#description' => t('All the documentation will drop off'),
@@ -261,19 +261,19 @@ class OntologyDocumentationUtil {
       '#default_value' => FALSE,
     );
 
-    $config_form['config_form_upgrade_check'] = array(
+    $config_form['upgrade_check'] = array(
       '#type' => 'checkbox',
       '#title' => t('Upgrade OWL documentation pages'),
       '#description' => t('Documentation pages will be upgraded'),
       '#default_value' => TRUE,
     );
 
-    $config_form['config_form_submit'] = array(
+    $config_form['submit'] = array(
       '#type' => 'submit',
       '#value' => 'Ok',
     );
 
-    $config_form['config_form_submit_cancel'] = array(
+    $config_form['submit_cancel'] = array(
       '#type' => 'submit',
       '#value' => 'Cancel',
       '#submit' => array('ontology_documentation_config_form_cancel'),

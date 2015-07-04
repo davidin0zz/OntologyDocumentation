@@ -18,10 +18,6 @@ function ontology_documentation_term_view($entity) {
   return entity_view(__documentation_type__, array($entity));
 }
 
-function ontology_documentation_add_revision($form, &$form_state, $entity) {
-  return array();
-}
-
 function ontology_documentation_config_form_cancel($form, &$form_state) {
   drupal_goto('admin/config');
 }
@@ -31,54 +27,34 @@ function ontology_documentation_config_form($form, &$form_state) {
 }
 
 function ontology_documentation_config_form_submit($form, &$form_state) {
-  if ($form_state['values']['config_form_delete_check'] == 1 || $form_state['values']['config_form_upgrade_check'] ==1) {
-    $documentation_ids = ontology_documentation_get_id();
-    if ($form_state['values']['config_form_delete_check'] == 1) {
-     ontology_documentation_delete($documentation_ids);
-     drupal_set_message('Selected \'delete\' task has been succesfully completed!');
-     variable_set('empty_owl_documentation', TRUE);
-   }
-   if ($form_state['values']['config_form_upgrade_check'] == 1) {
-    if (!empty($documentation_ids)) {
-      ontology_documentation_create('UPDATE');
+  $form_value = $form_state['values'];
+
+  if ($form_value['delete_check'] == 1) {
+    if (ontology_documentation_delete()) {
+      drupal_set_message('Task completed!');
     }
     else {
-      ontology_documentation_create('NEW');
-      drupal_set_message('Selected \'update\' task has been succesfully completed!');
+      drupal_set_message('Task error!', 'error');
     }
-   }
- }
- else
-  drupal_set_message('No options are selected!', 'error');
-}
-
-function ontology_documentation_get_id($ontology_type = __documentation_type__, $id = FALSE) {
-  $entity_ids = entity_load($ontology_type, $id);
-  return !empty($entity_ids) ? $entity_ids : array();
-}
-
-function ontology_documentation_delete($ids, $entity_type = __documentation_type__) {
-  entity_delete_multiple($entity_type, array_keys($ids));
-  variable_set('empty_owl_documentation', TRUE);
-  return TRUE;
-}
-
-function ontology_documentation_create($mode) {
-   switch ($mode) {
-    case 'NEW':
-      try {
-        ontology_documentation_create_terms_page('Concepts');
-        ontology_documentation_create_terms_page('Roles');
-        ontology_documentation_create_terms_page('Attributes');
-      }
-      catch (Exception $e) {
-        drupal_set_message($e->getMessage(), 'error');
-      }
-      break;
-    case 'UPDATE':
-      break;
   }
-  variable_set('empty_owl_documentation', FALSE);
+  if ($form_state['values']['upgrade_check'] == 1) {
+      $report = ontology_documentation_create_terms_page('Concepts');
+      $cache_data = ontology_documentation_create_terms_page('Roles');
+      $cache_data = ontology_documentation_create_terms_page('Attributes');
+      dpm($cache_data);
+      variable_set('empty_owl_documentation', FALSE);
+      drupal_set_message('Task completed!');
+  }
+}
+
+function ontology_documentation_delete($entity_type = __documentation_type__) {
+  if (entity_delete_multiple($entity_type, array_keys(entity_load($entity_type))) === FALSE) {
+    throw new Exception("This entity type doesn't support CRUD operation!");
+  }
+  else {
+    variable_set('empty_owl_documentation', TRUE);
+    return TRUE;
+  }
 }
 
 function ontology_documentation_mastro_get_data($operation = NULL, $parameters = array(), $field = NULL, $bundle = NULL) {
@@ -114,7 +90,9 @@ function ontology_documentation_mastro_get_data($operation = NULL, $parameters =
 }
 
 function  ontology_documentation_save(&$wrapper) {
-  $wrapper->save();
+  $entity_controller = entity_get_controller(__documentation_type__);
+  $report = $entity_controller->save($wrapper->value());
+  return $report;
 }
 
 function ontology_documentation_get_wiki_term_description($term) {
@@ -157,8 +135,9 @@ function ontology_documentation_get_wiki_term_description($term) {
         }
       }
     }
-    else
+    else {
       throw new Exception('entity_create(): Entity Controller not found!');
+    }
   }
   return '';
 }
@@ -193,6 +172,7 @@ function ontology_documentation_create_terms_page($type) {
         // Assegno il titolo alle proprietà dell'entità
         $data['title'] = $term;
         // Creo una nuova entità con le proprietà di base
+        dpm($data, 'data vale');
         $entity = entity_create(__documentation_type__, $data);
         if ($entity) {
           // Creo il wrapper per manipolare i campi 'attaccati' all'entità
@@ -203,11 +183,13 @@ function ontology_documentation_create_terms_page($type) {
             ontology_documentation_setup_field($field['field_name'], 'wiki_text', $entity_wrapper);
           }
           // Salvo la pagina
-          ontology_documentation_save($entity_wrapper);
+          $report = ontology_documentation_save($entity_wrapper);
         }
-        else
+        else {
           throw new Exception('entity_create(): Entity Controller not found!');
+        }
       }
+      return $report;
       break;
   }
 }

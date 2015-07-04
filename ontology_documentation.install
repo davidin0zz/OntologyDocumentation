@@ -351,6 +351,9 @@ function ontology_documentation_schema() {
      'title' => array('title'),
    ),
   );
+  // Creo la cache per i termini dell'ontologia
+  $schema[__documentation_type_cache__] = drupal_get_schema_unprocessed('system', 'cache');
+  $schema[__documentation_type_cache__]['description'] = 'Cache table for ontology entities';
 
   return $schema;
 }

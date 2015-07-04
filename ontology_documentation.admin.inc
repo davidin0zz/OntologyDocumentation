@@ -37,7 +37,7 @@ function ontology_documentation_form($form, &$form_state, $entity, $op) {
     return $edit_form;
   }
   // Form per la creazione della revisione
-  if ($op == 'create') {
+ /*if ($op == 'create') {
     // Creo il weapper
     $entity_revision_wrapper = entity_metadata_wrapper(__documentation_type__, $entity);
     // Recupero il template del form
@@ -48,7 +48,7 @@ function ontology_documentation_form($form, &$form_state, $entity, $op) {
     $entity_revision_form['fieldset']['description']['#default_value'] = trim(str_replace('<h2>Descrizione</h2>', '', $entity_revision_wrapper->descrizione->value->raw()));
     // Ritorno il form completp
     return $entity_revision_form;
-  }
+  }*/
 }
 
 function ontology_documentation_edit_form_validate($form, &$form_state) {
@@ -129,9 +129,5 @@ function ontology_documentation_form_submit($form, &$form_state) {
     // Rindirizzo l'utente alla pagina del termine
     $form_state['redirect'] = $entity->uri();
   }
-  elseif ($form_state['op'] == 'create') {
-    dpm('ciao');
-  }
-
 }
 

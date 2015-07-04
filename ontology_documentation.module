@@ -4,6 +4,8 @@
 define('__documentation_type__', 'ontology_documentation');
 // Definisco il tipo di bundle da gestire
 define('__documentation_type_bundle__', __documentation_type__.'_type');
+// Definisco la tabella di cache
+define('__documentation_type_cache__', __documentation_type__.'_cache');
 // Definisco il path per le pagine di documentazione
 define('__documentation_view_path__', str_replace('_', '-', __documentation_type__));
 // Definisco l'url per la pagina di gestione delle entità
@@ -14,13 +16,15 @@ define('__documentation_bundle_admin_path__', 'admin/structure/'.str_replace('_'
 define('__reasoning_relative_path__', 'intensional-reasoning');
 // Definisco l'url per le pagina dei mappings
 define('__mappings_relative_path__', 'mappings/ontology');
-// Definisco il nome della classe di frontend
+// Definisco la classe di Util
 define('__documentation_type_util__', __documentation_type__.'.util.inc');
 // Definisco il percorso del modulo
 define('__module_path__', drupal_get_path('module', __documentation_type__));
 
 // Includo la classe di utility
 require_once DRUPAL_ROOT.'/'.__module_path__.'/'.__documentation_type_util__;
+
+
 
 /**
  * Implements hook_help().
@@ -288,7 +292,7 @@ function ontology_documentation_menu() {
     'file' => 'ontology_documentation.admin.inc',
     'type' => MENU_LOCAL_TASK,
   );
-  $items[__documentation_view_path__.'/%/%ontology_documentation/edit/add-revision'] = array(
+  /*$items[__documentation_view_path__.'/%/%ontology_documentation/edit/add-revision'] = array(
     'title' => 'Create new revision',
     'load arguments' => array(__documentation_type__, 1),
     'access callback' => 'entity_access',
@@ -297,7 +301,7 @@ function ontology_documentation_menu() {
     'page arguments' => array('ontology_documentation', 2, 'create'),
     'file' => 'ontology_documentation.admin.inc',
     'type' => MENU_LOCAL_ACTION,
-  );
+  );*/
 
  /**
   *
