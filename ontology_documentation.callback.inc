@@ -38,12 +38,14 @@ function ontology_documentation_config_form_submit($form, &$form_state) {
     }
   }
   if ($form_state['values']['upgrade_check'] == 1) {
-      $report = ontology_documentation_create_terms_page('Concepts');
-      $cache_data = ontology_documentation_create_terms_page('Roles');
-      $cache_data = ontology_documentation_create_terms_page('Attributes');
-      dpm($cache_data);
-      variable_set('empty_owl_documentation', FALSE);
-      drupal_set_message('Task completed!');
+    try {
+      ontology_documentation_create();
+    }
+    catch (Exception $e) {
+      drupal_set_message($e->getMessage(), 'error');
+    }
+    variable_set('empty_owl_documentation', FALSE);
+    drupal_set_message('Task completed!');
   }
 }
 
@@ -87,6 +89,11 @@ function ontology_documentation_mastro_get_data($operation = NULL, $parameters =
   else {
     return array();
   }
+}
+
+
+function ontology_documentation_cache($cid = __documentation_type__) {
+  return cache_get($cid, __documentation_type_cache__);
 }
 
 function  ontology_documentation_save(&$wrapper) {
@@ -142,55 +149,32 @@ function ontology_documentation_get_wiki_term_description($term) {
   return '';
 }
 
-function ontology_documentation_create_terms_page($type) {
-  $data = array(
-    'title' => '',
-    'category' => '',
-  );
-  switch ($type) {
-    case 'Attributes':
-      $data['category'] = 'attribute';
-    case 'Roles':
-      $data['category'] = empty($data['category']) ? 'role' : $data['category'];
-    case 'Concepts':
-      $data['category'] = empty($data['category']) ? 'concept' : $data['category'];
-      // Ottengo tutti i campi per specifico bundle
-      $fields = field_info_instances(__documentation_type__, $data['category']);
-      // Ottengo tutti i concetti
-      $mastro_terms = ontology_documentation_mastro_get_data('getAll' . $type);
-      // Nel caso limite di un solo termine , crea un array che lo contiene
-      if (!is_array($mastro_terms)) {
-        if (!empty($mastro_terms)) {
-          $mastro_terms = array($mastro_terms);
-        }
-        else {
-          throw new Exception('Ontology ' . $type . ' not found!');
-        }
-      }
-      // Itero sui termini
-      foreach ($mastro_terms as $term) {
-        // Assegno il titolo alle proprietà dell'entità
-        $data['title'] = $term;
-        // Creo una nuova entità con le proprietà di base
-        dpm($data, 'data vale');
-        $entity = entity_create(__documentation_type__, $data);
-        if ($entity) {
-          // Creo il wrapper per manipolare i campi 'attaccati' all'entità
-          $entity_wrapper = entity_metadata_wrapper(__documentation_type__, $entity);
-          // Itero sui campi da assegnare
-          foreach ($fields as $field) {
-            // Configuro i campi
-            ontology_documentation_setup_field($field['field_name'], 'wiki_text', $entity_wrapper);
-          }
-          // Salvo la pagina
-          $report = ontology_documentation_save($entity_wrapper);
-        }
-        else {
-          throw new Exception('entity_create(): Entity Controller not found!');
-        }
-      }
-      return $report;
+function ontology_documentation_create() {
+  $ontology = array();
+  $data = array();
+  $fields = array();
+
+  $ontology['concept'] = ontology_documentation_mastro_get_data('getAllConcepts');
+  $ontology['role'] = ontology_documentation_mastro_get_data('getAllRoles');
+  $ontology['attribute'] = ontology_documentation_mastro_get_data('getAllAttributes');
+
+  $data['title'] = '';
+  $data['category'] = '';
+
+  foreach ($ontology as $bundle => $bundle_array) {
+    if (empty($bundle_array)) {
       break;
+    }
+    foreach ($bundle_array as $bundle_name) {
+      $data['title'] = $bundle_name;
+      $data['category'] = $bundle;
+      $fields = array_keys(field_info_instances(__documentation_type__, $bundle));
+      $entity = entity_create(__documentation_type__, $data);
+      foreach ($fields as $field) {
+        ontology_documentation_setup_field($field, 'wiki_text', $entity->wrapper());
+      }
+      $entity->save();
+    }
   }
 }
 
@@ -211,7 +195,7 @@ function ontology_documentation_fieldset_child_reder($render_element) {
   return $render_element;
 }
 
-function ontology_documentation_setup_field($field_name, $text_format = 'plain_text', &$wrapper) {
+function ontology_documentation_setup_field($field_name, $text_format = 'plain_text', $wrapper) {
   // Definisco le variabili utili
   $entity_type = $wrapper->type();
   $bundle = $wrapper->getBundle();
@@ -227,7 +211,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
   // Imposto il valore dell'etichetta del campo
   $field_data['label']['#value'] = ucwords(str_replace('_', ' ', $field_name));
   // Imposto il tipo di formato del testo
-  $wrapper->$field_name->format->set($text_format);
+  $wrapper->{$field_name}->format->set($text_format);
 
   switch ($field_name) {
     case 'categoria':
@@ -235,13 +219,13 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       $field_data['page_link']['#printed'] = FALSE;
       $field_data['page_link']['#title'] = $bundle.'s';
       $field_data['page_link']['#href'] = __documentation_view_path__.'/'.$bundle.'s';
-      $wrapper->$field_name->value->set(drupal_render($field_data));
+      $wrapper->{$field_name}->value->set(drupal_render($field_data));
       break;
     case 'descrizione':
       $field_data['label']['#printed'] = FALSE;
       $field_data['description']['#printed'] = FALSE;
       $field_data['description']['#markup'] = ontology_documentation_get_wiki_term_description($term);
-      $wrapper->$field_name->value->set(drupal_render($field_data));
+      $wrapper->{$field_name}->value->set(drupal_render($field_data));
       break;
     case 'occorrenza':
       $field_data['fieldset_box']['#printed'] = FALSE;
@@ -256,7 +240,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
         $field_data['fieldset_box']['#children']['simple']['#items'][$index] = array('data'=> $field_data['page_link']);
       }
       $field_data['page_link']['#printed'] = TRUE;
-      $wrapper->$field_name->value->set(drupal_render($field_data));
+      $wrapper->{$field_name}->value->set(drupal_render($field_data));
       break;
     // 'generalizzazioni' esegue lo stesso setup di 'specializzazioni'
     case 'generalizzazioni':
@@ -277,7 +261,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
         $field_data['description']['#printed'] = FALSE;
         $field_data['description']['#value'] = 'Non sono definite specializzazioni per questo ' . $bundle;
       }
-      $wrapper->$field_name->value->set(drupal_render($field_data));
+      $wrapper->{$field_name}->value->set(drupal_render($field_data));
       break;
     case 'tipizzazione':
       $field_data['label']['#printed'] = FALSE;
@@ -288,7 +272,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       $range = ontology_documentation_mastro_get_data(NULL, array($term), $field_name.'_range', $bundle);
       $range = !empty($range) ? 'Codominio: '.current($range) : 'Codominio: non tipizzato';
       $field_data['item_list']['#items'][] = $range;
-      $wrapper->$field_name->value->set(drupal_render($field_data));
+      $wrapper->{$field_name}->value->set(drupal_render($field_data));
       break;
     // Per entrampi i campi è definito lo stesso setup
     case 'ruoli_non_obbligatori':
@@ -315,7 +299,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
           'Non sono definiti '.$current_field_type.' rilevanti obbligatori per questo concetto' :
           'Non sono definiti '.$current_field_type.' rilevanti non obbligatori per questo concetto';
       }
-      $wrapper->$field_name->value->set(drupal_render($field_data));
+      $wrapper->{$field_name}->value->set(drupal_render($field_data));
       break;
     case 'assiomi':
       $field_data['fieldset_box']['#printed'] = FALSE;
@@ -332,7 +316,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
           $field_data['fieldset_box']['#children']['axioms'][$axiom_type_key]['#items'] = $axioms_result;
         }
       }
-      $wrapper->$field_name->value->set(drupal_render($field_data));
+      $wrapper->{$field_name}->value->set(drupal_render($field_data));
       break;
     case 'link_obda':
       $field_data['fieldset_box']['#printed'] = FALSE;
@@ -340,18 +324,24 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       $field_data['fieldset_box']['#children']['simple']['#printed'] = FALSE;
       $field_data['page_link']['#printed'] = FALSE;
       $field_data['page_link']['#title'] = 'Inferred subsumptions of '.$term;
-      $field_data['page_link']['#href'] = __reasoning_relative_path__.'/'.str_replace('_', '-', $term).'/'.$link_obda_type[$bundle];
+      $field_data['page_link']['#href'] = __reasoning_relative_path__.'/'.$term.'/'.$link_obda_type[$bundle];
       $field_data['fieldset_box']['#children']['simple']['#items'][] = array('data' => $field_data['page_link']);
-      $field_data['page_link']['#title'] = 'Mappings of '.$term;
-      $field_data['page_link']['#href'] = __mappings_relative_path__.'/'.str_replace('_', '-', $term);
-      $field_data['fieldset_box']['#children']['simple']['#items'][] = array('data' => $field_data['page_link']);
+      //$field_data['page_link']['#title'] = 'Mappings of '.$term;
+      //$field_data['page_link']['#href'] = __mappings_relative_path__.'/'.str_replace('_', '-', $term);
+      //$field_data['fieldset_box']['#children']['simple']['#items'][] = array('data' => $field_data['page_link']);
       $field_data['page_link']['#printed'] = TRUE;
-      $wrapper->$field_name->value->set(drupal_render($field_data));
+      $wrapper->{$field_name}->value->set(drupal_render($field_data));
       break;
     case 'mappings':
       $field_data['fieldset_box']['#printed'] = FALSE;
       $field_data['fieldset_box']['#title'] = t('Mappings');
-      $wrapper->$field_name->value->set(drupal_render($field_data));
+      $field_data['fieldset_box']['#children']['simple']['#printed'] = FALSE;
+      $field_data['page_link']['#printed'] = FALSE;
+      $field_data['page_link']['#title'] = 'Mappings of '.$term;
+      $field_data['page_link']['#href'] = __mappings_relative_path__.'/'.$term;
+      $field_data['fieldset_box']['#children']['simple']['#items'][] = array('data' => $field_data['page_link']);
+      $field_data['page_link']['#printed'] = TRUE;
+      $wrapper->{$field_name}->value->set(drupal_render($field_data));
       break;
   }
 }
