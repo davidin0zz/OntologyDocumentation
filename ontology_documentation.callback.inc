@@ -153,6 +153,7 @@ function ontology_documentation_create() {
   $ontology = array();
   $data = array();
   $fields = array();
+  $cache = array();
 
   $ontology['concept'] = ontology_documentation_mastro_get_data('getAllConcepts');
   $ontology['role'] = ontology_documentation_mastro_get_data('getAllRoles');
@@ -162,10 +163,14 @@ function ontology_documentation_create() {
   $data['category'] = '';
 
   foreach ($ontology as $bundle => $bundle_array) {
-    if (empty($bundle_array)) {
-      break;
-    }
     foreach ($bundle_array as $bundle_name) {
+      //$changed = ontology_documentation_mastro_get_data('has'.ucwords($bundle).'Changed', array($bundle => $bundle_name));
+      //if (current($changed)) {
+      //  dpm($bundle_name, 'Necessita di aggiornamento');
+      //}
+      //else {
+      //  dpm($bundle_name, 'Non necessità di aggiornamento');
+      //}
       $data['title'] = $bundle_name;
       $data['category'] = $bundle;
       $fields = array_keys(field_info_instances(__documentation_type__, $bundle));
@@ -173,9 +178,11 @@ function ontology_documentation_create() {
       foreach ($fields as $field) {
         ontology_documentation_setup_field($field, 'wiki_text', $entity->wrapper());
       }
-      $entity->save();
+      $cache = $entity->save();
     }
   }
+  dpm($cache, "Questa è la cache");
+  cache_set(__documentation_type__, $cache['cache'], __documentation_type_cache__);
 }
 
 function ontology_documentation_item_list_child_render($render_element) {

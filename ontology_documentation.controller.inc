@@ -3,6 +3,112 @@
 class OntologyDocumentationController extends EntityAPIController {
 
   public function save($entity, DatabaseTransaction $transaction = NULL) {
-    parent::save($entity, $transaction);
+    $cache_array = &drupal_static(__FUNCTION__, array());
+    $report = &drupal_static('report_'.__FUNCTION__, array());
+    $query = &drupal_static('query_'.__FUNCTION__);
+    $cache_is_valid = true;
+
+    if (empty($cache_array)) {
+      $cache_array = cache_get(__documentation_type__, __documentation_type_cache__);
+      if (is_object($cache_array) && isset($cache_array->data)) {
+        $cache_array = $cache_array->data;
+      }
+      else {
+        $cache_array = array(
+            'current' => array(),
+        );
+      }
+    }
+
+    if (empty($report)) {
+      $report = array(
+        'new' => array(),
+        'processed' => array(),
+        'updated' => array(),
+      );
+    }
+
+    if (!isset($query)) {
+      $query = new EntityFieldQuery();
+      $query->entityCondition('entity_type', __documentation_type__);
+    }
+
+    $entity_name = $entity->label();
+    $ui_update = $entity->created != $entity->changed ? true : false;
+    $cache_hit = isset($cache_array['current'][$entity_name]) ? true : false;
+    $report['processed'] += array($entity_name => $entity);
+    $query->propertyConditions = array();
+    $query->propertyCondition('title', $entity_name);
+    $stored_entity_idkey = array_keys($query->execute());
+    $term_is_on_db = !empty($stored_entity_idkey);
+    //dpm($term_is_on_db, $entity_name.' is on db?');
+    //dpm($cache_hit, $entity_name.' hit cache?');
+    //dpm($cache_array,'current');
+
+    if ($ui_update) {
+      dpm('TERM UPDATE FROM USER');
+      parent::save($entity, $transaction);
+      $cache_array['current'][$entity_name] = $entity;
+    }
+    elseif (!$cache_hit || !$term_is_on_db) {
+      dpm('NEW TERM: '.$entity_name. 'created');
+      parent::save($entity, $transaction);
+      $report['new'] += array($entity_name => $entity_name);
+      $cache_array['current'] += array($entity_name => $entity);
+    }
+    elseif ($cache_hit && $term_is_on_db) {
+      dpm("CACHE CHECKING");
+      $array_diff = array();
+      $entity_cache = $cache_array['current'][$entity_name];
+      $stored_entity = entity_load_single(__documentation_type__, $entity_cache->odid);
+      $stored_entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $stored_entity);
+      $entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $entity);
+      foreach ($entity_wrapper->getPropertyInfo() as $property => $value) {
+        $match = true;
+        if (!in_array($property, $entity_wrapper->getCachedUncheckedWrapperProperties())) {
+          if ($entity_wrapper->{$property} instanceof EntityStructureWrapper)  {
+            $stored_content = $stored_entity_wrapper->{$property}->value->raw();
+            $entity_content = $entity_wrapper->{$property}->value->raw();
+            $match = $entity_content == $stored_content ? true : false ;
+            $cache_is_valid = $cache_is_valid && $match;
+            if (!$match && $property) {
+              $stored_entity_wrapper->{$property}->value->set($entity_content);
+             }
+          }
+          else {
+            $stored_content = $stored_entity_wrapper->{$property}->raw();
+            $entity_content = $entity_wrapper->{$property}->raw();
+            $match = $entity_content == $stored_content ? true : false;
+            $cache_is_valid = $cache_is_valid && $match;
+            if (!$match) {
+              $stored_entity_wrapper->{$property}->set($entity_content);
+            }
+          }
+        }
+        if (!$match) {
+            $array_diff += array($property => $entity_content);
+        }
+      }
+      if (!$cache_is_valid) {
+        dpm('TERM UPDATE FROM MASTRO');
+        $stored_entity_wrapper->modification_date->set(REQUEST_TIME);
+        parent::save($stored_entity, $transaction);
+        $report['updated'][$entity_name] = $array_diff;
+        $cache_array['current'][$entity_name] = $stored_entity;
+      }
+      else {
+        dpm('TERM ALREADY UPDATED');
+      }
+    }
+
+    /*
+    elseif (!$cache_hit && $term_is_on_db) {
+      //entity_delete(__documentation_type__, current($stored_entity_idkey));
+      //parent::save($entity, $transaction);
+      //$cache_array['report']
+      throw new Exception("$entity_name: cache corrupted!");
+    }*/
+
+    return array('cache' => $cache_array, 'report' => $report);
   }
 }

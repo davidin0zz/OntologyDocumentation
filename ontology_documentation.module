@@ -353,12 +353,21 @@ function ontology_documentation_menu() {
   return $items;
 }
 
+function ontology_documentation_flush_caches() {
+  return array(__documentation_type_cache__);
+}
+
 // Nascondo il titolo dei campi per ogni campo di tipo '__documentation_type__'
 function ontology_documentation_preprocess_field(&$variables) {
   if ($variables['element']['#entity_type'] == __documentation_type__) {
     $variables['label_hidden'] = TRUE;
   }
 }
+
+function ontology_documentation_wrapper($type, $data = NULL, array $info = array()) {
+  return new OntologyDocumentationWrapper($type, $data, $info);
+}
+
 // Carica l'entità da visualizzare
 function ontology_documentation_load($entity_name, $entity_type, $bundle) {
   // Se almeno un parametro è o non settato o vuoto lancio l'eccezione
