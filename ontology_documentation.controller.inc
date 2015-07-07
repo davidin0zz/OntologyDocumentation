@@ -9,7 +9,7 @@ class OntologyDocumentationController extends EntityAPIController {
     $cache_is_valid = true;
 
     if (empty($cache_array)) {
-      $cache_array = cache_get(__documentation_type__, __documentation_type_cache__);
+      $cache_array = ontology_documentation_cache(__documentation_type__, __documentation_type_cache__);
       if (is_object($cache_array) && isset($cache_array->data)) {
         $cache_array = $cache_array->data;
       }
@@ -51,7 +51,7 @@ class OntologyDocumentationController extends EntityAPIController {
       $cache_array['current'][$entity_name] = $entity;
     }
     elseif (!$cache_hit || !$term_is_on_db) {
-      dpm('NEW TERM: '.$entity_name. 'created');
+      dpm('NEW TERM: '.$entity_name. ' created');
       parent::save($entity, $transaction);
       $report['new'] += array($entity_name => $entity_name);
       $cache_array['current'] += array($entity_name => $entity);

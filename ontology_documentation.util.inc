@@ -212,17 +212,17 @@ class OntologyDocumentationUtil {
     $bundles = &drupal_static(__FUNCTION__,array());
     if (empty($bundles)) {
       $bundles += array(
-        array(
-         'machine_name' => 'concept',
-         'human_label' => 'Concept',
-         'description' => 'Describe a specific owl concept',
+        'concept' => array(
+          'machine_name' => 'concept',
+          'human_label' => 'Concept',
+          'description' => 'Describe a specific owl concept',
         ),
-        array(
-         'machine_name' => 'role',
-         'human_label' => 'Role',
-         'description' => 'Describe a specific owl role',
+        'role' => array(
+          'machine_name' => 'role',
+          'human_label' => 'Role',
+          'description' => 'Describe a specific owl role',
         ),
-        array(
+        'attribute' => array(
           'machine_name' => 'attribute',
           'human_label' => 'Attribute',
           'description' => 'Describe a sepcific owl attribute',

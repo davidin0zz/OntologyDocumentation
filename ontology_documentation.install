@@ -41,10 +41,10 @@ $bundles_fields = array(
   'specializzazioni' => $concept_role_bundles,
   'generalizzazioni' => $concept_role_bundles,
   'tipizzazione' => $role_attribute_bundles,
-  'attributi_obbligatori' => $concept_bundles,
-  'attributi_non_obbligatori' => $concept_bundles,
-  'ruoli_obbligatori' => $concept_bundles,
-  'ruoli_non_obbligatori' => $concept_bundles,
+  'attributi_ril_obbligatori' => $concept_bundles,
+  'attributi_ril_non_obbligatori' => $concept_bundles,
+  'ruoli_ril_obbligatori' => $concept_bundles,
+  'ruoli_ril_non_obbligatori' => $concept_bundles,
   'assiomi' => $all_bundles,
   'link_obda' => $all_bundles,
   'mappings' => $all_bundles,
@@ -153,11 +153,18 @@ function ontology_documentation_disable() {
 // Cancella i campi creati.
 // Cancella le istanze dei campi create.
 function ontology_documentation_uninstall() {
-  global $bundles_fields, $ontology_add_shortcut_link;
+  global $bundles_fields;
 
-  // Cancella i campi
+  // Cancella i campi e le istanze
   foreach ($bundles_fields as $bundles_field_name => $bundles) {
-    field_delete_field($bundles_field_name);
+    if (field_info_field($bundles_field_name)) {
+      field_delete_field($bundles_field_name);
+      foreach ($bundles as $bundle) {
+        if ($instance = field_info_instance(__documentation_type__, $bundles_field_name, $bundle['machine_name'])) {
+          field_delete_instance($instance);
+        }
+      }
+    }
   }
   // Elimino fisicamente i campi marcati come cancellati
   field_purge_batch(50);
