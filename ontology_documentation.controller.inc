@@ -52,54 +52,51 @@ class OntologyDocumentationController extends EntityAPIController {
     }
     elseif (!$cache_hit || !$term_is_on_db) {
       dpm('NEW TERM: '.$entity_name. ' created');
+      dpm($entity, 'termine prima');
       parent::save($entity, $transaction);
+      dpm($entity, 'termine dopo');
       $report['new'] += array($entity_name => $entity_name);
       $cache_array['current'] += array($entity_name => $entity);
     }
-    elseif ($cache_hit && $term_is_on_db) {
+    /*elseif ($cache_hit && $term_is_on_db) {
       dpm("CACHE CHECKING");
       $array_diff = array();
       $entity_cache = $cache_array['current'][$entity_name];
-      $stored_entity = entity_load_single(__documentation_type__, $entity_cache->odid);
-      $stored_entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $stored_entity);
+      //$stored_entity = entity_load_single(__documentation_type__, $entity_cache->odid);
+      //$cached_entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $stored_entity);
       $entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $entity);
+      $cached_entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $entity_cache);
       foreach ($entity_wrapper->getPropertyInfo() as $property => $value) {
-        $match = true;
         if (!in_array($property, $entity_wrapper->getCachedUncheckedWrapperProperties())) {
-          if ($entity_wrapper->{$property} instanceof EntityStructureWrapper)  {
-            $stored_content = $stored_entity_wrapper->{$property}->value->raw();
-            $entity_content = $entity_wrapper->{$property}->value->raw();
-            $match = $entity_content == $stored_content ? true : false ;
-            $cache_is_valid = $cache_is_valid && $match;
-            if (!$match && $property) {
-              $stored_entity_wrapper->{$property}->value->set($entity_content);
-             }
-          }
-          else {
-            $stored_content = $stored_entity_wrapper->{$property}->raw();
-            $entity_content = $entity_wrapper->{$property}->raw();
-            $match = $entity_content == $stored_content ? true : false;
-            $cache_is_valid = $cache_is_valid && $match;
-            if (!$match) {
-              $stored_entity_wrapper->{$property}->set($entity_content);
-            }
-          }
-        }
-        if (!$match) {
+          $cached_content = $cached_entity_wrapper->getFieldRawContent($property);
+          $entity_content = $entity_wrapper->getFieldRawContent($property);
+          $match = $entity_content == $cached_content ? true : false ;
+          $cache_is_valid = $cache_is_valid && $match;
+          // Aggiorno la cache
+          if (!$match) {
+            dpm($property, 'non match campo');
+            dpm($entity_content, 'valore entità');
+            dpm($cached_content, 'valore cache');
+            $cached_entity_wrapper->setFieldsContent(array($property => $entity_content));
             $array_diff += array($property => $entity_content);
+          }
         }
       }
       if (!$cache_is_valid) {
         dpm('TERM UPDATE FROM MASTRO');
-        $stored_entity_wrapper->modification_date->set(REQUEST_TIME);
+        $array_diff += array('modification_date' => REQUEST_TIME);
+        $stored_entity = entity_load_single(__documentation_type__, $cached_entity_wrapper->id->value());
+        $stored_entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $stored_entity);
+        // Aggiorno l'entità
+        $stored_entity_wrapper->setFieldsContent($array_diff);
         parent::save($stored_entity, $transaction);
         $report['updated'][$entity_name] = $array_diff;
-        $cache_array['current'][$entity_name] = $stored_entity;
+        $cache_array['current'][$entity_name] = $entity_cache;
       }
       else {
         dpm('TERM ALREADY UPDATED');
       }
-    }
+    }*/
 
     /*
     elseif (!$cache_hit && $term_is_on_db) {
