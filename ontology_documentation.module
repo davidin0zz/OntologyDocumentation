@@ -202,6 +202,13 @@ function ontology_documentation_entity_property_info() {
       'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'status',
     ),
+    'valid' => array(
+      'label' => t(__documentation_type__.' old'),
+      'description' => t('The old age of the ontology term'),
+      'type' => 'integer',
+      'setter callback' => 'entity_property_verbatim_set',
+      'schema field' => 'old',
+    ),
   );
   // Metto a conoscenza il wrapper delle proprietà possedute da __documentation_type_type__
   $entity_property_info[__documentation_type_bundle__]['properties'] = array(
@@ -448,8 +455,7 @@ function ontology_documentation_mastro_get_data($operation = null, $parameters =
 function ontology_documentation_create() {
   $ontology = array();
   $data = array();
-  $fields = array();
-  $cache = array();
+  $cached_old = array();
 
   $ontology['concept'] = ontology_documentation_mastro_get_data('getAllConcepts');
   $ontology['role'] = ontology_documentation_mastro_get_data('getAllRoles');
@@ -457,8 +463,6 @@ function ontology_documentation_create() {
 
   $data['title'] = '';
   $data['category'] = '';
-  //$data['uid'] = ontology_documentation_util('get_mastro_uid');
-
 
   foreach ($ontology as $bundle => $bundle_array) {
     $data['category'] = $bundle;
@@ -470,11 +474,19 @@ function ontology_documentation_create() {
       foreach ($fields as $field) {
         ontology_documentation_setup_field($field, 'wiki_text', $entity_wrapper);
       }
-      $cache = $entity_wrapper->value()->save();
+      $result = $entity->save();
     }
   }
-  dpm($cache, "Questa è la cache");
-  cache_set(__documentation_type__, $cache['cache'], __documentation_type_cache__);
+  dpm($result, "Questa è la cache");
+  $cached_old = array_diff_key($result['cache'], $result['report']['processed']);
+  dpm($cached_old, "Da eliminare");
+  foreach ($cached_old as $name => $cached_name) {
+    if (($entity = entity_load_single(__documentation_type__, $cached_name->odid)) !== FALSE) {
+      $entity->setAsOld();
+      $entity->save();
+    }
+  }
+  cache_set(__documentation_type__, array_diff_key($result['cache'], $cached_old), __documentation_type_cache__);
 }
 
 function ontology_documentation_wrapper($type, $data = null, array $info = array()) {

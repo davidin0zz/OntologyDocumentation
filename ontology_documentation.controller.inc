@@ -45,7 +45,7 @@ class OntologyDocumentationController extends EntityAPIController {
     $entity_name = $entity->label();
     $ui_update = $entity->created != $entity->changed ? true : false;
     $cache_hit = isset($cache_array[$entity_name]) ? true : false;
-    $report['processed'] += array($entity_name => $entity);
+    $report['processed'] += array($entity_name => $entity_name);
     $query->propertyConditions = array();
     $query->propertyCondition('title', $entity_name);
     $stored_entity_idkey = array_keys($query->execute());
@@ -57,8 +57,10 @@ class OntologyDocumentationController extends EntityAPIController {
     if ($ui_update) {
       dpm('TERM UPDATE FROM USER');
       parent::save($entity, $transaction);
-      $cache_array[$entity_name] = $entity;
-      cache_set(__documentation_type__, $cache_array, __documentation_type_cache__);
+      if (!$entity->old) {
+        $cache_array[$entity_name] = $entity;
+        cache_set(__documentation_type__, $cache_array, __documentation_type_cache__);
+      }
     }
     elseif (!$cache_hit || !$term_is_on_db) {
       dpm('NEW TERM: '.$entity_name. ' created');

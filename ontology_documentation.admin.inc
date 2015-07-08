@@ -110,9 +110,9 @@ function ontology_documentation_form_submit($form, &$form_state) {
     // Creo il wrapper
     $form_submit_wrapper = entity_metadata_wrapper(__documentation_type__, $entity);
 
-    //Setto il valore dei cammpi cambiati
+    //Setto il valore dei campi cambiati
     foreach ($form_state['modified fields'] as $field) {
-     if ($field == 'description') {
+     if ($form_submit_wrapper->{$field} instanceof EntityStructureWrapper) {
        $form_submit_wrapper->descrizione->value->set('<h2>Descrizione</h2>'.$form_state['values'][$field]);
      }
      else {

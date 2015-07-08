@@ -13,6 +13,12 @@ class OntologyDocumentation extends Entity {
     parent::__construct($values, $entity_type);
   }
 
+  public function setAsOld() {
+    $this->status = 0;
+    $this->old = 1;
+    $this->changed = REQUEST_TIME;
+  }
+
   public function unsetExtra() {
     if (isset($this->is_new)) {
       unset($this->is_new);

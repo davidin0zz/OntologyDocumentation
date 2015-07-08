@@ -237,6 +237,12 @@ function ontology_documentation_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
+      'old' => array(
+        'description' => 'Se il termine è marcato come vecchio',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
     ),
     'indexes' => array(
       'category_type' => array('category'),
@@ -245,6 +251,7 @@ function ontology_documentation_schema() {
       'entity_created' => array('created'),
       'entity_changed' => array('changed'),
       'entity_state' => array('status'),
+      'entity_old' => array('old'),
     ),
     'unique keys' => array(
       'odid' => array('odid'),
