@@ -1,17 +1,5 @@
 <?php
 
-function ontology_documentation_concept_create() {
-  return 'Concept create';
-}
-
-function ontology_documentation_role_create() {
-  return 'Role create';
-}
-
-function ontology_documentation_attribute_create() {
-  return 'Attribute create';
-}
-
 function ontology_documentation_term_view($entity) {
   drupal_add_library('system', 'drupal.collapse');
   drupal_set_title($entity->title);

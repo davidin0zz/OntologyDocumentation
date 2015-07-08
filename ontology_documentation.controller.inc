@@ -2,6 +2,17 @@
 
 class OntologyDocumentationController extends EntityAPIController {
 
+  public function create(array $values = array()) {
+    $values += array(
+      'language' => 'en',
+      'uid' => ontology_documentation_util('get_mastro_uid'),
+      'created' => REQUEST_TIME,
+      'changed' => REQUEST_TIME,
+      'status' => 1,
+    );
+    return new OntologyDocumentation($values, $this->entityType);
+  }
+
   public function save($entity, DatabaseTransaction $transaction = NULL) {
     $cache_array = &drupal_static(__FUNCTION__, array());
     $report = &drupal_static('report_'.__FUNCTION__, array());
@@ -15,7 +26,7 @@ class OntologyDocumentationController extends EntityAPIController {
       }
       else {
         $cache_array = array(
-            'current' => array(),
+          'current' => array(),
         );
       }
     }
@@ -49,21 +60,18 @@ class OntologyDocumentationController extends EntityAPIController {
       dpm('TERM UPDATE FROM USER');
       parent::save($entity, $transaction);
       $cache_array['current'][$entity_name] = $entity;
+      cache_set(__documentation_type__, $cache_array, __documentation_type_cache__);
     }
     elseif (!$cache_hit || !$term_is_on_db) {
       dpm('NEW TERM: '.$entity_name. ' created');
-      dpm($entity, 'termine prima');
       parent::save($entity, $transaction);
-      dpm($entity, 'termine dopo');
       $report['new'] += array($entity_name => $entity_name);
       $cache_array['current'] += array($entity_name => $entity);
     }
-    /*elseif ($cache_hit && $term_is_on_db) {
+    elseif ($cache_hit && $term_is_on_db) {
       dpm("CACHE CHECKING");
       $array_diff = array();
       $entity_cache = $cache_array['current'][$entity_name];
-      //$stored_entity = entity_load_single(__documentation_type__, $entity_cache->odid);
-      //$cached_entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $stored_entity);
       $entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $entity);
       $cached_entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $entity_cache);
       foreach ($entity_wrapper->getPropertyInfo() as $property => $value) {
@@ -74,10 +82,9 @@ class OntologyDocumentationController extends EntityAPIController {
           $cache_is_valid = $cache_is_valid && $match;
           // Aggiorno la cache
           if (!$match) {
-            dpm($property, 'non match campo');
-            dpm($entity_content, 'valore entità');
-            dpm($cached_content, 'valore cache');
-            $cached_entity_wrapper->setFieldsContent(array($property => $entity_content));
+            //dpm($property, 'non match campo');
+            //dpm($entity_content, 'valore entità');
+            //dpm($cached_content, 'valore cache');
             $array_diff += array($property => $entity_content);
           }
         }
@@ -91,12 +98,12 @@ class OntologyDocumentationController extends EntityAPIController {
         $stored_entity_wrapper->setFieldsContent($array_diff);
         parent::save($stored_entity, $transaction);
         $report['updated'][$entity_name] = $array_diff;
-        $cache_array['current'][$entity_name] = $entity_cache;
+        $cache_array['current'][$entity_name] = $stored_entity;
       }
       else {
         dpm('TERM ALREADY UPDATED');
       }
-    }*/
+    }
 
     /*
     elseif (!$cache_hit && $term_is_on_db) {

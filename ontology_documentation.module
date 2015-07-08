@@ -205,7 +205,7 @@ function ontology_documentation_entity_property_info() {
   );
   // Metto a conoscenza il wrapper delle proprietà possedute da __documentation_type_type__
   $entity_property_info[__documentation_type_bundle__]['properties'] = array(
-    'type' => array(
+    'category' => array(
       'label' => t(__documentation_type_bundle__.' category'),
       'description' => t('The category of the bundle'),
       'type' => 'text',
@@ -457,6 +457,8 @@ function ontology_documentation_create() {
 
   $data['title'] = '';
   $data['category'] = '';
+  //$data['uid'] = ontology_documentation_util('get_mastro_uid');
+
 
   foreach ($ontology as $bundle => $bundle_array) {
     $data['category'] = $bundle;
@@ -464,11 +466,11 @@ function ontology_documentation_create() {
       $data['title'] = $bundle_name;
       $fields = array_keys(field_info_instances(__documentation_type__, $bundle));
       $entity = entity_create(__documentation_type__, $data);
+      $entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $entity);
       foreach ($fields as $field) {
-        ontology_documentation_setup_field($field, 'wiki_text', $entity->wrapper());
+        ontology_documentation_setup_field($field, 'wiki_text', $entity_wrapper);
       }
-      dpm($entity, "Entità dopo setup");
-      $cache = $entity->save();
+      $cache = $entity_wrapper->value()->save();
     }
   }
   dpm($cache, "Questa è la cache");

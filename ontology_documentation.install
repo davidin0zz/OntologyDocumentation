@@ -94,7 +94,7 @@ function ontology_documentation_enable() {
     $ontology_documentation_type_data['description'] = $bundle['description'];
     try {
       if (empty(entity_load('ontology_documentation_type', array($bundle['machine_name'])))) {
-        $ontology_type_entity = entity_create('ontology_documentation_type', $ontology_documentation_type_data);
+        $ontology_type_entity = entity_create(__documentation_type_bundle__, $ontology_documentation_type_data);
         if ($ontology_type_entity !== FALSE) {
           $ontology_type_entity->save();
         }

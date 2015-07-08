@@ -8,7 +8,7 @@ function ontology_documentation_type_form($form, &$form_state, $entity, $op) {
     // Recupero il template del form
     $bundle_edit_form = ontology_documentation_util('bundle_edit_form');
     // Imposto il tipo del bundle
-    $bundle_edit_form['fieldset']['type']['#default_value'] = $form_wrapper->type->value();
+    $bundle_edit_form['fieldset']['type']['#default_value'] = $form_wrapper->category->value();
     // Imposto il nome del bundle
     $bundle_edit_form['fieldset']['name']['#default_value'] = $form_wrapper->name->value();
     // Imposto la descrizione del bundle
