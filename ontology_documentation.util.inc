@@ -13,7 +13,7 @@ class OntologyDocumentationUtil {
   protected static $mastroAxiomTypes = array(
     'positive_inclusions' => array(0),
     'negative_inclusions' => array(1),
-    'functional_and_ID_contraints' => array(2, 3),
+    'functional_and_ID_constraints' => array(2, 3),
     'denial_assertions' => array(4),
     'epistemic_constraints' => array(5),
   );
@@ -73,25 +73,25 @@ class OntologyDocumentationUtil {
         'operation' => 'getAttributeRange',
       ),
     ),
-    'attributi_obbligatori' => array(
+    'attributi_ril_obbligatori' => array(
      'concept' => array(
        'keys' => array('conceptName'),
        'operation' => 'getRelevantMandatoryAttributes',
      ),
     ),
-    'attributi_non_obbligatori' => array(
+    'attributi_ril_non_obbligatori' => array(
      'concept' => array(
        'keys' => array('conceptName'),
        'operation' => 'getRelevantOptionalAttributes',
      ),
     ),
-   'ruoli_obbligatori' => array(
+   'ruoli_ril_obbligatori' => array(
      'concept' => array(
        'keys' => array('conceptName'),
          'operation' => 'getRelevantMandatoryRoles',
      ),
     ),
-   'ruoli_non_obbligatori' => array(
+   'ruoli_ril_non_obbligatori' => array(
      'concept' => array(
        'keys' => array('conceptName'),
          'operation' => 'getRelevantOptionalRoles',
@@ -175,7 +175,7 @@ class OntologyDocumentationUtil {
             '#printed' => TRUE,
             '#pre_render' => array('ontology_documentation_item_list_child_render'),
            ),
-          'functional_and_ID_contraints' => array(
+          'functional_and_ID_constraints' => array(
             '#theme' => 'item_list',
             '#items' => array(),
             '#title' => '',
