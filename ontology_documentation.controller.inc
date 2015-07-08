@@ -25,9 +25,7 @@ class OntologyDocumentationController extends EntityAPIController {
         $cache_array = $cache_array->data;
       }
       else {
-        $cache_array = array(
-          'current' => array(),
-        );
+        $cache_array = array();
       }
     }
 
@@ -46,7 +44,7 @@ class OntologyDocumentationController extends EntityAPIController {
 
     $entity_name = $entity->label();
     $ui_update = $entity->created != $entity->changed ? true : false;
-    $cache_hit = isset($cache_array['current'][$entity_name]) ? true : false;
+    $cache_hit = isset($cache_array[$entity_name]) ? true : false;
     $report['processed'] += array($entity_name => $entity);
     $query->propertyConditions = array();
     $query->propertyCondition('title', $entity_name);
@@ -59,19 +57,19 @@ class OntologyDocumentationController extends EntityAPIController {
     if ($ui_update) {
       dpm('TERM UPDATE FROM USER');
       parent::save($entity, $transaction);
-      $cache_array['current'][$entity_name] = $entity;
+      $cache_array[$entity_name] = $entity;
       cache_set(__documentation_type__, $cache_array, __documentation_type_cache__);
     }
     elseif (!$cache_hit || !$term_is_on_db) {
       dpm('NEW TERM: '.$entity_name. ' created');
       parent::save($entity, $transaction);
       $report['new'] += array($entity_name => $entity_name);
-      $cache_array['current'] += array($entity_name => $entity);
+      $cache_array += array($entity_name => $entity);
     }
-    elseif ($cache_hit && $term_is_on_db) {
+    else {
       dpm("CACHE CHECKING");
       $array_diff = array();
-      $entity_cache = $cache_array['current'][$entity_name];
+      $entity_cache = $cache_array[$entity_name];
       $entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $entity);
       $cached_entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $entity_cache);
       foreach ($entity_wrapper->getPropertyInfo() as $property => $value) {
@@ -98,7 +96,7 @@ class OntologyDocumentationController extends EntityAPIController {
         $stored_entity_wrapper->setFieldsContent($array_diff);
         parent::save($stored_entity, $transaction);
         $report['updated'][$entity_name] = $array_diff;
-        $cache_array['current'][$entity_name] = $stored_entity;
+        $cache_array[$entity_name] = $stored_entity;
       }
       else {
         dpm('TERM ALREADY UPDATED');
