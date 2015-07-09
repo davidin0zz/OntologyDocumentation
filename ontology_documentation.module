@@ -245,7 +245,7 @@ function ontology_documentation_menu() {
 
   $items['admin/config/mastro/'.__documentation_view_path__] = array(
     'title' => 'Ontology Documentation',
-    'description' => 'Upgrade OWL documentation pages',
+    'description' => 'Update OWL documentation pages',
     'access callback' => 'entity_access',
     'access arguments' => array('update', __documentation_type__, null, null),
     'page callback' => 'drupal_get_form',
@@ -280,63 +280,6 @@ function ontology_documentation_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
- /**
-  *
-  * Togliere il commento se si vuole implementare la possibilità
-  * di aggiungere nuova documentazione e nuove revisioni (per un nuovo termine creato a mano).
-  * Le funzioni di callback sono definite nel file ontology_documentation.callback.inc.
-  * Ricordarsi di scommentare anche le parti nel file *.install
-  *
-  **/
-  /*
-  $items['admin/'.__documentation_base_url__.'/add'] = array(
-    'title' => 'Add Ontology documentation',
-    'page callback' => 'system_admin_menu_block_page',
-    'access callback' => 'entity_access',
-    'access arguments' => array('create', __documentation_type__, null, null),
-    'file' => 'system.admin.inc',
-    'file path' => drupal_get_path('module', 'system'),
-    'type' => MENU_NORMAL_ITEM,
-  );
-  $items['admin/'.__documentation_base_url__.'/add/concept'] = array(
-    'title' => 'Add Concept',
-    'description' => 'Allow you to create a new OWL concept',
-    'page callback' => 'ontology_documentation_concept_create',
-    'access callback' => 'entity_access',
-    'access arguments' => array('create', __documentation_type__, null, null),
-    'type' => MENU_NORMAL_ITEM,
-    'file' => 'ontology_documentation.callback.inc',
-  );
-  $items['admin/'.__documentation_base_url__.'/add/role'] = array(
-    'title' => 'Add Role',
-    'description' => 'Allow you to create a new OWL role',
-    'page callback' => 'ontology_documentation_role_create',
-    'access callback' => 'entity_access',
-    'access arguments' => array('create', __documentation_type__, null, null),
-    'type' => MENU_NORMAL_ITEM,
-    'file' => 'ontology_documentation.callback.inc',
-  );
-  $items['admin/'.__documentation_base_url__.'/add/attribute'] = array(
-    'title' => 'Add Attribute',
-    'description' => 'Allow you to create a new OWL attribute',
-    'page callback' => 'ontology_documentation_attribute_create',
-    'access callback' => 'entity_access',
-    'access arguments' => array('create', __documentation_type__, null, null),
-    'type' => MENU_NORMAL_ITEM,
-    'file' => 'ontology_documentation.callback.inc',
-  );
-  $items[__documentation_view_path__.'/%/%ontology_documentation/edit/add-revision'] = array(
-    'title' => 'Create new revision',
-    'load arguments' => array(__documentation_type__, 1),
-    'access callback' => 'entity_access',
-    'access arguments'=> array('create', __documentation_type__, 2, null),
-    'page callback' => 'entity_ui_get_form',
-    'page arguments' => array('ontology_documentation', 2, 'create'),
-    'file' => 'ontology_documentation.admin.inc',
-    'type' => MENU_LOCAL_ACTION,
-  );
-  */
-
   return $items;
 }
 
@@ -355,11 +298,6 @@ function ontology_documentation_permission() {
       'description' => t('Allow users to view ontology documentation entities'),
       'restricted access' => true,
     ),
-    /*'create ontology_documentation entities' => array(
-      'title' => t('Create ontology documentation entities'),
-      'description' => t('Allow user to create ontology documentation entities'),
-      'retricted access' => true,
-    ),*/
     'edit any ontology_documentation entities' => array(
       'title' => t('Edit any ontology documentation entities'),
       'description' => t('Allow users to edit any ontology documentation entities'),
@@ -381,7 +319,6 @@ function ontology_documentation_permission() {
 function ontology_documentation_admin_paths() {
   $paths = array(
     __documentation_view_path__.'/*/*/edit' => true,
-   __documentation_view_path__.'/*/*/edit/add-revision' => true,
   );
   return $paths;
 }
@@ -416,6 +353,7 @@ function ontology_documentation_delete($entity_type = __documentation_type__, $u
       throw new Exception("This entity type doesn't support CRUD operation!");
     }
     variable_set('empty_owl_documentation', true);
+    variable_set('syncronized_owl_documentation', true);
   }
   else {
     $query = new EntityFieldQuery();
@@ -426,7 +364,7 @@ function ontology_documentation_delete($entity_type = __documentation_type__, $u
     if (entity_delete_multiple($entity_type, $old_ids) === false) {
       throw new Exception("This entity type doesn't support CRUD operation!");
     }
-    variable_set('updated_owl_documentation', true);
+    variable_set('syncronized_owl_documentation', true);
   }
 }
 
@@ -438,13 +376,13 @@ function ontology_documentation_mastro_get_data($operation = null, $parameters =
   // Se non è definito il wdsl, lo definisco
   if (!isset($wsdl)) {
     $wsdl = array(
-        'url' => variable_get('ws_url'),
-        'options' => array(
-          'cache_wsdl' => WSDL_CACHE_NONE,
-          'trace' => true,
-        ),
+      'url' => variable_get('ws_url'),
+      'options' => array(
+      'cache_wsdl' => WSDL_CACHE_NONE,
+      ),
     );
     try {
+      libxml_disable_entity_loader(false);
       $wsdl['soap'] = new SoapClient($wsdl['url'], $wsdl['options']);
     }
     catch (Exception $e) {
@@ -458,12 +396,17 @@ function ontology_documentation_mastro_get_data($operation = null, $parameters =
     $parameters = array(array_combine($array_keys, $parameters));
   }
   $parameters = is_array(current($parameters)) ? $parameters : array($parameters);
-  $result = call_user_func_array(array($wsdl['soap'], $operation), $parameters);
-  if (property_exists($result, 'return')) {
-    return is_array($result->return) ? $result->return : array($result->return);
+  try {
+    $result = call_user_func_array(array($wsdl['soap'], $operation), $parameters);
+    if (property_exists($result, 'return')) {
+      return is_array($result->return) ? $result->return : array($result->return);
+    }
+    else {
+      return array();
+    }
   }
-  else {
-    return array();
+  catch (Exception $e) {
+    drupal_set_message($e->getMessage(), 'error');
   }
 }
 
@@ -491,9 +434,6 @@ function ontology_documentation_create_report($report) {
           $upated_array[$term]['children'] += array(
             $field => array(
               'data' => $field,
-              'children' => array(
-                $value,
-              ),
             ),
           );
         }
@@ -514,13 +454,6 @@ function ontology_documentation_create_report($report) {
       ),
     );
   }
-  $body_content += array(
-    '#attached' => array(
-      'libraries_load' => array(
-        array('drupal.collapse'),
-      ),
-    ),
-  );
   $fields = array(
     'body' => drupal_render($body_content),
   );
@@ -556,16 +489,13 @@ function ontology_documentation_create() {
       $result = $entity->save();
     }
   }
-  dpm($result, "Questa è la cache");
   $cached_old = array_diff_key($result['cache'], $result['report']['processed']);
-  dpm($cached_old, "Da eliminare");
   $result['report'] += array('set as removed' => array_keys($cached_old));
-  dpm($result['report'], "struttura report");
   foreach ($cached_old as $name => $cached_name) {
     if (($entity = entity_load_single(__documentation_type__, $cached_name->odid)) !== FALSE) {
       $entity->setAsOld();
       $entity->save();
-      variable_set('updated_owl_documentation', false);
+      variable_set('syncronized_owl_documentation', false);
     }
   }
   ontology_documentation_create_report($result['report']);
@@ -602,26 +532,23 @@ function ontology_documentation_get_wiki_term_description($term) {
     $wiki_node_id = array_keys($query_response['node']);
     // Carico il nodo
     $wiki_node = entity_load('node', $wiki_node_id);
-    if ($wiki_node) {
-      // Creo il wrapper per il nodo
-      $wiki_wrapper = entity_metadata_wrapper('node', current($wiki_node));
-      // Ottengo il contenuto del body non interpretato
-      $wiki_description = $wiki_wrapper->body->value->raw();
-      // Filtro solo la descrizione
-      $start = strpos($wiki_description, $search_info['start string']) + $search_info['start offset'];
-      if ($start !== false) {
-        $fin = strpos($wiki_description, $search_info['end string'], $start) + $search_info['end offset'];
-        if ($fin !== false) {
-          $wiki_description = trim(substr($wiki_description, $start, $fin - $start));
-          return $wiki_description;
-        }
+    // Creo il wrapper per il nodo
+    $wiki_wrapper = entity_metadata_wrapper('node', current($wiki_node));
+    // Ottengo il contenuto del body non interpretato
+    $wiki_description = $wiki_wrapper->body->value->raw();
+    // Filtro solo la descrizione
+    $start = strpos($wiki_description, $search_info['start string']) + $search_info['start offset'];
+    if ($start !== false) {
+      $fin = strpos($wiki_description, $search_info['end string'], $start) + $search_info['end offset'];
+      if ($fin !== false) {
+        $wiki_description = trim(substr($wiki_description, $start, $fin - $start));
+        return $wiki_description;
       }
     }
-    else {
-      throw new Exception('entity_create(): Entity Controller not found!');
-    }
   }
-  return '';
+  else {
+    return '';
+  }
 }
 
 function ontology_documentation_item_list_child_render($render_element) {
@@ -766,12 +693,13 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
       $field_data['fieldset_box']['#children']['axioms']['denial_assertions']['#printed'] = false;
       $field_data['fieldset_box']['#children']['axioms']['functional_and_ID_constraints']['#printed'] = false;
       $field_data['fieldset_box']['#children']['axioms']['epistemic_constraints']['#printed'] = false;
-      foreach ($field_data['fieldset_box']['#children']['axioms'] as $axiom_type_key => $axiom) {
-        $field_data['fieldset_box']['#children']['axioms'][$axiom_type_key]['#title'] = t(ucwords(str_replace('_', ' ', $axiom_type_key)));
-        foreach ($axiom_type[$axiom_type_key] as $axiom_type_integer) {
-          $axioms_result = ontology_documentation_mastro_get_data(null, array($term, $axiom_type_integer, false), $field_name, $bundle);
-          $field_data['fieldset_box']['#children']['axioms'][$axiom_type_key]['#items'] = $axioms_result;
+      $axioms_keys = array_keys($field_data['fieldset_box']['#children']['axioms']);
+      foreach ($axioms_keys as $axiom_key) {
+        $axioms_result = array();
+        foreach ($axiom_type[$axiom_key] as $axiom_type_integer) {
+          $axioms_result = array_merge($axioms_result, ontology_documentation_mastro_get_data(null, array($term, $axiom_type_integer, false), $field_name, $bundle));
         }
+        $field_data['fieldset_box']['#children']['axioms'][$axiom_key]['#items'] = $axioms_result;
       }
       $wrapper->{$field_name}->value->set(drupal_render($field_data));
       break;
@@ -855,19 +783,7 @@ function ontology_documentation_load($entity_name, $entity_type, $bundle) {
     $id = key($entity_query_response[$entity_type]);
     // Carico l'entità
     $entity = entity_load_single($entity_type, $id);
-    /*// Creo il wrapper
-    $entity_wrapper = entity_metadata_wrapper(__documentation_type__, $entity);
-    // Recupero lo stato
-    $is_published = $entity_wrapper->state->value();
-    // Se l'entità è non pubblicata ma si posside l'autorizzazione ad amministrarla o
-    // pubblicata, carica la pagina con il suo contentuo
-    if(!$is_published && user_access('administer ontology_documentation entities') || $is_published) {
-      return $entity;
-    }
-    // Altrimenti ritorno false
-    else {
-      return false;
-    }*/
+    // Ritorno l'entità
     return $entity;
   }
   return false;

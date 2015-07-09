@@ -118,26 +118,26 @@ class OntologyDocumentationUtil {
       '#theme' => 'html_tag',
       '#tag' => 'h2',
       '#value' => '',
-      '#printed' => TRUE,
+      '#printed' => true,
     ),
     'page_link' =>array(
       '#type' => 'link',
       '#title' => '',
       '#href' => '',
-      '#printed' => TRUE,
+      '#printed' => true,
     ),
     'item_list' => array(
       '#theme' => 'item_list',
       '#items' => array(),
       '#type' => 'ul',
       '#pre_render' => array('ontology_documentation_item_list_child_render'),
-      '#printed' => TRUE,
+      '#printed' => true,
     ),
     'description' => array(
       '#markup' => '',
       //'#tag' => 'p',
       //'#value' => '',
-      '#printed' => TRUE,
+      '#printed' => true,
     ),
     'fieldset_box' => array(
       '#theme' => 'fieldset',
@@ -147,48 +147,48 @@ class OntologyDocumentationUtil {
           '#theme' => 'item_list',
           '#items' => array(),
           '#type' => 'ul',
-          '#printed' => TRUE,
+          '#printed' => true,
           '#pre_render' => array('ontology_documentation_item_list_child_render'),
         ),
         'axioms' => array(
           'positive_inclusions' => array(
             '#theme' => 'item_list',
             '#items' => array(),
-            '#title' => '',
+            '#title' => 'Positive Inclusions',
             '#type' => 'ul',
-            '#printed' => TRUE,
+            '#printed' => true,
             '#pre_render' => array('ontology_documentation_item_list_child_render'),
           ),
           'negative_inclusions' => array(
             '#theme' => 'item_list',
             '#items' => array(),
-            '#title' => '',
+            '#title' => 'Negative Inclusions',
             '#type' => 'ul',
-            '#printed' => TRUE,
+            '#printed' => true,
             '#pre_render' => array('ontology_documentation_item_list_child_render'),
           ),
           'denial_assertions' => array(
             '#theme' => 'item_list',
             '#items' => array(),
-            '#title' => '',
+            '#title' => 'Denial Assertions',
             '#type' => 'ul',
-            '#printed' => TRUE,
+            '#printed' => true,
             '#pre_render' => array('ontology_documentation_item_list_child_render'),
            ),
           'functional_and_ID_constraints' => array(
             '#theme' => 'item_list',
             '#items' => array(),
-            '#title' => '',
+            '#title' => 'Functional and ID Constraints',
             '#type' => 'ul',
-            '#printed' => TRUE,
+            '#printed' => true,
             '#pre_render' => array('ontology_documentation_item_list_child_render'),
           ),
           'epistemic_constraints' => array(
             '#theme' => 'item_list',
             '#items' => array(),
-            '#title' => '',
+            '#title' => 'Epistemic Constraints',
             '#type' => 'ul',
-            '#printed' => TRUE,
+            '#printed' => true,
             '#pre_render' => array('ontology_documentation_item_list_child_render'),
           ),
         ),
@@ -199,7 +199,7 @@ class OntologyDocumentationUtil {
           'collapsed',
         ),
       ),
-      '#printed' => TRUE,
+      '#printed' => true,
       '#pre_render' => array('ontology_documentation_fieldset_child_reder'),
     ),
   );
@@ -215,17 +215,17 @@ class OntologyDocumentationUtil {
         'concept' => array(
           'machine_name' => 'concept',
           'human_label' => 'Concept',
-          'description' => 'Describe a specific owl concept',
+          'description' => '<em>Describe a specific owl concept</em>',
         ),
         'role' => array(
           'machine_name' => 'role',
           'human_label' => 'Role',
-          'description' => 'Describe a specific owl role',
+          'description' => '<em>Describe a specific owl role</em>',
         ),
         'attribute' => array(
           'machine_name' => 'attribute',
           'human_label' => 'Attribute',
-          'description' => 'Describe a sepcific owl attribute',
+          'description' => '<em>Describe a sepcific owl attribute</em>',
         ),
       );
     }
@@ -257,23 +257,23 @@ class OntologyDocumentationUtil {
       '#type' => 'checkbox',
       '#title' => t('Delete OWL documentation pages'),
       '#description' => t('All the documentation will drop off'),
-      '#disabled' => variable_get('empty_owl_documentation', TRUE),
-      '#default_value' => FALSE,
+      '#disabled' => variable_get('empty_owl_documentation', true),
+      '#default_value' => false,
     );
 
     $config_form['delete_old'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Delete old documentation pages'),
-      '#description' => t('All old documentation will drop off'),
-      '#disabled' => variable_get('updated_owl_documentation', TRUE),
-      '#default_value' => FALSE,
+      '#title' => t('Syncronize OWL documentation pages'),
+      '#description' => t('Old documentation will drop off'),
+      '#disabled' => variable_get('syncronized_owl_documentation', true),
+      '#default_value' => false,
     );
 
     $config_form['upgrade_check'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Upgrade OWL documentation pages'),
+      '#title' => t('Update OWL documentation pages'),
       '#description' => t('Documentation pages will be upgraded'),
-      '#default_value' => TRUE,
+      '#default_value' => true,
     );
 
     $config_form['submit'] = array(
@@ -304,7 +304,7 @@ class OntologyDocumentationUtil {
       '#title' => t('Title'),
       '#default_value' => '',
       '#size' => 45,
-      '#required' => TRUE,
+      '#required' => true,
     );
 
     $edit_form['fieldset']['descrizione'] = array(
@@ -356,7 +356,7 @@ class OntologyDocumentationUtil {
       '#description' => t('Entity title for the new revision.'),
       '#default_value' => '',
       '#size' => 35,
-      '#required' => TRUE,
+      '#required' => true,
     );
 
     $entity_revision_form['fieldset']['description'] = array(
@@ -373,7 +373,7 @@ class OntologyDocumentationUtil {
       '#default_value' => 'A fantastic new revision',
       '#rows' => 5,
       '#attributes' => array('class' => array('entity-revision-comment')),
-      '#required' => TRUE,
+      '#required' => true,
     );
 
     // Appendo il foglio di stile
@@ -406,7 +406,7 @@ class OntologyDocumentationUtil {
       '#description' => t('A unique machine-readable name of this documentation bundle.'),
       '#default_value' => '',
       '#size' => 35,
-      '#disabled' => TRUE,
+      '#disabled' => true,
     );
 
     // Definisco il campo per editare il nome del bundle
@@ -416,7 +416,7 @@ class OntologyDocumentationUtil {
       '#description' => t('The human-readable name of this documentation bundle.'),
       '#size' => 35,
       '#default_value' => '',
-      '#required' => TRUE,
+      '#required' => true,
     );
 
     // Definisco il campo per editare la descrizione del bundle
@@ -426,7 +426,7 @@ class OntologyDocumentationUtil {
       '#description' => t('A short description of this documentation bundle.'),
       '#rows' => 4,
       '#default_value' => '',
-      '#required' => TRUE,
+      '#required' => true,
     );
 
     $bundle_edit_form['submit'] = array(

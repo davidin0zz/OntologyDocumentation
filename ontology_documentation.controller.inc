@@ -44,32 +44,52 @@ class OntologyDocumentationController extends EntityAPIController {
 
     $entity_name = $entity->label();
     $ui_update = $entity->created != $entity->changed ? true : false;
+    $is_old = $entity->old ? true : false;
     $cache_hit = isset($cache_array[$entity_name]) ? true : false;
     $report['processed'] += array($entity_name => $entity_name);
     $query->propertyConditions = array();
     $query->propertyCondition('title', $entity_name);
     $stored_entity_idkey = array_keys($query->execute());
     $term_is_on_db = !empty($stored_entity_idkey);
-    //dpm($term_is_on_db, $entity_name.' is on db?');
-    //dpm($cache_hit, $entity_name.' hit cache?');
-    //dpm($cache_array,'current');
 
-    if ($ui_update) {
-      dpm('TERM UPDATE FROM USER');
+
+    // La data di creazione e di modifica dell'entità possono differire solamente
+    // in caso di aggiornamento manuale da parte dell'utente attraverso la UI.
+    // In fase di creazione le due date saranno necessariamente uguali.
+    // Inoltre il form di modifica non permette il salvataggio dei campi dell'entità
+    // se almeno uno di essi non differisce dal valore corrente. Siamo quindi certi
+    // di trovarci in uno stato di aggiornamento, possiamo così ignorare la cache
+    // e non spendere tempo alla ricerca delle differeze. Scriviamo subito i cambiamenti
+    // e aggiorniamo la cache solamente se l'entità in esame non è marcata come old,
+    // avremmo altrimeno il rinserimento in cache della stessa, DA EVITARE!
+    if ($ui_update && !$is_old) {
       parent::save($entity, $transaction);
-      if (!$entity->old) {
-        $cache_array[$entity_name] = $entity;
-        cache_set(__documentation_type__, $cache_array, __documentation_type_cache__);
-      }
+      $cache_array[$entity_name] = $entity;
+      cache_set(__documentation_type__, $cache_array, __documentation_type_cache__);
     }
     elseif (!$cache_hit || !$term_is_on_db) {
-      dpm('NEW TERM: '.$entity_name. ' created');
       parent::save($entity, $transaction);
+      // Sovrascrivo la cache per sostituire la vecchia entità con la nuova.
+      // Esistono due casi che necessitano di aggiornamento, il primo è l'aggiunta
+      // di un nuovo termine dell'ontologia, il secondo, più significativo, è
+      // l'aggiornamento della cache a seguito dell'aggiunta di un termine non
+      // presente nel db ma di cui ne esiste una vecchia versione in cache. Nel
+      // secondo caso += array() non permette la corretta sostituzione della
+      // vecchia con la nuova, perchè l'unione della vecchia con la nuova, basandosi
+      // sugli stessi indici associativi, previene la sovrascrittura della seconda.
+      // Ciò creerebbe uno stato inconsistente tra la cache per l'entità e l'entità
+      // memorizzata nel db, DA EVITARE!!
+      $cache_array[$entity_name] = $entity;
+      // Non corriamo la stessa disavventura nell'usare l'operaore di unione in questo
+      // caso, poichè la variabile report non è persistente ma statica durante il ciclo
+      // di chiamata del metodo nell'arco della stessa richiesta.
       $report['new'] += array($entity_name => $entity_name);
-      $cache_array += array($entity_name => $entity);
     }
+    // Se l'entità è sia in cache che nel db, ispezioniamo le sue proprietà alla ricerca
+    // delle differenze con la versione meno recente in cache. Le differenze vengono
+    // memorizzate in forma di $proprietà => $valore , dove $proprietà deve essere una
+    // proprietà palesata al wrapper attraverso l'hook_entity_property_info().
     else {
-      dpm("CACHE CHECKING");
       $array_diff = array();
       $entity_cache = $cache_array[$entity_name];
       $entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $entity);
@@ -80,37 +100,28 @@ class OntologyDocumentationController extends EntityAPIController {
           $entity_content = $entity_wrapper->getFieldRawContent($property);
           $match = $entity_content == $cached_content ? true : false ;
           $cache_is_valid = $cache_is_valid && $match;
-          // Aggiorno la cache
           if (!$match) {
             $array_diff += array($property => $entity_content);
           }
         }
       }
+      // Se la cache non è valida perchè la nuova entità è diversa nei suoi campi significativi,
+      // carico l'entità memorizzata nel db e ci applico le modifiche. Infine aggiorno la cache
+      // e aggiorno il report di aggiornamento.
       if (!$cache_is_valid) {
-        dpm('TERM UPDATE FROM MASTRO');
-        $array_diff += array('modification_date' => REQUEST_TIME);
         $stored_entity = entity_load_single(__documentation_type__, $cached_entity_wrapper->id->value());
         $stored_entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $stored_entity);
         // Aggiorno l'entità
-        dpm($array_diff + array('modification_date' => REQUEST_TIME), "somma dei diff e della data");
-        $stored_entity_wrapper->setFieldsContent($array_diff);
+        $properties = $array_diff + array('modification_date' => REQUEST_TIME);
+        $stored_entity_wrapper->setFieldsContent($properties);
         parent::save($stored_entity, $transaction);
         $report['updated'][$entity_name] = $array_diff;
         $cache_array[$entity_name] = $stored_entity;
       }
       else {
-        dpm('TERM ALREADY UPDATED');
+        // Termine già aggiornato
       }
     }
-
-    /*
-    elseif (!$cache_hit && $term_is_on_db) {
-      //entity_delete(__documentation_type__, current($stored_entity_idkey));
-      //parent::save($entity, $transaction);
-      //$cache_array['report']
-      throw new Exception("$entity_name: cache corrupted!");
-    }*/
-
     return array('cache' => $cache_array, 'report' => $report);
   }
 }

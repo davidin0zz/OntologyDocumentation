@@ -8,6 +8,7 @@ class OntologyDocumentationWrapper extends EntityDrupalWrapper {
       'rid',
       'descrizione',
       'creation_date',
+      'uid',
       'modification_date',
       'state',
       'valid',
@@ -25,6 +26,7 @@ class OntologyDocumentationWrapper extends EntityDrupalWrapper {
   }
 
   public function setFieldsContent(array $data) {
+    dpm('nel wrapper per scrivere');
     foreach ($data as $field => $content) {
       if ($this->{$field} instanceof EntityStructureWrapper) {
         $this->{$field}->value->set($content);

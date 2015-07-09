@@ -76,7 +76,7 @@ $base_field_instance = array(
   'label' => '',
   'widget' => array('type' => 'text_textarea'),
   'settings' => array('text_processing' => 1),
-  'required' => TRUE,
+  'required' => true,
 );
 
 // Crea i campi rilevanti per ogni bundle.
@@ -85,7 +85,6 @@ function ontology_documentation_enable() {
 
   global $bundles_fields, $base_field, $all_bundles;
   global $base_field_instance, $ontology_documentation_type_data;
-  global $ontology_add_shortcut_link, $ontology_shortcut_default_set;
 
   // Popolo ontology_documentation_type
   foreach ($all_bundles as $bundle) {
@@ -95,7 +94,7 @@ function ontology_documentation_enable() {
     try {
       if (empty(entity_load('ontology_documentation_type', array($bundle['machine_name'])))) {
         $ontology_type_entity = entity_create(__documentation_type_bundle__, $ontology_documentation_type_data);
-        if ($ontology_type_entity !== FALSE) {
+        if ($ontology_type_entity !== false) {
           $ontology_type_entity->save();
         }
         else {
@@ -113,7 +112,7 @@ function ontology_documentation_enable() {
     // Assegno il nome al campo
     $base_field['field_name'] = $field;
     // Creo il campo se non esiste già
-    if (field_info_field($field) === NULL) {
+    if (field_info_field($field) === null) {
       // Creo il campo
       field_create_field($base_field);
       // Creo le istanze dei campi da assegnare ai bundles
@@ -127,27 +126,6 @@ function ontology_documentation_enable() {
       }
     }
   }
-
-  /**
-   *
-   * Togliere il commento per aggiungere il menu di aggiunta manuale termini nello shortcut.
-   * SE IL MODULO shortcut NON È GIÀ ABILITATO DÀ ERRORE!!
-   *
-   * */
-   //shortcut_admin_add_link($ontology_add_shortcut_link, $ontology_shortcut_default_set);
-   //shortcut_set_save($ontology_shortcut_default_set);
-}
-
-function ontology_documentation_disable() {
-
-  /**
-   *
-   * Togliere il commento se si è aggiunnto il menu di aggiunta manuale termini
-   * nello shortcut.
-   *
-   */
-   //menu_link_delete(NULL, $ontology_add_shortcut_link['link_path']);
-   cache_clear_all();
 }
 
 // Cancella i campi creati.
@@ -182,65 +160,65 @@ function ontology_documentation_schema() {
       'odid' => array(
         'description' => 'ID termine',
         'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'unsigned' => true,
+        'not null' => true,
       ),
       'rodid' => array(
         'description' => 'ID ultima revisione del termine',
         'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => FALSE,
+        'unsigned' => true,
+        'not null' => false,
         'default'  => 0,
       ),
       'title' => array(
         'description' => 'Nome termine',
         'type' => 'varchar',
         'length' => 255,
-        'not null' => FALSE,
-        'default' => NULL,
+        'not null' => false,
+        'default' => null,
       ),
       'category' => array(
         'description' => 'Tipo entità',
         'type' => 'varchar',
         'length' => 32,
-        'not null' => TRUE,
+        'not null' => true,
         'default' => 'concept',
       ),
       'language' => array(
         'description' => 'Lingua',
         'type' => 'varchar',
         'length' => 12,
-        'not null' => TRUE,
+        'not null' => true,
         'default' => 'en',
       ),
       'uid' => array(
         'description' => 'ID user',
         'type' => 'int',
-        'not null' => TRUE,
+        'not null' => true,
         'default' => 0,
       ),
       'created' => array(
         'description' => 'Timestamp creazione',
         'type' => 'int',
-        'not null' => TRUE,
+        'not null' => true,
         'default' => 0,
       ),
       'changed' => array(
         'description' => 'Timestamp modifica',
         'type' => 'int',
-        'not null' => TRUE,
+        'not null' => true,
         'default' => 0,
       ),
       'status' => array(
         'description' => 'Pubblicata o no',
         'type' => 'int',
-        'not null' => TRUE,
+        'not null' => true,
         'default' => 0,
       ),
       'old' => array(
         'description' => 'Se il termine è marcato come vecchio',
         'type' => 'int',
-        'not null' => TRUE,
+        'not null' => true,
         'default' => 0,
       ),
     ),
@@ -270,53 +248,53 @@ function ontology_documentation_schema() {
       'odid' => array(
         'description' => 'ID termine a cui appartiene la revisione',
         'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'unsigned' => true,
+        'not null' => true,
         'default' => 0,
       ),
       'rodid' => array(
         'description' => 'ID revisione',
         'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'unsigned' => true,
+        'not null' => true,
       ),
       'title' => array(
         'description' => 'Nome termine',
         'type' => 'varchar',
         'length' => 255,
-        'not null' => TRUE,
+        'not null' => true,
         'default' => 'concept',
       ),
       'comment' => array(
         'description' => 'Commento revisione',
         'type' => 'varchar',
         'length' => 255,
-        'not null' => TRUE,
+        'not null' => true,
         'default' => '',
       ),
       'language' => array(
         'description' => 'Lingua',
         'type' => 'varchar',
         'length' => 32,
-        'not null' => TRUE,
+        'not null' => true,
         'default' => 'en',
       ),
       'uid' => array(
         'description' => 'ID user',
         'type' => 'int',
-        'not null' => TRUE,
+        'not null' => true,
         'default' => 0,
       ),
       'created' => array(
         'description' => 'Timestamp creazione',
         'type' => 'int',
-        'not null' => TRUE,
+        'not null' => true,
         'default' => 0,
       ),
       'status' => array(
         'description' => 'Pubblicata o no',
         'type' => 'int',
-        'not null' => TRUE,
+        'not null' => true,
         'default' => 0,
       ),
     ),
@@ -339,24 +317,24 @@ function ontology_documentation_schema() {
         'description' => 'Tipo di bunble',
         'type' => 'varchar',
         'length' => 32,
-        'not null' => TRUE,
+        'not null' => true,
       ),
       'title' => array(
         'description' => 'Nome comune',
         'type' => 'varchar',
         'length' => 255,
-        'not null' => TRUE,
+        'not null' => true,
       ),
      'description' => array(
        'descritpion' => 'Descrizione',
        'type' => 'varchar',
        'length' => 255,
-       'not null' => TRUE,
+       'not null' => true,
      ),
      'locked' => array(
        'description' => 'Descrive lo stato nella UI',
        'type' => 'int',
-       'not null' => TRUE,
+       'not null' => true,
        'default' => 1,
      ),
     ),
