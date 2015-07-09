@@ -261,6 +261,14 @@ class OntologyDocumentationUtil {
       '#default_value' => FALSE,
     );
 
+    $config_form['delete_old'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Delete old documentation pages'),
+      '#description' => t('All old documentation will drop off'),
+      '#disabled' => variable_get('updated_owl_documentation', TRUE),
+      '#default_value' => FALSE,
+    );
+
     $config_form['upgrade_check'] = array(
       '#type' => 'checkbox',
       '#title' => t('Upgrade OWL documentation pages'),

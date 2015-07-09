@@ -18,21 +18,30 @@ function ontology_documentation_config_form_submit($form, &$form_state) {
   $form_value = $form_state['values'];
 
   if ($form_value['delete_check'] == 1) {
-    if (ontology_documentation_delete()) {
+    try {
+      ontology_documentation_delete(__documentation_type__);
       drupal_set_message('Task completed!');
     }
-    else {
-      drupal_set_message('Task error!', 'error');
+    catch (Exception $e) {
+      drupal_set_message($e->getMessage(), 'error');
+    }
+  }
+  if ($form_value['delete_old'] == 1) {
+    try {
+      ontology_documentation_delete(__documentation_type__, false);
+      drupal_set_message('Task completed!');
+    }
+    catch (Exception $e) {
+      drupal_set_message($e->getMessage(), 'error');
     }
   }
   if ($form_state['values']['upgrade_check'] == 1) {
     try {
       ontology_documentation_create();
+      drupal_set_message('Task completed!');
     }
     catch (Exception $e) {
       drupal_set_message($e->getMessage(), 'error');
     }
-    variable_set('empty_owl_documentation', FALSE);
-    drupal_set_message('Task completed!');
   }
 }

@@ -410,13 +410,23 @@ function ontology_documentation_preprocess_field(&$variables) {
   }
 }
 
-function ontology_documentation_delete($entity_type = __documentation_type__) {
-  if (entity_delete_multiple($entity_type, array_keys(entity_load($entity_type))) === false) {
-    throw new Exception("This entity type doesn't support CRUD operation!");
+function ontology_documentation_delete($entity_type = __documentation_type__, $updated = true) {
+  if ($updated) {
+    if (entity_delete_multiple($entity_type, array_keys(entity_load($entity_type))) === false) {
+      throw new Exception("This entity type doesn't support CRUD operation!");
+    }
+    variable_set('empty_owl_documentation', true);
   }
   else {
-    variable_set('empty_owl_documentation', true);
-    return true;
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', $entity_type);
+    $query->propertyCondition('old', 1);
+    $old_ids = $query->execute();
+    $old_ids = array_keys($old_ids[$entity_type]);
+    if (entity_delete_multiple($entity_type, $old_ids) === false) {
+      throw new Exception("This entity type doesn't support CRUD operation!");
+    }
+    variable_set('updated_owl_documentation', true);
   }
 }
 
@@ -460,6 +470,7 @@ function ontology_documentation_mastro_get_data($operation = null, $parameters =
 function ontology_documentation_create_report($report) {
   global $user;
   $body_content = array();
+  $upated_array = array();
   $data = array(
     'type' => 'page',
     'title' => 'Update report '.format_date(REQUEST_TIME, 'short'),
@@ -468,15 +479,48 @@ function ontology_documentation_create_report($report) {
     'status' => 0,
   );
   foreach ($report as $label => $content) {
+    if ($label == 'updated') {
+      foreach ($content as $term => $fields) {
+        $upated_array += array(
+          $term => array(
+            'data' => $term,
+            'children' => array(),
+          ),
+        );
+        foreach ($fields as $field => $value) {
+          $upated_array[$term]['children'] += array(
+            $field => array(
+              'data' => $field,
+              'children' => array(
+                $value,
+              ),
+            ),
+          );
+        }
+      }
+      $content = $upated_array;
+    }
     $body_content += array(
       $label => array(
         '#theme' => 'item_list',
         '#items' => $content,
         '#title' => $label,
         '#type' => 'ul',
+        '#attached' => array(
+          'libraries_load' => array(
+            array('drupal.collapse'),
+          ),
+        ),
       ),
     );
   }
+  $body_content += array(
+    '#attached' => array(
+      'libraries_load' => array(
+        array('drupal.collapse'),
+      ),
+    ),
+  );
   $fields = array(
     'body' => drupal_render($body_content),
   );
@@ -515,15 +559,18 @@ function ontology_documentation_create() {
   dpm($result, "Questa è la cache");
   $cached_old = array_diff_key($result['cache'], $result['report']['processed']);
   dpm($cached_old, "Da eliminare");
-  $result['report'] += array('set as removed' => $cached_old);
+  $result['report'] += array('set as removed' => array_keys($cached_old));
+  dpm($result['report'], "struttura report");
   foreach ($cached_old as $name => $cached_name) {
     if (($entity = entity_load_single(__documentation_type__, $cached_name->odid)) !== FALSE) {
       $entity->setAsOld();
       $entity->save();
+      variable_set('updated_owl_documentation', false);
     }
   }
   ontology_documentation_create_report($result['report']);
   cache_set(__documentation_type__, array_diff_key($result['cache'], $cached_old), __documentation_type_cache__);
+  variable_set('empty_owl_documentation', false);
 }
 
 function ontology_documentation_wrapper($type, $data = null, array $info = array()) {

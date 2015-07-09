@@ -10,7 +10,7 @@ class OntologyDocumentationWrapper extends EntityDrupalWrapper {
       'creation_date',
       'modification_date',
       'state',
-      'valid'
+      'valid',
     );
     return $properties;
   }

@@ -2,6 +2,14 @@ td.unpublished a{
   color: red;
 }
 
+td.old a{
+  color: red;
+}
+
 td.unpublished {
   color: red;
+}
+
+td.old {
+  color: red;	
 }

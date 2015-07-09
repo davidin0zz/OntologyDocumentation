@@ -53,8 +53,12 @@ class OntologyDocumentationUIController extends EntityDefaultUIController {
     // Creo la data di ultima modifica formattata dal timestamp
     $entity_updated_data = format_date($entity->changed, 'short');
     // Recupero lo stato
-    $entity_status = $entity->status ? 'PUBLISHED' : 'UNPUBLISHED';
-
+    if ($entity->old) {
+      $entity_status = 'OLD';
+    }
+    else {
+      $entity_status = $entity->status ? 'PUBLISHED' : 'UNPUBLISHED';
+    }
     // Aggiungo il nome dell'entità
     $row[] = array(
       'data' => array(

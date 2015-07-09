@@ -92,6 +92,7 @@ class OntologyDocumentationController extends EntityAPIController {
         $stored_entity = entity_load_single(__documentation_type__, $cached_entity_wrapper->id->value());
         $stored_entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $stored_entity);
         // Aggiorno l'entità
+        dpm($array_diff + array('modification_date' => REQUEST_TIME), "somma dei diff e della data");
         $stored_entity_wrapper->setFieldsContent($array_diff);
         parent::save($stored_entity, $transaction);
         $report['updated'][$entity_name] = $array_diff;
