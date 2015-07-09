@@ -434,7 +434,12 @@ function ontology_documentation_mastro_get_data($operation = null, $parameters =
           'trace' => true,
         ),
     );
-    $wsdl['soap'] = new SoapClient($wsdl['url'], $wsdl['options']);
+    try {
+      $wsdl['soap'] = new SoapClient($wsdl['url'], $wsdl['options']);
+    }
+    catch (Exception $e) {
+      drupal_set_message($e->getMessage(), 'error');
+    }
   }
 
   $operation = isset($field) && isset($bundle) ? $mastro_methods_per_ontology_field[$field][$bundle]['operation'] : $operation;
@@ -450,6 +455,36 @@ function ontology_documentation_mastro_get_data($operation = null, $parameters =
   else {
     return array();
   }
+}
+
+function ontology_documentation_create_report($report) {
+  global $user;
+  $body_content = array();
+  $data = array(
+    'type' => 'page',
+    'title' => 'Update report '.format_date(REQUEST_TIME, 'short'),
+    'uid' => $user->uid,
+    'language' => 'en',
+    'status' => 0,
+  );
+  foreach ($report as $label => $content) {
+    $body_content += array(
+      $label => array(
+        '#theme' => 'item_list',
+        '#items' => $content,
+        '#title' => $label,
+        '#type' => 'ul',
+      ),
+    );
+  }
+  $fields = array(
+    'body' => drupal_render($body_content),
+  );
+  $report_page = entity_create('node' ,$data);
+  $report_wrapper = ontology_documentation_wrapper('node', $report_page);
+  $report_wrapper->body->format->set('wiki_text');
+  $report_wrapper->setFieldsContent($fields);
+  $report_wrapper->save();
 }
 
 function ontology_documentation_create() {
@@ -480,12 +515,14 @@ function ontology_documentation_create() {
   dpm($result, "Questa è la cache");
   $cached_old = array_diff_key($result['cache'], $result['report']['processed']);
   dpm($cached_old, "Da eliminare");
+  $result['report'] += array('set as removed' => $cached_old);
   foreach ($cached_old as $name => $cached_name) {
     if (($entity = entity_load_single(__documentation_type__, $cached_name->odid)) !== FALSE) {
       $entity->setAsOld();
       $entity->save();
     }
   }
+  ontology_documentation_create_report($result['report']);
   cache_set(__documentation_type__, array_diff_key($result['cache'], $cached_old), __documentation_type_cache__);
 }
 

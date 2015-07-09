@@ -31,8 +31,8 @@ class OntologyDocumentationController extends EntityAPIController {
 
     if (empty($report)) {
       $report = array(
-        'new' => array(),
         'processed' => array(),
+        'new' => array(),
         'updated' => array(),
       );
     }

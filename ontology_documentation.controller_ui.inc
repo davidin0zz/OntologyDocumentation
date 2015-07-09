@@ -80,7 +80,7 @@ class OntologyDocumentationUIController extends EntityDefaultUIController {
     // Aggiungo l'operazione di edit
     $row[] = l('edit',__documentation_admin_path__.'/manage/'.$id);
     // Aggiunto l'operazione cancellazione
-    $row[] = l('delete',__documentation_admin_path__.'/manage/'.$id.'/delete');
+    //$row[] = l('delete',__documentation_admin_path__.'/manage/'.$id.'/delete');
     // Ritorna la riga
     return $row;
   }
