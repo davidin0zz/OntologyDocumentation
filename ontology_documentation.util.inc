@@ -299,7 +299,7 @@ class OntologyDocumentationUtil {
       '#required' => TRUE,
     );
 
-    $edit_form['fieldset']['description'] = array(
+    $edit_form['fieldset']['descrizione'] = array(
       '#type' => 'textarea',
       '#title' => t('Description'),
       '#rows' => 12,
@@ -392,7 +392,7 @@ class OntologyDocumentationUtil {
     );
 
     // Definisco il campo per editare il machine_name del bundle
-    $bundle_edit_form['fieldset']['type'] = array(
+    $bundle_edit_form['fieldset']['category'] = array(
       '#type' => 'textfield',
       '#title' => t('Documentation bundle machine name'),
       '#description' => t('A unique machine-readable name of this documentation bundle.'),

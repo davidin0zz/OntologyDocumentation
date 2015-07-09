@@ -3,7 +3,16 @@
 class OntologyDocumentationWrapper extends EntityDrupalWrapper {
 
   public function getCachedUncheckedWrapperProperties() {
-    return array('id', 'rid', 'descrizione', 'creation_date', 'modification_date', 'state');
+    $properties = array(
+      'id',
+      'rid',
+      'descrizione',
+      'creation_date',
+      'modification_date',
+      'state',
+      'valid'
+    );
+    return $properties;
   }
 
   public function getFieldRawContent($field) {

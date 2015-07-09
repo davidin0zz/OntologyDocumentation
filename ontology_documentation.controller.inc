@@ -82,9 +82,6 @@ class OntologyDocumentationController extends EntityAPIController {
           $cache_is_valid = $cache_is_valid && $match;
           // Aggiorno la cache
           if (!$match) {
-            //dpm($property, 'non match campo');
-            //dpm($entity_content, 'valore entità');
-            //dpm($cached_content, 'valore cache');
             $array_diff += array($property => $entity_content);
           }
         }
