@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OBDA version="1.0">
+    <dataSource 
+		databaseDriver="com.mysql.jdbc.Driver"
+        databaseName="MastroTest" 
+		databaseUsername="root" 
+		databasePassword="thesis2009"
+        databaseURL="jdbc:mysql://localhost/MastroTest"
+        name="datasource"/>
+    <mappings>
+		<!-- CONCEPT MAPPINGS -->
+		<ontologyPredicateMapping>
+            <concept string="C1(a($X0))"/>
+            <HEAD string="PV_C1(X0)"/>
+        </ontologyPredicateMapping>
+        <primitiveView>
+            <HEAD string="PV_C1(term1)"/>
+            <SQLQuery string="SELECT txt_field_12 as term1 from test_table_1"/>
+        </primitiveView>
+		<ontologyPredicateMapping>
+            <concept string="C2(cons($X0,$X1))"/>
+            <HEAD string="PV_C2(X0,X1)"/>
+        </ontologyPredicateMapping>
+        <primitiveView>
+            <HEAD string="PV_C2(term1,term2)"/>
+            <SQLQuery string="SELECT 'const1' as term1, 'const2' as term2"/>
+        </primitiveView>
+        <ontologyPredicateMapping>
+            <concept string="C3(cons($X0))"/>
+            <HEAD string="PV_C3(X0)"/>
+        </ontologyPredicateMapping>
+        <primitiveView>
+            <HEAD string="PV_C3(term1)"/>
+            <SQLQuery string="SELECT 'const' as term1"/>
+        </primitiveView>
+		<!-- ROLE MAPPINGS -->
+        <ontologyPredicateMapping>
+            <role string="r1(pd($X0),pr($X1))"/>
+            <HEAD string="PV_R1(X0,X1)"/>
+        </ontologyPredicateMapping>
+        <primitiveView>
+            <HEAD string="PV_R1(term1,term2)"/>
+            <SQLQuery string="SELECT txt_field_12 as term1, date_field_13 as term2 from test_table_1"/>
+        </primitiveView>
+		<!-- ATTRIBUTE MAPPINGS -->
+        <ontologyPredicateMapping>
+            <attribute string="a1(pd2($X0,$X1),$X2:xsd:string)"/>
+            <HEAD string="PV_A1(X0,X1,X2)"/>
+        </ontologyPredicateMapping>
+        <primitiveView>
+            <HEAD string="PV_A1(term1,term2,term3)"/>
+            <SQLQuery string="SELECT txt_field_12 as term1, date_field_13 as term2, txt_field_12 as term3 from test_table_1"/>
+        </primitiveView>        
+    </mappings>
+    <blocks/>
+</OBDA>

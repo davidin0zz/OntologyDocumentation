@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<graphReferences>
+    <concept name="Persona_Fisica">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>50</x>
+        <y>460</y>
+        <w>150</w>
+        <h>65</h>
+    </concept>
+    <concept name="Laureato">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>-388</x>
+        <y>651</y>
+        <w>150</w>
+        <h>65</h>
+    </concept>
+    <concept name="Concorrente">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>490</x>
+        <y>651</y>
+        <w>150</w>
+        <h>65</h>
+    </concept>
+    <concept name="Lavoratore">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>50</x>
+        <y>651</y>
+        <w>150</w>
+        <h>65</h>
+    </concept>
+    <concept name="Workshop">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>1016</x>
+        <y>31</y>
+        <w>150</w>
+        <h>65</h>
+    </concept>
+    <attribute name="eta">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>113</x>
+        <y>822</y>
+        <w>25</w>
+        <h>25</h>
+    </attribute>
+    <attribute name="localita">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>1078</x>
+        <y>223</y>
+        <w>25</w>
+        <h>25</h>
+    </attribute>
+    <concept name="Persona_Giuridica">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>1168</x>
+        <y>458</y>
+        <w>221</w>
+        <h>65</h>
+    </concept>
+    <role name="propone_iniziativa">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>1944</x>
+        <y>286</y>
+        <w>176</w>
+        <h>73</h>
+    </role>
+    <attribute name="patrimonio">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>1662</x>
+        <y>480</y>
+        <w>25</w>
+        <h>25</h>
+    </attribute>
+    <concept name="Associazione_Culturale">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>1168</x>
+        <y>576</y>
+        <w>221</w>
+        <h>77</h>
+    </concept>
+    <role name="gestita_da">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>1225</x>
+        <y>760</y>
+        <w>107</w>
+        <h>54</h>
+    </role>
+    <concept name="Rappresentante">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>1204</x>
+        <y>922</y>
+        <w>150</w>
+        <h>65</h>
+    </concept>
+    <concept name="Presidente">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>1036</x>
+        <y>1094</y>
+        <w>150</w>
+        <h>65</h>
+    </concept>
+    <concept name="Tesoriere">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>1204</x>
+        <y>1094</y>
+        <w>150</w>
+        <h>65</h>
+    </concept>
+    <concept name="Segretario">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>1374</x>
+        <y>1094</y>
+        <w>150</w>
+        <h>65</h>
+    </concept>
+    <attribute name="sede">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>1516</x>
+        <y>602</y>
+        <w>25</w>
+        <h>25</h>
+    </attribute>
+    <concept name="Persona_Dello_Staff">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>807</x>
+        <y>651</y>
+        <w>189</w>
+        <h>65</h>
+    </concept>
+    <attribute name="anagrafica">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>210</x>
+        <y>359</y>
+        <w>25</w>
+        <h>25</h>
+    </attribute>
+    <attribute name="codice">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>552</x>
+        <y>822</y>
+        <w>25</w>
+        <h>25</h>
+    </attribute>
+    <attribute name="ragione">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>1662</x>
+        <y>407</y>
+        <w>25</w>
+        <h>25</h>
+    </attribute>
+    <concept name="Google">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>1168</x>
+        <y>293</y>
+        <w>221</w>
+        <h>65</h>
+    </concept>
+    <role name="indicizzato">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>1431</x>
+        <y>111</y>
+        <w>116</w>
+        <h>56</h>
+    </role>
+    <concept name="Bando_Pubblico">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>1339</x>
+        <y>209</y>
+        <w>130</w>
+        <h>65</h>
+    </concept>
+    <attribute name="scadenza">
+        <fileName>AssociazioneCulturale.graphml</fileName>
+        <x>1191</x>
+        <y>229</y>
+        <w>25</w>
+        <h>25</h>
+    </attribute>
+</graphReferences>

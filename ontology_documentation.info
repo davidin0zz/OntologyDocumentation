@@ -1,10 +1,9 @@
 name = Ontology Documentation
 description = Build OWL documentation pages
 core = 7.x
-version = 0.99
+version = 1.0
 package = Mastro
 dependencies[] = entity
-dependencies[] = shortcut
 dependencies[] = mastro_user
 files[] = ontology_documentation.module
 files[] = ontology_documentation.install
