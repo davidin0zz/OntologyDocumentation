@@ -53,9 +53,7 @@ class OntologyDocumentationController extends EntityAPIController {
     // a sommare.
     $query->propertyConditions = array();
     $query->propertyCondition('title', $entity_name);
-    //$stored_entity_idkey = array_keys($query->execute());
     $term_is_on_db = !empty($query->execute());
-
 
     // La data di creazione e di modifica dell'entità possono differire solamente
     // in caso di aggiornamento manuale da parte dell'utente attraverso la UI.
@@ -66,10 +64,12 @@ class OntologyDocumentationController extends EntityAPIController {
     // e non spendere tempo alla ricerca delle differeze. Scriviamo subito i cambiamenti
     // e aggiorniamo la cache solamente se l'entità in esame non è marcata come old,
     // avremmo altrimeno il rinserimento in cache della stessa, DA EVITARE!
-    if ($ui_update && !$is_old) {
+    if ($ui_update) {
       parent::save($entity, $transaction);
-      $cache_array[$entity_name] = $entity;
-      cache_set(__documentation_type__, $cache_array, __documentation_type_cache__);
+      if (!$is_old) {
+        $cache_array[$entity_name] = $entity;
+        cache_set(__documentation_type__, $cache_array, __documentation_type_cache__);
+      }
     }
     elseif (!$cache_hit || !$term_is_on_db) {
       parent::save($entity, $transaction);
