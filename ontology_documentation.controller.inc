@@ -9,6 +9,7 @@ class OntologyDocumentationController extends EntityAPIController {
       'created' => REQUEST_TIME,
       'changed' => REQUEST_TIME,
       'status' => 1,
+      'old' => 0,
     );
     return new OntologyDocumentation($values, $this->entityType);
   }
@@ -43,14 +44,17 @@ class OntologyDocumentationController extends EntityAPIController {
     }
 
     $entity_name = $entity->label();
-    $ui_update = $entity->created != $entity->changed ? true : false;
-    $is_old = $entity->old ? true : false;
-    $cache_hit = isset($cache_array[$entity_name]) ? true : false;
+    $ui_update = $entity->created != $entity->changed;
+    $is_old = $entity->old;
+    $cache_hit = isset($cache_array[$entity_name]);
     $report['processed'] += array($entity_name => $entity_name);
+    // Azzero le condizione ad ogni nuova chiamata del metodo, perchè
+    // la variabile query è statica, altrimenti le condizioni si andrebbero
+    // a sommare.
     $query->propertyConditions = array();
     $query->propertyCondition('title', $entity_name);
-    $stored_entity_idkey = array_keys($query->execute());
-    $term_is_on_db = !empty($stored_entity_idkey);
+    //$stored_entity_idkey = array_keys($query->execute());
+    $term_is_on_db = !empty($query->execute());
 
 
     // La data di creazione e di modifica dell'entità possono differire solamente
@@ -100,6 +104,8 @@ class OntologyDocumentationController extends EntityAPIController {
           $entity_content = $entity_wrapper->getFieldRawContent($property);
           $match = $entity_content == $cached_content ? true : false ;
           $cache_is_valid = $cache_is_valid && $match;
+          // Se la proprietà tra l'entità in cache e la sua versione corrente sono diverse,
+          // aggiungo all'array delle differenze il suo nuovo valore indicizzato sulla proprietà.
           if (!$match) {
             $array_diff += array($property => $entity_content);
           }

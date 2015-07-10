@@ -110,6 +110,7 @@ function ontology_documentation_form_submit($form, &$form_state) {
 
   if ($form_state['op'] == 'edit') {
      $fields = $form_state['modified fields'];
+     // Aggiungo il campo relativo all'utente modificante e la data di modifica
      $fields += array(
        'uid' => $user->uid,
        'modification_date' => REQUEST_TIME,

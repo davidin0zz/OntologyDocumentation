@@ -26,7 +26,6 @@ class OntologyDocumentationWrapper extends EntityDrupalWrapper {
   }
 
   public function setFieldsContent(array $data) {
-    dpm('nel wrapper per scrivere');
     foreach ($data as $field => $content) {
       if ($this->{$field} instanceof EntityStructureWrapper) {
         $this->{$field}->value->set($content);
