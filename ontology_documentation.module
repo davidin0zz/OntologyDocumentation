@@ -53,6 +53,7 @@ function ontology_documentation_entity_info() {
 
   $entity_info[__documentation_type__] = array(
     'label' => 'Ontology documentation',
+    // Etichetta per parent::hook_menu() dell'ui controller
     'plural label' => 'Ontology Entities',
     'entity class' => 'OntologyDocumentation',
     'controller class' => 'OntologyDocumentationController',
@@ -88,7 +89,8 @@ function ontology_documentation_entity_info() {
   );
   $entity_info[__documentation_type_bundle__] = array(
     'label' => 'Ontology documentation type',
-    'plural label' => 'Ontology Entities types',
+    // Etichetta per parent::hook_menu() dell'ui type controller
+    'plural label' => 'Ontology Entity types',
     'entity class' => 'OntologyDocumentationType',
     'controller class' => 'OntologyDocumentationTypeController',
     'base table' => __documentation_type_bundle__,
