@@ -98,16 +98,16 @@ class OntologyDocumentationController extends EntityAPIController {
       $entity_cache = $cache_array[$entity_name];
       $entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $entity);
       $cached_entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $entity_cache);
-      foreach ($entity_wrapper->getPropertyInfo() as $property => $value) {
+      foreach (array_keys($entity_wrapper->getPropertyInfo()) as $property) {
         if (!in_array($property, $entity_wrapper->getCachedUncheckedWrapperProperties())) {
-          $cached_content = $cached_entity_wrapper->getFieldRawContent($property);
-          $entity_content = $entity_wrapper->getFieldRawContent($property);
-          $match = $entity_content == $cached_content ? true : false ;
+          $current_content = $cached_entity_wrapper->getFieldRawContent($property);
+          $new_content = $entity_wrapper->getFieldRawContent($property);
+          $match = $new_content === $current_content ? true : false;
           $cache_is_valid = $cache_is_valid && $match;
           // Se la proprietà tra l'entità in cache e la sua versione corrente sono diverse,
           // aggiungo all'array delle differenze il suo nuovo valore indicizzato sulla proprietà.
           if (!$match) {
-            $array_diff += array($property => $entity_content);
+            $array_diff += array($property => array('value' => $new_content));
           }
         }
       }
@@ -115,10 +115,10 @@ class OntologyDocumentationController extends EntityAPIController {
       // carico l'entità memorizzata nel db e ci applico le modifiche. Infine aggiorno la cache
       // e aggiorno il report di aggiornamento.
       if (!$cache_is_valid) {
-        $stored_entity = entity_load_single(__documentation_type__, $cached_entity_wrapper->id->value());
+        $stored_entity = entity_load_single(__documentation_type__, $cached_entity_wrapper->getFieldRawContent('id'));
         $stored_entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $stored_entity);
         // Aggiorno l'entità
-        $properties = $array_diff + array('modification_date' => REQUEST_TIME);
+        $properties = $array_diff + array('modification_date' => array('value' => REQUEST_TIME));
         $stored_entity_wrapper->setFieldsContent($properties);
         parent::save($stored_entity, $transaction);
         $report['updated'][$entity_name] = $array_diff;

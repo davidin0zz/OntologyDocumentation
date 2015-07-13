@@ -2,7 +2,7 @@
 
 function ontology_documentation_type_form($form, &$form_state, $entity, $op) {
   // L'operazione richiamata da entity_ui_get_form è edit
-  if ($op == 'edit') {
+  if ($op === 'edit') {
     $fields = array(
       'category',
       'name',
@@ -23,7 +23,7 @@ function ontology_documentation_type_form($form, &$form_state, $entity, $op) {
 
 function ontology_documentation_form($form, &$form_state, $entity, $op) {
   // L'operazione richiamata da entity_ui_get_form è edit
-  if ($op == 'edit') {
+  if ($op === 'edit') {
     $fields = array(
       'name',
       'descrizione',
@@ -34,7 +34,7 @@ function ontology_documentation_form($form, &$form_state, $entity, $op) {
     // Recupero il template del form
     $edit_form = ontology_documentation_util('entity_edit_form');
     foreach ($fields as $field) {
-      if ($field == 'descrizione') {
+      if ($field === 'descrizione') {
         $description = trim(str_replace('<h2>Descrizione</h2>', '', $edit_form_wrapper->getFieldRawContent($field)));
         $edit_form['fieldset'][$field]['#default_value'] = $description;
       }
@@ -53,22 +53,22 @@ function ontology_documentation_edit_form_validate($form, &$form_state) {
 
   foreach ($current_values as $field_name => $field) {
     if (isset($form['fieldset'][$field_name])) {
-      if ($field != $form['fieldset'][$field_name]['#default_value']) {
+      if ($field !== $form['fieldset'][$field_name]['#default_value']) {
         switch ($field_name) {
           case 'name':
-            $changed_fields += array($field_name => trim(strip_tags($field)));
+            $changed_fields += array($field_name => array('value' => trim(strip_tags($field))));
             break;
           case 'category':
-            $changed_fields += array($field_name => $field);
+            $changed_fields += array($field_name => array('value' => $field));
             break;
           case 'description':
-            $changed_fields += array($field_name => trim($field));
+            $changed_fields += array($field_name => array('value' => trim($field)));
             break;
           case 'descrizione':
-            $changed_fields += array($field_name => '<h2>Descrizione</h2>'.trim($field));
+            $changed_fields += array($field_name => array('value' => '<h2>Descrizione</h2>'.trim($field)));
             break;
           case 'state':
-            $changed_fields += array($field_name => $field);
+            $changed_fields += array($field_name => array('value' => $field));
             break;
         }
       }
@@ -108,12 +108,12 @@ function ontology_documentation_type_form_submit($form, &$form_state) {
 function ontology_documentation_form_submit($form, &$form_state) {
   global $user;
 
-  if ($form_state['op'] == 'edit') {
+  if ($form_state['op'] === 'edit') {
      $fields = $form_state['modified fields'];
      // Aggiungo il campo relativo all'utente modificante e la data di modifica
      $fields += array(
-       'uid' => $user->uid,
-       'modification_date' => REQUEST_TIME,
+       'uid' => array('value' => $user->uid),
+       'modification_date' => array('value' => REQUEST_TIME),
      );
     // Recupero l'entità passata al form
     $entity = $form_state[__documentation_type__];

@@ -7,9 +7,9 @@ td.unpublished {
 }
 
 td.old a{
-  color: red;
+  color: grey;
 }
 
 td.old {
-  color: red;
+  color: grey;
 }

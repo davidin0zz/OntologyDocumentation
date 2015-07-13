@@ -19,18 +19,12 @@ class OntologyDocumentation extends Entity {
     $this->changed = REQUEST_TIME;
   }
 
-  public function unsetExtra() {
-    if (isset($this->is_new)) {
-      unset($this->is_new);
-    }
-    elseif (isset($this->revision) && isset($this->default_revision)) {
-      unset($this->revision);
-      unset($this->default_revision);
-    }
-  }
-
   public function getTitle() {
     return $this->title;
+  }
+
+  public function getId() {
+    return $this->internalIdentifier();
   }
 
   public function getDescrition() {

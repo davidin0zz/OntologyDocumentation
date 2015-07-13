@@ -17,21 +17,33 @@ class OntologyDocumentationWrapper extends EntityDrupalWrapper {
   }
 
   public function getFieldRawContent($field) {
-    if ($this->{$field} instanceof EntityStructureWrapper) {
+    if (!isset($this->{$field})) {
+      throw new Exception('Trying to access non existent property');
+    }
+    elseif ($this->{$field} instanceof EntityStructureWrapper) {
       return $this->{$field}->value->raw();
     }
-    else {
+    elseif ($this->{$field} instanceof EntityValueWrapper) {
       return $this->{$field}->raw();
+    }
+    else {
+      return $this->{$field};
     }
   }
 
   public function setFieldsContent(array $data) {
     foreach ($data as $field => $content) {
-      if ($this->{$field} instanceof EntityStructureWrapper) {
-        $this->{$field}->value->set($content);
+      if (!isset($this->{$field})) {
+        throw new Exception('Trying to set non existent property');
+      }
+      elseif ($this->{$field} instanceof EntityStructureWrapper) {
+        $this->{$field}->{key($content)}->set(current($content));
+      }
+      elseif ($this->{$field} instanceof EntityValueWrapper) {
+        $this->{$field}->set(current($content));
       }
       else {
-        $this->{$field}->set($content);
+        $this->{$field} = current($content);
       }
     }
   }
