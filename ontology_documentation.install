@@ -173,6 +173,7 @@ function ontology_documentation_schema() {
       'title' => array(
         'description' => 'Nome termine',
         'type' => 'varchar',
+        'binary' => true,
         'length' => 255,
         'not null' => false,
         'default' => null,
