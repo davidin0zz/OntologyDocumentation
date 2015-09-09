@@ -148,6 +148,8 @@ function ontology_documentation_uninstall() {
   field_purge_batch(50);
   // Cancello la variabile di inizializzazione
   variable_del('empty_owl_documentation');
+  // Cancello la varibile di sincronizzazione
+  variable_del('syncronized_owl_documentation');
 }
 
 /**

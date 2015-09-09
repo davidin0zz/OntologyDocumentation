@@ -351,11 +351,9 @@ function ontology_documentation_preprocess_field(&$variables) {
 
 function ontology_documentation_delete($entity_type = __documentation_type__, $updated = true) {
   if ($updated) {
-    if (entity_delete_multiple($entity_type, array_keys(entity_load($entity_type))) === false) {
-      throw new Exception("This entity type doesn't support CRUD operation!");
-    }
+    cache_clear_all(__documentation_type__, __documentation_type_cache__);
+    entity_delete_multiple($entity_type, array_keys(entity_load($entity_type)));
     variable_set('empty_owl_documentation', true);
-    variable_set('syncronized_owl_documentation', true);
   }
   else {
     $query = new EntityFieldQuery();
@@ -363,11 +361,9 @@ function ontology_documentation_delete($entity_type = __documentation_type__, $u
     $query->propertyCondition('old', 1);
     $old_ids = $query->execute();
     $old_ids = array_keys($old_ids[$entity_type]);
-    if (entity_delete_multiple($entity_type, $old_ids) === false) {
-      throw new Exception("This entity type doesn't support CRUD operation!");
-    }
-    variable_set('syncronized_owl_documentation', true);
+    entity_delete_multiple($entity_type, $old_ids);
   }
+  variable_set('syncronized_owl_documentation', true);
 }
 
 function ontology_documentation_mastro_get_data($operation = null, $parameters = array(), $field = null, $bundle = null) {
@@ -477,6 +473,7 @@ function ontology_documentation_create() {
   $ontology['role'] = ontology_documentation_mastro_get_data('getAllRoles');
   $ontology['attribute'] = ontology_documentation_mastro_get_data('getAllAttributes');
 
+  // Genero la documentazione per i termini
   foreach ($ontology as $bundle => $bundle_array) {
     $data['category'] = $bundle;
     foreach ($bundle_array as $bundle_name) {
@@ -490,14 +487,20 @@ function ontology_documentation_create() {
       $result = $entity->save();
     }
   }
+
+  // Cerco i vecchi termini e li marco com OLD
   $cached_old = array_diff_key($result['cache'], $result['report']['processed']);
-  foreach ($cached_old as $name => $cached_name) {
-    if ($entity = entity_load_single(__documentation_type__, $cached_name->getId())) {
-      $entity->setAsOld();
-      $entity->save();
-      variable_set('syncronized_owl_documentation', false);
+  if (!empty($cached_old)) {
+    foreach ($cached_old as $name => $cached_name) {
+      $entity = entity_load_single(__documentation_type__, $cached_name->getId());
+      if ($entity) {
+        $entity->setAsOld();
+        $entity->save();
+      }
     }
+    variable_set('syncronized_owl_documentation', false);
   }
+
   $result['report'] += array('set as removed' => array_keys($cached_old));
   ontology_documentation_create_report($result['report']);
   cache_set(__documentation_type__, array_diff_key($result['cache'], $cached_old), __documentation_type_cache__);
