@@ -1,8 +1,9 @@
 <?php
 
-class OntologyDocumentationWrapper extends EntityDrupalWrapper {
-
-  public function getCachedUncheckedWrapperProperties() {
+class OntologyDocumentationWrapper extends EntityDrupalWrapper
+{
+  public function getCachedUncheckedWrapperProperties()
+  {
     $properties = array(
       'id',
       'rid',
@@ -16,14 +17,18 @@ class OntologyDocumentationWrapper extends EntityDrupalWrapper {
     return $properties;
   }
 
-  public function getFieldRawContent($field) {
-    if (!isset($this->{$field})) {
+  public function getFieldRawContent($field)
+  {
+    if (!isset($this->{$field}))
+    {
       throw new Exception('Trying to access non existent property');
     }
-    elseif ($this->{$field} instanceof EntityStructureWrapper) {
+    elseif ($this->{$field} instanceof EntityStructureWrapper)
+    {
       return $this->{$field}->value->raw();
     }
-    elseif ($this->{$field} instanceof EntityValueWrapper) {
+    elseif ($this->{$field} instanceof EntityValueWrapper)
+    {
       return $this->{$field}->raw();
     }
     else {
@@ -31,21 +36,26 @@ class OntologyDocumentationWrapper extends EntityDrupalWrapper {
     }
   }
 
-  public function setFieldsContent(array $data) {
-    foreach ($data as $field => $content) {
-      if (!isset($this->{$field})) {
+  public function setFieldsContent(array $data)
+  {
+    foreach ($data as $field => $content)
+    {
+      if (!isset($this->{$field}))
+      {
         throw new Exception('Trying to set non existent property');
       }
-      elseif ($this->{$field} instanceof EntityStructureWrapper) {
+      elseif ($this->{$field} instanceof EntityStructureWrapper)
+      {
         $this->{$field}->{key($content)}->set(current($content));
       }
-      elseif ($this->{$field} instanceof EntityValueWrapper) {
+      elseif ($this->{$field} instanceof EntityValueWrapper)
+      {
         $this->{$field}->set(current($content));
       }
-      else {
+      else
+      {
         $this->{$field} = current($content);
       }
     }
   }
-
 }

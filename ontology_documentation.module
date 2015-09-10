@@ -1,36 +1,59 @@
 <?php
 
-// Definisco il tipo di entità da gestire
+// Definisco il tipo di entitÃ  da gestire
+
 define('__documentation_type__', 'ontology_documentation');
+
 // Definisco il tipo di bundle da gestire
-define('__documentation_type_bundle__', __documentation_type__.'_type');
+
+define('__documentation_type_bundle__', __documentation_type__ . '_type');
+
 // Definisco la tabella di cache
-define('__documentation_type_cache__', __documentation_type__.'_cache');
+
+define('__documentation_type_cache__', __documentation_type__ . '_cache');
+
 // Definisco il path per le pagine di documentazione
+
 define('__documentation_view_path__', str_replace('_', '-', __documentation_type__));
-// Definisco l'url per la pagina di gestione delle entità
-define('__documentation_admin_path__', 'admin/'.__documentation_view_path__);
+
+// Definisco l'url per la pagina di gestione delle entitÃ
+
+define('__documentation_admin_path__', 'admin/' . __documentation_view_path__);
+
 // Definisco il path per la pagina di gestione bundle
-define('__documentation_bundle_admin_path__', 'admin/structure/'.str_replace('_', '-', __documentation_type_bundle__));
+
+define('__documentation_bundle_admin_path__', 'admin/structure/' . str_replace('_', '-', __documentation_type_bundle__));
+
 // Definisco l'url per le pagina di ragionamento
+
 define('__reasoning_relative_path__', 'intensional-reasoning');
+
 // Definisco l'url per le pagina dei mappings
+
 define('__mappings_relative_path__', 'mappings/ontology');
+
 // Definisco la classe di Util
-define('__documentation_type_util__', __documentation_type__.'.util.inc');
+
+define('__documentation_type_util__', __documentation_type__ . '.util.inc');
+
 // Definisco il percorso del modulo
+
 define('__module_path__', drupal_get_path('module', __documentation_type__));
 
 // Includo la classe di utility
-require_once DRUPAL_ROOT.'/'.__module_path__.'/'.__documentation_type_util__;
+
+require_once DRUPAL_ROOT . '/' . __module_path__ . '/' . __documentation_type_util__;
 
 /**
  * Implements hook_help().
  */
-function ontology_documentation_help($path, $arg) {
-  switch ($path) {
-    case "admin/help#ontology_documentation":
-      $help_form['header'] = array(
+
+function ontology_documentation_help($path, $arg)
+{
+  switch ($path)
+  {
+  case "admin/help#ontology_documentation":
+    $help_form['header'] = array(
       '#type' => 'html_tag',
       '#tag' => 'h3',
       '#value' => 'Ontology documentation'
@@ -40,43 +63,46 @@ function ontology_documentation_help($path, $arg) {
       '#tag' => 'em',
       '#value' => 'Upgrade OWL documentation pages',
     );
-    break;
   }
+
   return drupal_render($help_form);
 }
 
 /**
  * Implements hook_entity_info().
  */
-function ontology_documentation_entity_info() {
-  $entity_info = array();
 
+function ontology_documentation_entity_info()
+{
+  $entity_info = array();
   $entity_info[__documentation_type__] = array(
     'label' => 'Ontology documentation',
+
     // Etichetta per parent::hook_menu() dell'ui controller
+
     'plural label' => 'Ontology Entities',
     'entity class' => 'OntologyDocumentation',
     'controller class' => 'OntologyDocumentationController',
     'views controller class' => 'EntityDefaultViewsController',
     'base table' => __documentation_type__,
-    'revision table' => __documentation_type__.'_revision',
+    'revision table' => __documentation_type__ . '_revision',
     'fieldable' => true,
-     'entity keys' => array(
+    'entity keys' => array(
       'id' => 'odid',
       'revision' => 'rodid',
       'bundle' => 'category',
       'label' => 'title',
-    ),
+    ) ,
     'bundle keys' => array(
       'bundle' => 'category',
-    ),
-    'bundles' => array(),
+    ) ,
+    'bundles' => array() ,
     'view modes' => array(
       'full' => array(
-      'label' => t('Full Content'),
-      'custom settings' => false,
-      ),
-    ),
+        'label' => t('Full Content') ,
+        'custom settings' => false,
+      ) ,
+    ) ,
     'module' => 'ontology_documentation',
     'label callback' => 'entity_class_label',
     'uri callback' => 'entity_class_uri',
@@ -85,11 +111,13 @@ function ontology_documentation_entity_info() {
       'path' => __documentation_admin_path__,
       'file' => 'ontology_documentation.admin.inc',
       'controller class' => 'OntologyDocumentationUIController',
-    ),
+    ) ,
   );
   $entity_info[__documentation_type_bundle__] = array(
     'label' => 'Ontology documentation type',
+
     // Etichetta per parent::hook_menu() dell'ui type controller
+
     'plural label' => 'Ontology Entity types',
     'entity class' => 'OntologyDocumentationType',
     'controller class' => 'OntologyDocumentationTypeController',
@@ -100,7 +128,7 @@ function ontology_documentation_entity_info() {
       'id' => 'category',
       'label' => 'title',
       'status' => 'locked',
-    ),
+    ) ,
     'module' => 'ontology_documentation',
     'label callback' => 'entity_class_label',
     'uri callback' => 'entity_class_uri',
@@ -109,26 +137,28 @@ function ontology_documentation_entity_info() {
       'path' => __documentation_bundle_admin_path__,
       'file' => 'ontology_documentation.admin.inc',
       'controller class' => 'OntologyDocumentationTypeUIController',
-    ),
+    ) ,
   );
-
- return $entity_info;
+  return $entity_info;
 }
 
 /**
  * Implements hook_entity_info_alter().
  */
-function ontology_documentation_entity_info_alter(&$entity_info) {
+
+function ontology_documentation_entity_info_alter(&$entity_info)
+{
   $bundles = ontology_documentation_util('get_bundles', 'ALL');
-  foreach ($bundles as $bundle) {
+  foreach($bundles as $bundle)
+  {
     $entity_info[__documentation_type__]['bundles'][$bundle['machine_name']] = array(
       'label' => $bundle['human_label'],
       'uri callback' => 'entity_class_uri',
       'admin' => array(
-        'path' => __documentation_bundle_admin_path__.'/manage/%'.__documentation_type_bundle__,
+        'path' => __documentation_bundle_admin_path__ . '/manage/%' . __documentation_type_bundle__,
         'bundle argument' => 4,
-        'real path' => __documentation_bundle_admin_path__.'/manage/'.$bundle['machine_name'],
-      ),
+        'real path' => __documentation_bundle_admin_path__ . '/manage/' . $bundle['machine_name'],
+      ) ,
     );
   }
 }
@@ -136,105 +166,110 @@ function ontology_documentation_entity_info_alter(&$entity_info) {
 /**
  * Implements hook_entity_property_info().
  */
-function ontology_documentation_entity_property_info() {
+
+function ontology_documentation_entity_property_info()
+{
   $entity_property_info = array();
 
-  // Metto a conoscenza il wrapper delle proprietà possedute da __docouemntation_type__
+  // Metto a conoscenza il wrapper delle proprietÃ  possedute da __docouemntation_type__
+
   $entity_property_info[__documentation_type__]['properties'] = array(
     'id' => array(
-      'label' => t(__documentation_type__.' id'),
-      'description' => t('The id of the ontology term'),
+      'label' => t(__documentation_type__ . ' id') ,
+      'description' => t('The id of the ontology term') ,
       'type' => 'integer',
       'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'odid',
-     ),
+    ) ,
     'rid' => array(
-      'label' => t(__documentation_type__.' revision id'),
-      'description' => t('The revision id of the ontology term'),
+      'label' => t(__documentation_type__ . ' revision id') ,
+      'description' => t('The revision id of the ontology term') ,
       'type' => 'integer',
       'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'rodid',
-    ),
+    ) ,
     'name' => array(
-      'label' => t(__documentation_type__.' title'),
-      'description' => t('The title of the ontology term'),
+      'label' => t(__documentation_type__ . ' title') ,
+      'description' => t('The title of the ontology term') ,
       'type' => 'text',
       'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'title',
-    ),
+    ) ,
     'category' => array(
-      'label' => t(__documentation_type__.' category'),
-      'description' => t('The category of the ontology term'),
+      'label' => t(__documentation_type__ . ' category') ,
+      'description' => t('The category of the ontology term') ,
       'type' => 'text',
       'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'category',
-    ),
+    ) ,
     'lang' => array(
-      'label' => t(__documentation_type__.' language'),
-      'description' => t('The language of the ontology term'),
+      'label' => t(__documentation_type__ . ' language') ,
+      'description' => t('The language of the ontology term') ,
       'type' => 'text',
       'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'language',
-    ),
+    ) ,
     'uid' => array(
-      'label' => t(__documentation_type__.' uid'),
-      'description' => t('The user id creator of the ontology term'),
+      'label' => t(__documentation_type__ . ' uid') ,
+      'description' => t('The user id creator of the ontology term') ,
       'type' => 'integer',
       'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'uid',
-    ),
+    ) ,
     'creation_date' => array(
-      'label' => t(__documentation_type__.' created date'),
-      'description' => t('The timestamp creation of the ontology term'),
+      'label' => t(__documentation_type__ . ' created date') ,
+      'description' => t('The timestamp creation of the ontology term') ,
       'type' => 'date',
       'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'created',
-    ),
+    ) ,
     'modification_date' => array(
-      'label' => t(__documentation_type__.' cached date'),
-      'description' => t('The timestamp modification of the ontology term'),
+      'label' => t(__documentation_type__ . ' cached date') ,
+      'description' => t('The timestamp modification of the ontology term') ,
       'type' => 'date',
       'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'changed',
-    ),
+    ) ,
     'state' => array(
-      'label' => t(__documentation_type__.' status'),
-      'description' => t('The status of the ontology term'),
+      'label' => t(__documentation_type__ . ' status') ,
+      'description' => t('The status of the ontology term') ,
       'type' => 'integer',
       'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'status',
-    ),
+    ) ,
     'valid' => array(
-      'label' => t(__documentation_type__.' old'),
-      'description' => t('The old age of the ontology term'),
+      'label' => t(__documentation_type__ . ' old') ,
+      'description' => t('The old age of the ontology term') ,
       'type' => 'integer',
       'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'old',
-    ),
+    ) ,
   );
-  // Metto a conoscenza il wrapper delle proprietà possedute da __documentation_type_type__
+
+  // Metto a conoscenza il wrapper delle proprietÃ  possedute da __documentation_type_type__
+
   $entity_property_info[__documentation_type_bundle__]['properties'] = array(
     'category' => array(
-      'label' => t(__documentation_type_bundle__.' category'),
-      'description' => t('The category of the bundle'),
+      'label' => t(__documentation_type_bundle__ . ' category') ,
+      'description' => t('The category of the bundle') ,
       'type' => 'text',
       'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'category',
-     ),
+    ) ,
     'name' => array(
-      'label' => t(__documentation_type_bundle__.' title'),
-      'description' => t('The title of the bundle'),
+      'label' => t(__documentation_type_bundle__ . ' title') ,
+      'description' => t('The title of the bundle') ,
       'type' => 'text',
       'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'title',
-    ),
+    ) ,
     'description' => array(
-      'label' => t(__documentation_type_bundle__.' description'),
-      'description' => t('The description of the bundle'),
+      'label' => t(__documentation_type_bundle__ . ' description') ,
+      'description' => t('The description of the bundle') ,
       'type' => 'text',
       'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'description',
-    ),
+    ) ,
   );
   return $entity_property_info;
 }
@@ -242,85 +277,129 @@ function ontology_documentation_entity_property_info() {
 /**
  * Implements hook_menu().
  */
-function ontology_documentation_menu() {
-  $items = array();
 
-  $items['admin/config/mastro/'.__documentation_view_path__] = array(
+function ontology_documentation_menu()
+{
+  $items = array();
+  $items['admin/config/mastro/' . __documentation_view_path__] = array(
     'title' => 'Ontology Documentation',
     'description' => 'Update OWL documentation pages',
     'access callback' => 'entity_access',
-    'access arguments' => array('update', __documentation_type__, null, null),
+    'access arguments' => array(
+      'update',
+      __documentation_type__,
+      null,
+      null
+    ) ,
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('ontology_documentation_config_form'),
+    'page arguments' => array(
+      'ontology_documentation_config_form'
+    ) ,
     'type' => MENU_NORMAL_ITEM,
     'file' => 'ontology_documentation.callback.inc',
   );
-  $items[__documentation_view_path__.'/%/%ontology_documentation'] = array(
+  $items[__documentation_view_path__ . '/%ontology_documentation'] = array(
     'title' => 'Root',
-    'load arguments' => array(__documentation_type__, 1),
+    'load arguments' => array(
+      __documentation_type__
+    ) ,
     'access callback' => 'entity_access',
-    'access arguments' => array('view', __documentation_type__, 2, null),
+    'access arguments' => array(
+      'view',
+      __documentation_type__,
+      1,
+      null
+    ) ,
     'page callback' => 'ontology_documentation_term_view',
-    'page arguments' => array(2),
+    'page arguments' => array(
+      1
+    ) ,
     'type' => MENU_CALLBACK,
     'file' => 'ontology_documentation.callback.inc',
   );
-  $items[__documentation_view_path__.'/%/%ontology_documentation/view'] = array(
+  $items[__documentation_view_path__ . '/%ontology_documentation/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'file' => 'ontology_documentation.callback.inc',
-    'weight' => -1,
+    'weight' => - 1,
   );
-  $items[__documentation_view_path__.'/%/%ontology_documentation/edit'] = array(
+  $items[__documentation_view_path__ . '/%ontology_documentation/edit'] = array(
     'title' => 'Edit',
-    'load arguments' => array(__documentation_type__, 1),
+    'load arguments' => array(
+      __documentation_type__
+    ) ,
     'access callback' => 'entity_access',
-    'access arguments' => array('update', __documentation_type__, 2, null),
+    'access arguments' => array(
+      'update',
+      __documentation_type__,
+      1,
+      null
+    ) ,
     'page callback' => 'entity_ui_get_form',
-    'page arguments' => array('ontology_documentation', 2, 'edit'),
+    'page arguments' => array(
+      'ontology_documentation',
+      1,
+      'edit'
+    ) ,
     'file' => 'ontology_documentation.admin.inc',
     'type' => MENU_LOCAL_TASK,
   );
 
+  // Il path wiki/<termine>, creato nel campo tipizzazione dal modulo freelink,
+  // viene rediretto su ontology-documentation/<termine> dalla funzione wiki_path_backward_compatibility.
+
+  $items['wiki/%'] = array(
+    'title' => 'Root',
+    'access callback' => true,
+    'page callback' => 'wiki_path_backward_compatibility',
+    'page arguments' => array(
+      1
+    ) ,
+    'type' => MENU_CALLBACK,
+    'file' => 'ontology_documentation.callback.inc',
+  );
   return $items;
 }
 
 /**
  * Implements hook_permission().
  */
-function ontology_documentation_permission() {
+
+function ontology_documentation_permission()
+{
   $permission = array(
     'administer ontology_documentation entities' => array(
-      'title' => t('Administer ontology documentation entities'),
-      'description' => t('Allow users to configure ontology documentation entities'),
+      'title' => t('Administer ontology documentation entities') ,
+      'description' => t('Allow users to configure ontology documentation entities') ,
       'restricted access' => true,
-    ),
+    ) ,
     'view ontology_documentation entities' => array(
-      'title' => t('View ontology documentation entities'),
-      'description' => t('Allow users to view ontology documentation entities'),
+      'title' => t('View ontology documentation entities') ,
+      'description' => t('Allow users to view ontology documentation entities') ,
       'restricted access' => true,
-    ),
+    ) ,
     'edit any ontology_documentation entities' => array(
-      'title' => t('Edit any ontology documentation entities'),
-      'description' => t('Allow users to edit any ontology documentation entities'),
+      'title' => t('Edit any ontology documentation entities') ,
+      'description' => t('Allow users to edit any ontology documentation entities') ,
       'restricted access' => true,
-    ),
+    ) ,
     'edit own ontology_documentation entities' => array(
-      'title' => t('Edit own ontology documentation entities'),
-      'description' => t('Allow users to edit own ontology documentation entities'),
+      'title' => t('Edit own ontology documentation entities') ,
+      'description' => t('Allow users to edit own ontology documentation entities') ,
       'restricted access' => true,
-    ),
+    ) ,
   );
-
   return $permission;
 }
 
 /**
  * Implements hook_admin_paths().
  */
-function ontology_documentation_admin_paths() {
+
+function ontology_documentation_admin_paths()
+{
   $paths = array(
-    __documentation_view_path__.'/*/*/edit' => true,
+    __documentation_view_path__ . '/*/edit' => true,
   );
   return $paths;
 }
@@ -328,34 +407,50 @@ function ontology_documentation_admin_paths() {
 /**
  * Implements hook_form_FORM_ID_alter().
  */
-function ontology_documentation_form_ontology_documentation_overview_form_alter(&$form, &$form_state, $form_id) {
+
+function ontology_documentation_form_ontology_documentation_overview_form_alter(&$form, &$form_state, $form_id)
+{
+
   // Aggiungo il css alla tabella
-  $form['table']['#attached']['css'] = array(__module_path__ .'/css/entity_table_form.css');
+
+  $form['table']['#attached']['css'] = array(
+    __module_path__ . '/css/entity_table_form.css'
+  );
 }
 
 /**
  * Implements hook_flush_caches().
  */
-function ontology_documentation_flush_caches() {
-  return array(__documentation_type_cache__);
+
+function ontology_documentation_flush_caches()
+{
+  return array(
+    __documentation_type_cache__
+  );
 }
 
 /**
  * Implements hook_preprocess_field().
  */
-function ontology_documentation_preprocess_field(&$variables) {
-  if ($variables['element']['#entity_type'] === __documentation_type__) {
+
+function ontology_documentation_preprocess_field(&$variables)
+{
+  if ($variables['element']['#entity_type'] === __documentation_type__)
+  {
     $variables['label_hidden'] = true;
   }
 }
 
-function ontology_documentation_delete($entity_type = __documentation_type__, $updated = true) {
-  if ($updated) {
+function ontology_documentation_delete($entity_type = __documentation_type__, $updated = true)
+{
+  if ($updated)
+  {
     cache_clear_all(__documentation_type__, __documentation_type_cache__);
     entity_delete_multiple($entity_type, array_keys(entity_load($entity_type)));
     variable_set('empty_owl_documentation', true);
   }
-  else {
+  else
+  {
     $query = new EntityFieldQuery();
     $query->entityCondition('entity_type', $entity_type);
     $query->propertyCondition('old', 1);
@@ -363,82 +458,115 @@ function ontology_documentation_delete($entity_type = __documentation_type__, $u
     $old_ids = array_keys($old_ids[$entity_type]);
     entity_delete_multiple($entity_type, $old_ids);
   }
+
   variable_set('syncronized_owl_documentation', true);
 }
 
-function ontology_documentation_mastro_get_data($operation = null, $parameters = array(), $field = null, $bundle = null) {
+function ontology_documentation_mastro_get_data($operation = null, $parameters = array() , $field = null, $bundle = null)
+{
+
   // Dichiaro statica la variabile
-  $wsdl = &drupal_static('wsdl' . __FUNCTION__);
+
+  $wsdl = & drupal_static('wsdl' . __FUNCTION__);
+
   // Ottengo la struttura con i nomi dei metodi di mastro e le chiavi dei parametri
+
   $mastro_methods_per_ontology_field = ontology_documentation_util('mastro_methods_structure');
+
   // Se non è definito il wdsl, lo definisco
-  if (!isset($wsdl)) {
+
+  if (!isset($wsdl))
+  {
     $wsdl = array(
-      'url' => variable_get('ws_url'),
+      'url' => variable_get('ws_url') ,
       'options' => array(
-      'cache_wsdl' => WSDL_CACHE_NONE,
-      ),
+        'cache_wsdl' => WSDL_CACHE_NONE,
+      ) ,
     );
-    try {
-      (false);
+    try
+    {
       $wsdl['soap'] = new SoapClient($wsdl['url'], $wsdl['options']);
     }
-    catch (SoapFault $e) {
-     throw $e;
+    catch(SoapFault $e)
+    {
+      throw $e;
     }
   }
 
   $operation = isset($field) && isset($bundle) ? $mastro_methods_per_ontology_field[$field][$bundle]['operation'] : $operation;
-  $array_keys = isset($field) && isset($bundle) ? $mastro_methods_per_ontology_field[$field][$bundle]['keys'] : range(0,100);
-  if (count($array_keys) === count($parameters)) {
-    $parameters = array(array_combine($array_keys, $parameters));
+  $array_keys = isset($field) && isset($bundle) ? $mastro_methods_per_ontology_field[$field][$bundle]['keys'] : range(0, 100);
+  if (count($array_keys) === count($parameters))
+  {
+    $parameters = array(
+      array_combine($array_keys, $parameters)
+    );
   }
-  $parameters = is_array(current($parameters)) ? $parameters : array($parameters);
-  try {
-    $result = call_user_func_array(array($wsdl['soap'], $operation), $parameters);
-    if (property_exists($result, 'return')) {
-      return is_array($result->return) ? $result->return : array($result->return);
+
+  $parameters = is_array(current($parameters)) ? $parameters : array(
+    $parameters
+  );
+  try
+  {
+    $result = call_user_func_array(array(
+      $wsdl['soap'],
+      $operation
+    ) , $parameters);
+    if (property_exists($result, 'return'))
+    {
+      return is_array($result->return) ? $result->return : array(
+        $result->return
+      );
     }
-    else {
+    else
+    {
       return array();
     }
   }
-  catch (Exception $e) {
-    drupal_set_message($e->getMessage(), 'error');
+
+  catch(Exception $e)
+  {
+    drupal_set_message($e->getMessage() , 'error');
   }
 }
 
-function ontology_documentation_create_report($report) {
+function ontology_documentation_create_report($report)
+{
   global $user;
   $body_content = array();
   $upated_array = array();
   $data = array(
     'type' => 'page',
-    'title' => 'Update Report '.format_date(REQUEST_TIME, 'short'),
+    'title' => 'Update Report ' . format_date(REQUEST_TIME, 'short') ,
     'uid' => $user->uid,
     'language' => 'en',
     'status' => 0,
   );
-  foreach ($report as $label => $content) {
-    if ($label === 'updated') {
-      foreach ($content as $entity_name => $fields) {
-        $upated_array += array(
+  foreach($report as $label => $content)
+  {
+    if ($label === 'updated')
+    {
+      foreach($content as $entity_name => $fields)
+      {
+        $upated_array+= array(
           $entity_name => array(
             'data' => $entity_name,
-            'children' => array(),
-          ),
+            'children' => array() ,
+          ) ,
         );
-        foreach ($fields as $field => $value) {
-          $upated_array[$entity_name]['children'] += array(
+        foreach($fields as $field => $value)
+        {
+          $upated_array[$entity_name]['children']+= array(
             $field => array(
               'data' => $field,
-            ),
+            ) ,
           );
         }
       }
+
       $content = $upated_array;
     }
-    $body_content += array(
+
+    $body_content+= array(
       $label => array(
         '#theme' => 'item_list',
         '#items' => $content,
@@ -446,27 +574,32 @@ function ontology_documentation_create_report($report) {
         '#type' => 'ul',
         '#attached' => array(
           'libraries_load' => array(
-            array('drupal.collapse'),
-          ),
-        ),
-      ),
+            array(
+              'drupal.collapse'
+            ) ,
+          ) ,
+        ) ,
+      ) ,
     );
   }
+
   $fields = array(
-    'body' => array('value' => drupal_render($body_content)),
+    'body' => array(
+      'value' => drupal_render($body_content)
+    ) ,
   );
-  $report_page = entity_create('node' ,$data);
+  $report_page = entity_create('node', $data);
   $report_wrapper = ontology_documentation_wrapper('node', $report_page);
   $report_wrapper->body->format->set('wiki_text');
   $report_wrapper->setFieldsContent($fields);
   $report_wrapper->save();
 }
 
-function ontology_documentation_create() {
+function ontology_documentation_create()
+{
   $data = array();
   $ontology = array();
   $cached_old = array();
-
   $data['title'] = '';
   $data['category'] = '';
   $ontology['concept'] = ontology_documentation_mastro_get_data('getAllConcepts');
@@ -474,377 +607,521 @@ function ontology_documentation_create() {
   $ontology['attribute'] = ontology_documentation_mastro_get_data('getAllAttributes');
 
   // Genero la documentazione per i termini
-  foreach ($ontology as $bundle => $bundle_array) {
+
+  foreach($ontology as $bundle => $bundle_array)
+  {
     $data['category'] = $bundle;
-    foreach ($bundle_array as $bundle_name) {
+    foreach($bundle_array as $bundle_name)
+    {
       $data['title'] = $bundle_name;
       $fields = array_keys(field_info_instances(__documentation_type__, $bundle));
       $entity = entity_create(__documentation_type__, $data);
       $entity_wrapper = ontology_documentation_wrapper(__documentation_type__, $entity);
-      foreach ($fields as $field) {
+      foreach($fields as $field)
+      {
         ontology_documentation_setup_field($field, 'wiki_text', $entity_wrapper);
       }
+
       $result = $entity->save();
     }
   }
 
   // Cerco i vecchi termini e li marco com OLD
+
   $cached_old = array_diff_key($result['cache'], $result['report']['processed']);
-  if (!empty($cached_old)) {
-    foreach ($cached_old as $name => $cached_name) {
+  if (!empty($cached_old))
+  {
+    foreach($cached_old as $name => $cached_name)
+    {
       $entity = entity_load_single(__documentation_type__, $cached_name->getId());
-      if ($entity) {
+      if ($entity)
+      {
         $entity->setAsOld();
         $entity->save();
       }
     }
+
     variable_set('syncronized_owl_documentation', false);
   }
 
-  $result['report'] += array('set as removed' => array_keys($cached_old));
+  $result['report']+= array(
+    'set as removed' => array_keys($cached_old)
+  );
   ontology_documentation_create_report($result['report']);
-  cache_set(__documentation_type__, array_diff_key($result['cache'], $cached_old), __documentation_type_cache__);
+  cache_set(__documentation_type__, array_diff_key($result['cache'], $cached_old) , __documentation_type_cache__);
   variable_set('empty_owl_documentation', false);
 }
 
-function ontology_documentation_wrapper($type, $data = null, array $info = array()) {
+function ontology_documentation_wrapper($type, $data = null, array $info = array())
+{
   return new OntologyDocumentationWrapper($type, $data, $info);
 }
 
-function ontology_documentation_get_wiki_term_description($entity_name) {
-  $search_info = &drupal_static('search' . __FUNCTION__, array());
-  $entity_field_query = &drupal_static('query' . __FUNCTION__);
-
-  if (empty($search_info)) {
+function ontology_documentation_get_wiki_term_description($entity_name)
+{
+  $search_info = & drupal_static('search' . __FUNCTION__, array());
+  $entity_field_query = & drupal_static('query' . __FUNCTION__);
+  if (empty($search_info))
+  {
     $search_info['start string'] = '== Descrizione ==';
     $search_info['end string'] = '==';
     $search_info['start offset'] = strlen($search_info['start string']);
     $search_info['end offset'] = - 1;
   }
-  if (!isset($entity_field_query)) {
+
+  if (!isset($entity_field_query))
+  {
     $entity_field_query = new EntityFieldQuery();
   }
-  //Azzero le precedenti condizioni
+
+  // Azzero le precedenti condizioni
+
   $entity_field_query->propertyConditions = array();
+
   // Cerco l'id del nodo del wiki dell'omonimo termine
+
   $entity_field_query->entityCondition('entity_type', 'node');
   $entity_field_query->entityCondition('bundle', 'wiki');
   $entity_field_query->propertyCondition('title', $entity_name);
   $query_response = $entity_field_query->execute();
-  if (!empty($query_response)) {
-    // Ottengo l'id del nodo
+  if (!empty($query_response))
+  {
     $wiki_node_id = array_keys($query_response['node']);
-    // Carico il nodo
     $wiki_node = entity_load('node', $wiki_node_id);
-    // Creo il wrapper per il nodo
     $wiki_wrapper = entity_metadata_wrapper('node', current($wiki_node));
-    // Ottengo il contenuto del body
     $wiki_description = $wiki_wrapper->body->value->raw();
+
     // Filtro solo la descrizione
+
     $start = strpos($wiki_description, $search_info['start string']) + $search_info['start offset'];
-    if ($start !== false) {
+    if ($start !== false)
+    {
       $fin = strpos($wiki_description, $search_info['end string'], $start) + $search_info['end offset'];
-      if ($fin !== false) {
+      if ($fin !== false)
+      {
         $wiki_description = trim(substr($wiki_description, $start, $fin - $start));
         return $wiki_description;
       }
     }
   }
-  else {
+  else
+  {
     return '';
   }
 }
 
-function ontology_documentation_item_list_child_render($render_element) {
-  foreach ($render_element['#items'] as $key => $content) {
-    if (isset($render_element['#items'][$key]['data'])) {
+function ontology_documentation_item_list_child_render($render_element)
+{
+  foreach($render_element['#items'] as $key => $content)
+  {
+    if (isset($render_element['#items'][$key]['data']))
+    {
       $render_element['#items'][$key]['data'] = drupal_render($render_element['#items'][$key]['data']);
     }
   }
+
   return $render_element;
 }
 
-function ontology_documentation_fieldset_child_reder($render_element) {
-  if (isset($render_element['#children'])) {
+function ontology_documentation_fieldset_child_reder($render_element)
+{
+  if (isset($render_element['#children']))
+  {
     $render_element['#children'] = drupal_render($render_element['#children']);
     return $render_element;
   }
+
   return $render_element;
 }
 
-function ontology_documentation_cache($cid = __documentation_type__) {
+function ontology_documentation_cache($cid = __documentation_type__)
+{
   return cache_get($cid, __documentation_type_cache__);
 }
 
-function  ontology_documentation_save(&$wrapper) {
+function ontology_documentation_save(&$wrapper)
+{
   $report = $wrapper->save();
   return $report;
 }
 
-function ontology_documentation_setup_field($field_name, $text_format = 'plain_text', $wrapper) {
+function ontology_documentation_setup_field($field_name, $text_format = 'plain_text', $wrapper)
+{
+
   // Definisco le variabili utili
+
   $entity_type = $wrapper->type();
   $bundle = $wrapper->getBundle();
   $entity_name = $wrapper->getFieldRawContent('name');
-  // Recupero il percorso di base del graphml viewer
-  $graph_viewer =  ontology_documentation_util('graphml_viewer_path');
-  // Recupero i tipi di assiomi
-  $axiom_type = ontology_documentation_util('mastro_axiom_types');
-  // Recupero i tipi di link
-  $link_obda_type = ontology_documentation_util('obda_types');
-  // Recupero la struttura dati dei campi
-  $field_data = ontology_documentation_util('fields_data_structure');
-  // Imposto il valore dell'etichetta del campo
-  $field_data['label']['#value'] = ucwords(str_replace('_', ' ', $field_name));
-  // Imposto il tipo di formato del testo
-  $wrapper->setFieldsContent(array($field_name => array('format' => $text_format)));
 
-  switch ($field_name) {
-    case 'categoria':
-      $field_data['label']['#printed'] = false;
-      $field_data['page_link']['#printed'] = false;
-      $field_data['page_link']['#title'] = $bundle.'s';
-      $field_data['page_link']['#href'] = __documentation_view_path__.'/'.$bundle.'s';
-      $wrapper->setFieldsContent(array($field_name => array('value' => drupal_render($field_data))));
-      break;
-    case 'descrizione':
-      $field_data['label']['#printed'] = false;
-      $field_data['description']['#printed'] = false;
-      $field_data['description']['#markup'] = ontology_documentation_get_wiki_term_description($entity_name);
-      $wrapper->setFieldsContent(array($field_name => array('value' => drupal_render($field_data))));
-      break;
-    case 'occorrenza':
-      $field_data['fieldset_box']['#printed'] = false;
-      $field_data['fieldset_box']['#children']['simple']['#printed'] = false;
-      $field_data['page_link']['#printed'] = false;
-      $field_data['fieldset_box']['#title'] = t('Occorrenze nei diagrammi');
-      $diagram_links = ontology_documentation_mastro_get_data(null, array($entity_name), $field_name, $bundle);
-      foreach ($diagram_links as $index => $diagram_link) {
-        $text = explode('.', $diagram_link);
-        $field_data['page_link']['#title'] = current(array_slice($text, 0, 1)).': '.($index + 1);
-        $field_data['page_link']['#href'] = $graph_viewer.'/'.$diagram_link;
-        $field_data['fieldset_box']['#children']['simple']['#items'][$index] = array('data'=> $field_data['page_link']);
-      }
-      $field_data['page_link']['#printed'] = true;
-      $wrapper->setFieldsContent(array($field_name => array('value' => drupal_render($field_data))));
-      break;
+  // Recupero il percorso di base del graphml viewer
+
+  $graph_viewer = ontology_documentation_util('graphml_viewer_path');
+
+  // Recupero i tipi di assiomi
+
+  $axiom_type = ontology_documentation_util('mastro_axiom_types');
+
+  // Recupero i tipi di link
+
+  $link_obda_type = ontology_documentation_util('obda_types');
+
+  // Recupero la struttura dati dei campi
+
+  $field_data = ontology_documentation_util('fields_data_structure');
+
+  // Imposto il valore dell'etichetta del campo
+
+  $field_data['label']['#value'] = ucwords(str_replace('_', ' ', $field_name));
+
+  // Imposto il tipo di formato del testo
+
+  $wrapper->setFieldsContent(array(
+    $field_name => array(
+      'format' => $text_format
+    )
+  ));
+  switch ($field_name)
+  {
+  case 'categoria':
+    $field_data['label']['#printed'] = false;
+    $field_data['page_link']['#printed'] = false;
+    $field_data['page_link']['#title'] = $bundle . 's';
+    $field_data['page_link']['#href'] = __documentation_view_path__ . '/' . $bundle . 's';
+    $wrapper->setFieldsContent(array(
+      $field_name => array(
+        'value' => drupal_render($field_data)
+      )
+    ));
+    break;
+
+  case 'descrizione':
+    $field_data['label']['#printed'] = false;
+    $field_data['description']['#printed'] = false;
+    $field_data['description']['#markup'] = ontology_documentation_get_wiki_term_description($entity_name);
+    $wrapper->setFieldsContent(array(
+      $field_name => array(
+        'value' => drupal_render($field_data)
+      )
+    ));
+    break;
+
+  case 'occorrenza':
+    $field_data['fieldset_box']['#printed'] = false;
+    $field_data['fieldset_box']['#children']['simple']['#printed'] = false;
+    $field_data['page_link']['#printed'] = false;
+    $field_data['fieldset_box']['#title'] = t('Occorrenze nei diagrammi');
+    $diagram_links = ontology_documentation_mastro_get_data(null, array(
+      $entity_name
+    ) , $field_name, $bundle);
+    foreach($diagram_links as $index => $diagram_link)
+    {
+      $text = explode('.', $diagram_link);
+      $field_data['page_link']['#title'] = current(array_slice($text, 0, 1)) . ': ' . ($index + 1);
+      $field_data['page_link']['#href'] = $graph_viewer . '/' . $diagram_link;
+      $field_data['fieldset_box']['#children']['simple']['#items'][$index] = array(
+        'data' => $field_data['page_link']
+      );
+    }
+
+    $field_data['page_link']['#printed'] = true;
+    $wrapper->setFieldsContent(array(
+      $field_name => array(
+        'value' => drupal_render($field_data)
+      )
+    ));
+    break;
+
     // 'generalizzazioni' esegue lo stesso setup di 'specializzazioni'
-    case 'generalizzazioni':
-    case 'specializzazioni':
-      $field_data['label']['#printed'] = false;
-      $specializations = ontology_documentation_mastro_get_data(null, array($entity_name, 'FUNCTIONAL_STYLE_SYNTAX'), $field_name, $bundle);
-      if (!empty($specializations)) {
-        $field_data['item_list']['#printed'] = false;
-        $field_data['page_link']['#printed'] = false;
-        foreach ($specializations as $index => $item) {
-          $field_data['page_link']['#title'] = $item;
-          $field_data['page_link']['#href'] = __documentation_view_path__.'/'.$bundle.'/'.str_replace('_', '-', $item);
-          $field_data['item_list']['#items'][$index] = array('data' => $field_data['page_link']);
-        }
-        $field_data['page_link']['#printed'] = true;
-      }
-      else {
-        $field_data['description']['#printed'] = false;
-        $field_data['description']['#markup'] = 'Non sono definite '.$field_name.' per questo ' . $bundle;
-      }
-      $wrapper->setFieldsContent(array($field_name => array('value' => drupal_render($field_data))));
-      break;
-    case 'tipizzazione':
-      $field_data['label']['#printed'] = false;
+
+  case 'generalizzazioni':
+  case 'specializzazioni':
+    $field_data['label']['#printed'] = false;
+    $specializations = ontology_documentation_mastro_get_data(null, array(
+      $entity_name,
+      'FUNCTIONAL_STYLE_SYNTAX'
+    ) , $field_name, $bundle);
+    if (!empty($specializations))
+    {
       $field_data['item_list']['#printed'] = false;
-      $domain = ontology_documentation_mastro_get_data(null, array($entity_name), $field_name.'_domain', $bundle);
-      $domain = !empty($domain) ? 'Dominio: '.current($domain).'<p></p>' : 'Dominio: non tipizzato';
-      $field_data['item_list']['#items'][] = $domain;
-      $range = ontology_documentation_mastro_get_data(null, array($entity_name), $field_name.'_range', $bundle);
-      $range = !empty($range) ? 'Codominio: '.current($range) : 'Codominio: non tipizzato';
-      $field_data['item_list']['#items'][] = $range;
-      $wrapper->setFieldsContent(array($field_name => array('value' => drupal_render($field_data))));
-      break;
-    // Per entrampi i campi è definito lo stesso setup
-    case 'ruoli_ril_non_obbligatori':
-    case 'ruoli_ril_obbligatori':
-    case 'attributi_ril_non_obbligatori':
-    case 'attributi_ril_obbligatori':
-      $label = $field_data['label']['#value'];
-      $field_data['label']['#value'] = str_replace('Ril', 'Rilevanti', $label);
-      $field_data['label']['#printed'] = false;
-      $current_field_type = current(array_slice(explode('_', $field_name), 0,1));
-      $link_bundle = $current_field_type === 'attributi' ? 'attribute' : 'role';
-      $mandatory_attributes = ontology_documentation_mastro_get_data(null, array($entity_name), $field_name, $bundle);
-      if (!empty($mandatory_attributes)) {
-        $field_data['item_list']['#printed'] = false;
-        $field_data['page_link']['#printed'] = false;
-        foreach ($mandatory_attributes as $index => $attribute) {
-          $field_data['page_link']['#title'] = $attribute;
-          $field_data['page_link']['#href'] = __documentation_view_path__.'/'.$link_bundle.'/'.str_replace('_', '-', $attribute);
-          $field_data['item_list']['#items'][$index] = array('data' => $field_data['page_link']);
-        }
-        $field_data['page_link']['#printed'] = true;
-      }
-      else {
-        $field_data['description']['#printed'] = false;
-        $field_data['description']['#markup'] = array_search ('non', explode('_', $field_name)) === false ?
-          'Non sono definiti '.$current_field_type.' rilevanti obbligatori per questo '.$bundle :
-          'Non sono definiti '.$current_field_type.' rilevanti non obbligatori per questo '.$bundle;
-      }
-      $wrapper->setFieldsContent(array($field_name => array('value' => drupal_render($field_data))));
-      break;
-    case 'assiomi':
-      $field_data['fieldset_box']['#printed'] = false;
-      $field_data['fieldset_box']['#title'] = t('Axioms');
-      $field_data['fieldset_box']['#children']['axioms']['positive_inclusions']['#printed'] = false;
-      $field_data['fieldset_box']['#children']['axioms']['negative_inclusions']['#printed'] = false;
-      $field_data['fieldset_box']['#children']['axioms']['denial_assertions']['#printed'] = false;
-      $field_data['fieldset_box']['#children']['axioms']['functional_and_ID_constraints']['#printed'] = false;
-      $field_data['fieldset_box']['#children']['axioms']['epistemic_constraints']['#printed'] = false;
-      $axioms_keys = array_keys($field_data['fieldset_box']['#children']['axioms']);
-      foreach ($axioms_keys as $axiom_key) {
-        $axioms_result = array();
-        foreach ($axiom_type[$axiom_key] as $axiom_type_integer) {
-          $axioms_result = array_merge($axioms_result, ontology_documentation_mastro_get_data(null, array($entity_name, $axiom_type_integer, false), $field_name, $bundle));
-        }
-        $field_data['fieldset_box']['#children']['axioms'][$axiom_key]['#items'] = $axioms_result;
-      }
-      $wrapper->setFieldsContent(array($field_name => array('value' => drupal_render($field_data))));
-      break;
-    case 'link_obda':
-      $field_data['fieldset_box']['#printed'] = false;
-      $field_data['fieldset_box']['#title'] = t('Links to OBDA Analysis');
-      $field_data['fieldset_box']['#children']['simple']['#printed'] = false;
       $field_data['page_link']['#printed'] = false;
-      $field_data['page_link']['#title'] = 'Inferred subsumptions of '.$entity_name;
-      $field_data['page_link']['#href'] = __reasoning_relative_path__.'/'.$entity_name.'/'.$link_obda_type[$bundle];
-      $field_data['fieldset_box']['#children']['simple']['#items'][] = array('data' => $field_data['page_link']);
-      //$field_data['page_link']['#title'] = 'Mappings of '.$entity_name;
-      //$field_data['page_link']['#href'] = __mappings_relative_path__.'/'.str_replace('_', '-', $entity_name);
-      //$field_data['fieldset_box']['#children']['simple']['#items'][] = array('data' => $field_data['page_link']);
+      foreach($specializations as $index => $item)
+      {
+        $field_data['page_link']['#title'] = $item;
+        $field_data['page_link']['#href'] = __documentation_view_path__ . '/' . str_replace('_', '-', $item);
+        $field_data['item_list']['#items'][$index] = array(
+          'data' => $field_data['page_link']
+        );
+      }
+
       $field_data['page_link']['#printed'] = true;
-      $wrapper->setFieldsContent(array($field_name => array('value' => drupal_render($field_data))));
-      break;
-    case 'mappings':
-      $field_data['fieldset_box']['#printed'] = false;
-      $field_data['fieldset_box']['#title'] = t('Mappings');
-      $field_data['fieldset_box']['#children']['simple']['#printed'] = false;
+    }
+    else
+    {
+      $field_data['description']['#printed'] = false;
+      $field_data['description']['#markup'] = 'Non sono definite ' . $field_name . ' per questo ' . $bundle;
+    }
+
+    $wrapper->setFieldsContent(array(
+      $field_name => array(
+        'value' => drupal_render($field_data)
+      )
+    ));
+    break;
+
+  case 'tipizzazione':
+    $field_data['label']['#printed'] = false;
+    $field_data['item_list']['#printed'] = false;
+    $domain = ontology_documentation_mastro_get_data(null, array(
+      $entity_name
+    ) , $field_name . '_domain', $bundle);
+    $domain = !empty($domain) ? 'Dominio: ' . current($domain) . '<p></p>' : 'Dominio: non tipizzato';
+    $field_data['item_list']['#items'][] = $domain;
+    $range = ontology_documentation_mastro_get_data(null, array(
+      $entity_name
+    ) , $field_name . '_range', $bundle);
+    $range = !empty($range) ? 'Codominio: ' . current($range) : 'Codominio: non tipizzato';
+    $field_data['item_list']['#items'][] = $range;
+    $wrapper->setFieldsContent(array(
+      $field_name => array(
+        'value' => drupal_render($field_data)
+      )
+    ));
+    break;
+
+    // Per entrambi i campi Ã¨ definito lo stesso setup
+
+  case 'ruoli_ril_non_obbligatori':
+  case 'ruoli_ril_obbligatori':
+  case 'attributi_ril_non_obbligatori':
+  case 'attributi_ril_obbligatori':
+    $label = $field_data['label']['#value'];
+    $field_data['label']['#value'] = str_replace('Ril', 'Rilevanti', $label);
+    $field_data['label']['#printed'] = false;
+    $current_field_type = current(array_slice(explode('_', $field_name) , 0, 1));
+    $mandatory_attributes = ontology_documentation_mastro_get_data(null, array(
+      $entity_name
+    ) , $field_name, $bundle);
+    if (!empty($mandatory_attributes))
+    {
+      $field_data['item_list']['#printed'] = false;
       $field_data['page_link']['#printed'] = false;
-      $field_data['page_link']['#title'] = 'Mappings of '.$entity_name;
-      $field_data['page_link']['#href'] = __mappings_relative_path__.'/'.$entity_name;
-      $field_data['fieldset_box']['#children']['simple']['#items'][] = array('data' => $field_data['page_link']);
+      foreach($mandatory_attributes as $index => $attribute)
+      {
+        $field_data['page_link']['#title'] = $attribute;
+        $field_data['page_link']['#href'] = __documentation_view_path__ . '/' . str_replace('_', '-', $attribute);
+        $field_data['item_list']['#items'][$index] = array(
+          'data' => $field_data['page_link']
+        );
+      }
+
       $field_data['page_link']['#printed'] = true;
-      $wrapper->setFieldsContent(array($field_name => array('value' => drupal_render($field_data))));
-      break;
+    }
+    else
+    {
+      $field_data['description']['#printed'] = false;
+      $field_data['description']['#markup'] = array_search('non', explode('_', $field_name)) === false ? 'Non sono definiti ' . $current_field_type . ' rilevanti obbligatori per questo ' . $bundle : 'Non sono definiti ' . $current_field_type . ' rilevanti non obbligatori per questo ' . $bundle;
+    }
+
+    $wrapper->setFieldsContent(array(
+      $field_name => array(
+        'value' => drupal_render($field_data)
+      )
+    ));
+    break;
+
+  case 'assiomi':
+    $field_data['fieldset_box']['#printed'] = false;
+    $field_data['fieldset_box']['#title'] = t('Axioms');
+    $field_data['fieldset_box']['#children']['axioms']['positive_inclusions']['#printed'] = false;
+    $field_data['fieldset_box']['#children']['axioms']['negative_inclusions']['#printed'] = false;
+    $field_data['fieldset_box']['#children']['axioms']['denial_assertions']['#printed'] = false;
+    $field_data['fieldset_box']['#children']['axioms']['functional_and_ID_constraints']['#printed'] = false;
+    $field_data['fieldset_box']['#children']['axioms']['epistemic_constraints']['#printed'] = false;
+    $axioms_keys = array_keys($field_data['fieldset_box']['#children']['axioms']);
+    foreach($axioms_keys as $axiom_key)
+    {
+      $axioms_result = array();
+      foreach($axiom_type[$axiom_key] as $axiom_type_integer)
+      {
+        $axioms_result = array_merge($axioms_result, ontology_documentation_mastro_get_data(null, array(
+          $entity_name,
+          $axiom_type_integer,
+          false
+        ) , $field_name, $bundle));
+      }
+
+      $field_data['fieldset_box']['#children']['axioms'][$axiom_key]['#items'] = $axioms_result;
+    }
+
+    $wrapper->setFieldsContent(array(
+      $field_name => array(
+        'value' => drupal_render($field_data)
+      )
+    ));
+    break;
+
+  case 'link_obda':
+    $field_data['fieldset_box']['#printed'] = false;
+    $field_data['fieldset_box']['#title'] = t('Links to OBDA Analysis');
+    $field_data['fieldset_box']['#children']['simple']['#printed'] = false;
+    $field_data['page_link']['#printed'] = false;
+    $field_data['page_link']['#title'] = 'Inferred subsumptions of ' . $entity_name;
+    $field_data['page_link']['#href'] = __reasoning_relative_path__ . '/' . $entity_name . '/' . $link_obda_type[$bundle];
+    $field_data['fieldset_box']['#children']['simple']['#items'][] = array(
+      'data' => $field_data['page_link']
+    );
+
+    // $field_data['page_link']['#title'] = 'Mappings of '.$entity_name;
+    // $field_data['page_link']['#href'] = __mappings_relative_path__.'/'.str_replace('_', '-', $entity_name);
+    // $field_data['fieldset_box']['#children']['simple']['#items'][] = array('data' => $field_data['page_link']);
+
+    $field_data['page_link']['#printed'] = true;
+    $wrapper->setFieldsContent(array(
+      $field_name => array(
+        'value' => drupal_render($field_data)
+      )
+    ));
+    break;
+
+  case 'mappings':
+    $field_data['fieldset_box']['#printed'] = false;
+    $field_data['fieldset_box']['#title'] = t('Mappings');
+    $field_data['fieldset_box']['#children']['simple']['#printed'] = false;
+    $field_data['page_link']['#printed'] = false;
+    $field_data['page_link']['#title'] = 'Mappings of ' . $entity_name;
+    $field_data['page_link']['#href'] = __mappings_relative_path__ . '/' . $entity_name;
+    $field_data['fieldset_box']['#children']['simple']['#items'][] = array(
+      'data' => $field_data['page_link']
+    );
+    $field_data['page_link']['#printed'] = true;
+    $wrapper->setFieldsContent(array(
+      $field_name => array(
+        'value' => drupal_render($field_data)
+      )
+    ));
+    break;
   }
 }
 
-function ontology_documentation_access($op, $entity, $account, $entity_type) {
+function ontology_documentation_access($op, $entity, $account, $entity_type)
+{
   global $user;
   $entity_owner = null;
   $entity_category = null;
   $entity_state = true;
-
-  if ($entity && $entity_type === __documentation_type__) {
+  if ($entity && $entity_type === __documentation_type__)
+  {
     $entity_owner = $entity->uid;
     $entity_category = $entity->entityType();
     $entity_state = $entity->status;
   }
 
-  if ($op === 'create') {
-    return user_access('administer ontology_documentation entities', $user) ||
-           user_access('create ontology_documentation entities', $user);
+  if ($op === 'create')
+  {
+    return user_access('administer ontology_documentation entities', $user) || user_access('create ontology_documentation entities', $user);
   }
-  elseif ($op === 'view') {
-    return user_access('administer ontology_documentation entities', $user) ||
-           user_access('edit any ontology_documentation entities', $user)   ||
-           user_access('edit own ontology_documentation entities', $user)   &&
-           $user->uid === $entity_owner && $entity_category === $entity_type  ||
-           user_access('view ontology_documentation entities', $user) && $entity_state;
+  elseif ($op === 'view')
+  {
+    return user_access('administer ontology_documentation entities', $user) || user_access('edit any ontology_documentation entities', $user) || user_access('edit own ontology_documentation entities', $user) && $user->uid === $entity_owner && $entity_category === $entity_type || user_access('view ontology_documentation entities', $user) && $entity_state;
   }
-  elseif ($op === 'update' || $op === 'delete') {
-    return user_access('administer ontology_documentation entities', $user) ||
-           user_access('edit any ontology_documentation entities', $user)   ||
-           user_access('edit own ontology_documentation entities', $user)   &&
-           $user->uid === $entity_owner && $entity_category === $entity_type;
+  elseif ($op === 'update' || $op === 'delete')
+  {
+    return user_access('administer ontology_documentation entities', $user) || user_access('edit any ontology_documentation entities', $user) || user_access('edit own ontology_documentation entities', $user) && $user->uid === $entity_owner && $entity_category === $entity_type;
   }
 }
 
-// Carica l'entità da visualizzare
-function ontology_documentation_load($entity_name, $entity_type, $bundle) {
-  // Se almeno un parametro è o non settato o vuoto lancio l'eccezione
-  if (!$entity_name || !$entity_type || !$bundle) {
+// Carica l'entitÃ  da visualizzare
+
+function ontology_documentation_load($entity_name, $entity_type)
+{
+  if (!$entity_name && !$entity_type)
+  {
     throw new Exception('ontology_documentation_load(): missing parameters');
   }
-  else {
-    // Sostituisco gli hyphen con gli underscore
+  else
+  {
     $entity_name = str_replace('-', '_', $entity_name);
-    // Creo l'oggetto wrapper per la query
     $entity_query = new EntityFieldQuery();
-    // Ricerco l'id del nome del termine
-    $entity_query_response = $entity_query->entityCondition('entity_type', $entity_type)
-      ->entityCondition('bundle', $bundle)
-      ->propertyCondition('title', $entity_name)
-      ->execute();
-    // Se è presente un'entità con quel nome
-    if (!empty($entity_query_response)) {
-      // Ne estraggo l'id
+    $entity_query->entityCondition('entity_type', $entity_type);
+    $entity_query->propertyCondition('title', $entity_name);
+    $entity_query_response = $entity_query->execute();
+    if (!empty($entity_query_response))
+    {
       $id = key($entity_query_response[$entity_type]);
-      // Carico l'entità
       $entity = entity_load_single($entity_type, $id);
-      // Ritorno l'entità
       return $entity;
     }
   }
+
   return false;
 }
 
 // Carica il bundle da visualizzare
-function ontology_documentation_type_load($bundle_type) {
-  // Se il tipo di bundle è vuoto o non settato lancio l'eccezione
-  if (!$bundle_type) {
+
+function ontology_documentation_type_load($bundle_type)
+{
+  if (!$bundle_type)
+  {
     throw new Exception('ontology_documentation_type_load(): missing parameter.');
   }
-  else {
-    // Carico il bundle
-    if ($bundle = entity_load_single('ontology_documentation_type', $bundle_type)) {
+  else
+  {
+    if ($bundle = entity_load_single('ontology_documentation_type', $bundle_type))
+    {
       return $bundle;
     }
-    // Altrimenti ritorno false
-    else {
+    else
+    {
       return false;
     }
   }
 }
 
-function ontology_documentation_util($item_name, $parameters = null) {
-  switch ($item_name) {
+function ontology_documentation_util($item_name, $parameters = null)
+{
+  switch ($item_name)
+  {
     case 'get_mastro_uid':
       return OntologyDocumentationUtil::getMastroUid();
       break;
+
     case 'get_bundles':
       return OntologyDocumentationUtil::getBundles($parameters);
       break;
+
     case 'config_form':
       return OntologyDocumentationUtil::getConfigForm();
       break;
+
     case 'entity_edit_form':
       return OntologyDocumentationUtil::getEntityEditForm();
       break;
+
     case 'entity_revision_form':
       return OntologyDocumentationUtil::getEntityRevisionForm();
       break;
+
     case 'bundle_edit_form':
       return OntologyDocumentationUtil::getBundleEditForm();
       break;
+
     case 'mastro_methods_structure':
       return OntologyDocumentationUtil::getMastroMethodsStructure();
       break;
+
     case 'graphml_viewer_path':
       return OntologyDocumentationUtil::getGraphMLViewerPath();
       break;
+
     case 'mastro_axiom_types':
       return OntologyDocumentationUtil::getMastroAxiomTypes();
       break;
+
     case 'obda_types':
       return OntologyDocumentationUtil::getObdaTypes();
       break;
+
     case 'fields_data_structure':
       return OntologyDocumentationUtil::getFieldsDataStructure();
       break;
