@@ -35,6 +35,30 @@ class OntologyDocumentationUIController extends EntityDefaultUIController
     return $items;
   }
 
+  public function applyOperation($op, $entity)
+  {
+
+    // Mi assicure che la cache viene aggiornata quando elimino un singolo
+    // termine dal pannello di amministrazione.
+
+    if ($op === 'delete')
+    {
+      $cache_array = ontology_documentation_cache(__documentation_type__, __documentation_type_cache__);
+      if (is_object($cache_array) && isset($cache_array->data))
+      {
+        $cache_array = $cache_array->data;
+        unset($cache_array[$entity->title]);
+        cache_set(__documentation_type__, $cache_array, __documentation_type_cache__);
+      }
+      else
+      {
+        throw new Exception('Ontology cache missing!');
+      }
+    }
+
+    parent::applyOperation($op, $entity);
+  }
+
   public function overviewTableHeaders($conditions, $rows, $additional_header = array())
   {
 
