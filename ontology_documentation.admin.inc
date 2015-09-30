@@ -58,7 +58,7 @@ function ontology_documentation_form($form, &$form_state, $entity, $op)
     {
       if ($field === 'descrizione')
       {
-        $description = trim(str_replace('<h2>Descrizione</h2>', '', $edit_form_wrapper->getFieldRawContent($field)));
+        $description = trim(str_replace("<h2>Descrizione</h2>\n", '', $edit_form_wrapper->getFieldRawContent($field)));
         $edit_form['fieldset'][$field]['#default_value'] = $description;
       }
       else
@@ -112,7 +112,7 @@ function ontology_documentation_edit_form_validate($form, &$form_state)
         case 'descrizione':
           $changed_fields+= array(
             $field_name => array(
-              'value' => '<h2>Descrizione</h2>' . trim($field)
+              'value' => "<h2>Descrizione</h2>\n" . trim($field)
             )
           );
           break;
