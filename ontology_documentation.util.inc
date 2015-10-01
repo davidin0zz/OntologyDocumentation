@@ -61,6 +61,13 @@ class OntologyDocumentationUtil
         ) ,
         'operation' => 'getAssertedSubAtomicRoles',
       ) ,
+      'attribute' => array(
+        'keys' => array(
+          'attributeName',
+          'renderingMode'
+        ) ,
+        'operation' => 'getAssertedSubAtomicConceptAttributes',
+      ) ,
     ) ,
     'generalizzazioni' => array(
       'concept' => array(
@@ -76,6 +83,13 @@ class OntologyDocumentationUtil
           'renderingMode'
         ) ,
         'operation' => 'getAssertedSuperAtomicRoles',
+      ) ,
+      'attribute' => array(
+        'keys' => array(
+          'attributeName',
+          'renderingMode'
+        ) ,
+        'operation' => 'getAssertedSuperAtomicConceptAttributes',
       ) ,
     ) ,
     'tipizzazione_domain' => array(
@@ -309,10 +323,6 @@ class OntologyDocumentationUtil
     elseif ($condition == 'WITH_DOMAIN_AND_CODOMAIN')
     {
       return array_slice($bundles, 1, 2);
-    }
-    elseif ($condition == 'WITH_INHERITANCE')
-    {
-      return array_slice($bundles, 0, 2);
     }
     else
     {

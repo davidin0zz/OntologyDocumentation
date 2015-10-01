@@ -42,7 +42,6 @@ global $all_bundles;
 
 $all_bundles = ontology_documentation_util('get_bundles', 'ALL');
 $role_attribute_bundles = ontology_documentation_util('get_bundles', 'WITH_DOMAIN_AND_CODOMAIN');
-$concept_role_bundles = ontology_documentation_util('get_bundles', 'WITH_INHERITANCE');
 $concept_bundles = ontology_documentation_util('get_bundles', 'WITH_ATTRIBUTES_AND_ROLES');
 
 // Specifica quali bundles posseggono quali campi
@@ -52,8 +51,8 @@ $bundles_fields = array(
   'categoria' => $all_bundles,
   'occorrenza' => $all_bundles,
   'descrizione' => $all_bundles,
-  'specializzazioni' => $concept_role_bundles,
-  'generalizzazioni' => $concept_role_bundles,
+  'specializzazioni' => $all_bundles,
+  'generalizzazioni' => $all_bundles,
   'tipizzazione' => $role_attribute_bundles,
   'attributi_ril_obbligatori' => $concept_bundles,
   'attributi_ril_non_obbligatori' => $concept_bundles,
