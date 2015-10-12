@@ -875,12 +875,12 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
     $domain = ontology_documentation_mastro_get_data(null, array(
       $entity_name
     ) , $field_name . '_domain', $bundle);
-    $domain = !empty($domain) ? 'Dominio: ' . current($domain) . '<p></p>' : 'Dominio: non tipizzato';
+    $domain = !empty($domain) ? 'Dominio: ' . ontology_documentation_util('replace_wiki_tag', current($domain)) : 'Dominio: non tipizzato';
     $field_data['item_list']['#items'][] = $domain;
     $range = ontology_documentation_mastro_get_data(null, array(
       $entity_name
     ) , $field_name . '_range', $bundle);
-    $range = !empty($range) ? 'Codominio: ' . current($range) : 'Codominio: non tipizzato';
+    $range = !empty($range) ? 'Codominio: ' . ontology_documentation_util('replace_wiki_tag', current($range)) : 'Codominio: non tipizzato';
     $field_data['item_list']['#items'][] = $range;
     $wrapper->setFieldsContent(array(
       $field_name => array(
@@ -1104,6 +1104,10 @@ function ontology_documentation_util($item_name, $parameters = null)
 
     case 'bundle_edit_form':
       return OntologyDocumentationUtil::getBundleEditForm();
+      break;
+
+    case 'replace_wiki_tag':
+      return OntologyDocumentationUtil::replaceWikiTag($parameters);
       break;
 
     case 'mastro_methods_structure':

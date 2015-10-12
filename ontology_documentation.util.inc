@@ -534,6 +534,29 @@ class OntologyDocumentationUtil
     return $bundle_edit_form;
   }
 
+  public static function replaceWikiTag($subject)
+  {
+    $matches = array();
+    $mediaWikiRegex = '/\[\[([a-zA-Z0-9_]+)\]\]/';
+
+    preg_match_all($mediaWikiRegex, $subject, $matches, PREG_SET_ORDER);
+
+    foreach ($matches as $match)
+    {
+      $subject = str_replace(current($match), l($match[1], __documentation_view_path__ . '/' . str_replace('_', '-', $match[1])), $subject);
+    }
+
+    return $subject;
+  }
+
+  public static function getMediaWikiRegex()
+  {
+    return OntologyDocumentationUtil::$mediaWikiRegex;
+  }
+  public static function getMediaWikiSubstr()
+  {
+    return OntologyDocumentationUtil::$mediaWikiSubstr;
+  }
   public static function getMastroMethodsStructure()
   {
     return OntologyDocumentationUtil::$mastroMethodsStructure;
