@@ -46,6 +46,28 @@ class OntologyDocumentationUtil
         'operation' => 'getAttributeGraphMLLinks',
       ) ,
     ) ,
+    'descrizione' => array(
+      'role' => array(
+        'keys' => array(
+          'roleName'
+        ) ,
+        'operation' => 'isFunctionalRole',
+      ) ,
+      'attribute' => array(
+        'keys' => array(
+          'attributeName'
+        ) ,
+        'operation' => 'isFunctionalAttribute',
+      ) ,
+    ) ,
+    'descrizione_inverse' => array(
+      'role' => array(
+        'keys' => array(
+          'roleName'
+        ) ,
+        'operation' => 'isInverseFunctionalRole',
+      ) ,
+    ) ,
     'specializzazioni' => array(
       'concept' => array(
         'keys' => array(
@@ -301,17 +323,17 @@ class OntologyDocumentationUtil
         'concept' => array(
           'machine_name' => 'concept',
           'human_label' => 'Concept',
-          'description' => '<em>Describe a specific owl concept</em>',
+          'description' => 'Describe a specific owl concept',
         ) ,
         'role' => array(
           'machine_name' => 'role',
           'human_label' => 'Role',
-          'description' => '<em>Describe a specific owl role</em>',
+          'description' => 'Describe a specific owl role',
         ) ,
         'attribute' => array(
           'machine_name' => 'attribute',
           'human_label' => 'Attribute',
-          'description' => '<em>Describe a sepcific owl attribute</em>',
+          'description' => 'Describe a sepcific owl attribute',
         ) ,
       );
     }
