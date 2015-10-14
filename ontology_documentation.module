@@ -700,7 +700,8 @@ function ontology_documentation_get_wiki_term_description($entity_name)
       if ($fin !== false)
       {
         $wiki_description = trim(substr($wiki_description, $start, $fin - $start));
-        return $wiki_description;
+        $wiki_description = str_replace(array('&egrave', '<br />'), array('è', ''), $wiki_description);
+        return htmlentities($wiki_description, ENT_XHTML | ENT_QUOTES, 'UTF-8');
       }
     }
   }

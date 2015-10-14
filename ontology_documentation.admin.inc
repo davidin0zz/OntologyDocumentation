@@ -26,7 +26,7 @@ function ontology_documentation_type_form($form, &$form_state, $entity, $op)
     foreach($fields as $field)
     {
       $description = trim($form_wrapper->getFieldRawContent($field));
-      $bundle_edit_form['fieldset'][$field]['#default_value'] = html_entity_decode($description, ENT_XHTML, 'UTF-8');
+      $bundle_edit_form['fieldset'][$field]['#default_value'] = html_entity_decode($description, ENT_QUOTES | ENT_XHTML, 'UTF-8');
     }
 
     // Ritorno il form completo
