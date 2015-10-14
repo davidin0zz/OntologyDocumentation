@@ -7,6 +7,22 @@ class OntologyDocumentationUtil
     'role' => 1,
     'attribute' => 2,
   );
+
+  protected static $fieldsType = array(
+    'categoria' => 'full_html',
+    'descrizione' => 'wiki_text',
+    'occorrenza' => 'full_html',
+    'generalizzazioni' => 'full_html',
+    'specializzazioni' => 'full_html',
+    'tipizzazione' => 'full_html',
+    'ruoli_ril_non_obbligatori' => 'full_html',
+    'ruoli_ril_obbligatori' => 'full_html',
+    'attributi_ril_non_obbligatori' => 'full_html',
+    'attributi_ril_obbligatori' => 'full_html',
+    'assiomi' => 'full_html',
+    'link_obda' => 'full_html',
+    'mappings' => 'full_html',
+  );
   protected static $mastroAxiomTypes = array(
     'positive_inclusions' => array(
       0
@@ -569,6 +585,11 @@ class OntologyDocumentationUtil
     }
 
     return $subject;
+  }
+
+  public static function getFieldsType()
+  {
+    return OntologyDocumentationUtil::$fieldsType;
   }
 
   public static function getMediaWikiRegex()

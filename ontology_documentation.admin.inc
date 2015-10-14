@@ -26,7 +26,8 @@ function ontology_documentation_type_form($form, &$form_state, $entity, $op)
     foreach($fields as $field)
     {
       $description = trim($form_wrapper->getFieldRawContent($field));
-      $bundle_edit_form['fieldset'][$field]['#default_value'] = html_entity_decode($description, ENT_QUOTES | ENT_XHTML, 'UTF-8');
+      $description = html_entity_decode($description, ENT_QUOTES | ENT_XHTML, 'UTF-8');
+      $bundle_edit_form['fieldset'][$field]['#default_value'] = $description;
     }
 
     // Ritorno il form completo
@@ -60,7 +61,8 @@ function ontology_documentation_form($form, &$form_state, $entity, $op)
       if ($field === 'descrizione')
       {
         $description = trim(str_replace('<h2>Descrizione</h2>', '', $edit_form_wrapper->getFieldRawContent($field)));
-        $edit_form['fieldset'][$field]['#default_value'] =  html_entity_decode($description, ENT_QUOTES | ENT_XHTML, 'UTF-8');
+        $description = html_entity_decode($description, ENT_QUOTES | ENT_XHTML, 'UTF-8');
+        $edit_form['fieldset'][$field]['#default_value'] = $description;
       }
       else
       {
@@ -89,7 +91,7 @@ function ontology_documentation_edit_form_validate($form, &$form_state)
         case 'name':
           $changed_fields+= array(
             $field_name => array(
-              'value' => htmlentities(trim($field), ENT_XHTML | ENT_QUOTES, 'UTF-8'),
+              'value' => htmlentities(trim($field), ENT_QUOTES | ENT_XHTML, 'UTF-8'),
             )
           );
           break;
@@ -97,7 +99,7 @@ function ontology_documentation_edit_form_validate($form, &$form_state)
         case 'category':
           $changed_fields+= array(
             $field_name => array(
-              'value' => htmlentities(trim($field), ENT_XHTML | ENT_QUOTES, 'UTF-8'),
+              'value' => htmlentities(trim($field), ENT_QUOTES | ENT_XHTML, 'UTF-8'),
             )
           );
           break;
@@ -105,7 +107,7 @@ function ontology_documentation_edit_form_validate($form, &$form_state)
         case 'description':
           $changed_fields+= array(
             $field_name => array(
-              'value' => htmlentities(trim($field), ENT_XHTML | ENT_QUOTES, 'UTF-8'),
+              'value' => htmlentities(trim($field), ENT_QUOTES | ENT_XHTML, 'UTF-8'),
             )
           );
           break;
@@ -113,7 +115,8 @@ function ontology_documentation_edit_form_validate($form, &$form_state)
         case 'descrizione':
           $changed_fields+= array(
             $field_name => array(
-              'value' => '<h2>Descrizione</h2>' . "\n" . htmlentities(trim($field), ENT_XHTML | ENT_QUOTES, 'UTF-8'),
+              'value' => '<h2>Descrizione</h2>' . "\r\n" .
+                htmlentities(trim($field), ENT_QUOTES | ENT_XHTML, 'UTF-8'),
             )
           );
           break;
