@@ -427,8 +427,8 @@ class OntologyDocumentationUtil
       '#type' => 'textfield',
       '#title' => t('Title') ,
       '#default_value' => '',
+      '#disabled' => true,
       '#size' => 45,
-      '#required' => true,
     );
     $edit_form['fieldset']['descrizione'] = array(
       '#type' => 'textarea',
