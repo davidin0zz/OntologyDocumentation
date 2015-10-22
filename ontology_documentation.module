@@ -1,6 +1,6 @@
 <?php
 
-// Definisco il tipo di entitÃ  da gestire
+// Definisco il tipo di entità da gestire
 
 define('__documentation_type__', 'ontology_documentation');
 
@@ -16,7 +16,7 @@ define('__documentation_type_cache__', __documentation_type__ . '_cache');
 
 define('__documentation_view_path__', str_replace('_', '-', __documentation_type__));
 
-// Definisco l'url per la pagina di gestione delle entitÃ
+// Definisco il path per la pagina di gestione delle entità
 
 define('__documentation_admin_path__', 'admin/' . __documentation_view_path__);
 
@@ -24,11 +24,11 @@ define('__documentation_admin_path__', 'admin/' . __documentation_view_path__);
 
 define('__documentation_bundle_admin_path__', 'admin/structure/' . str_replace('_', '-', __documentation_type_bundle__));
 
-// Definisco l'url per le pagina di ragionamento
+// Definisco il path per le pagina di ragionamento
 
 define('__reasoning_relative_path__', 'intensional-reasoning');
 
-// Definisco l'url per le pagina dei mappings
+// Definisco path per le pagina dei mappings
 
 define('__mappings_relative_path__', 'mappings/ontology');
 
@@ -171,7 +171,7 @@ function ontology_documentation_entity_property_info()
 {
   $entity_property_info = array();
 
-  // Metto a conoscenza il wrapper delle proprietÃ  possedute da __docouemntation_type__
+  // Metto a conoscenza il wrapper delle proprietà possedute da __docouemntation_type__
 
   $entity_property_info[__documentation_type__]['properties'] = array(
     'id' => array(
@@ -246,7 +246,7 @@ function ontology_documentation_entity_property_info()
     ) ,
   );
 
-  // Metto a conoscenza il wrapper delle proprietÃ  possedute da __documentation_type_type__
+  // Metto a conoscenza il wrapper delle proprietà possedute da __documentation_type_type__
 
   $entity_property_info[__documentation_type_bundle__]['properties'] = array(
     'category' => array(
@@ -572,13 +572,6 @@ function ontology_documentation_create_report($report)
         '#items' => $content,
         '#title' => $label,
         '#type' => 'ul',
-        //'#attached' => array(
-        //  'libraries_load' => array(
-        //    array(
-        //      'drupal.collapse'
-        //    ) ,
-        //  ) ,
-        //) ,
       ) ,
     );
   }
@@ -916,12 +909,12 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
     $domain = ontology_documentation_mastro_get_data(null, array(
       $entity_name
     ) , $field_name . '_domain', $bundle);
-    $domain = !empty($domain) ? 'Dominio: ' . ontology_documentation_util('replace_wiki_tag', current($domain)) : 'Dominio: non tipizzato';
+    $domain = !empty($domain) ? 'Dominio: ' . ontology_documentation_util('replace_wiki_link', current($domain)) : 'Dominio: non tipizzato';
     $field_data['item_list']['#items'][] = $domain;
     $range = ontology_documentation_mastro_get_data(null, array(
       $entity_name
     ) , $field_name . '_range', $bundle);
-    $range = !empty($range) ? 'Codominio: ' . ontology_documentation_util('replace_wiki_tag', current($range)) : 'Codominio: non tipizzato';
+    $range = !empty($range) ? 'Codominio: ' . ontology_documentation_util('replace_wiki_link', current($range)) : 'Codominio: non tipizzato';
     $field_data['item_list']['#items'][] = $range;
     $wrapper->setFieldsContent(array(
       $field_name => array(
@@ -930,7 +923,7 @@ function ontology_documentation_setup_field($field_name, $text_format = 'plain_t
     ));
     break;
 
-    // Per entrambi i campi Ã¨ definito lo stesso setup
+    // Per entrambi i campi è definito lo stesso setup
 
   case 'ruoli_ril_non_obbligatori':
   case 'ruoli_ril_obbligatori':
@@ -1072,7 +1065,7 @@ function ontology_documentation_access($op, $entity, $account, $entity_type)
   }
 }
 
-// Carica l'entitÃ  da visualizzare
+// Carica l'entità da visualizzare
 
 function ontology_documentation_load($entity_name, $entity_type)
 {
@@ -1151,8 +1144,8 @@ function ontology_documentation_util($item_name, $parameters = null)
       return OntologyDocumentationUtil::getBundleEditForm();
       break;
 
-    case 'replace_wiki_tag':
-      return OntologyDocumentationUtil::replaceWikiTag($parameters);
+    case 'replace_wiki_link':
+      return OntologyDocumentationUtil::replaceWikiLink($parameters);
       break;
 
     case 'mastro_methods_structure':

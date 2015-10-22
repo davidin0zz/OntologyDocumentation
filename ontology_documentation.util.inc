@@ -572,7 +572,7 @@ class OntologyDocumentationUtil
     return $bundle_edit_form;
   }
 
-  public static function replaceWikiTag($subject)
+  public static function replaceWikiLink($subject)
   {
     $matches = array();
     $mediaWikiRegex = '/\[\[([a-zA-Z0-9_]+)\]\]/';
