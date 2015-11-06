@@ -543,7 +543,7 @@ function ontology_documentation_create_report($report)
   );
   foreach($report as $label => $content)
   {
-    if ($label === 'updated')
+    if ($label === 'UPDATED')
     {
       foreach($content as $entity_name => $fields)
       {
@@ -623,7 +623,7 @@ function ontology_documentation_create()
 
   // Cerco i vecchi termini e li marco com OLD
 
-  $cached_old = array_diff_key($result['cache'], $result['report']['processed']);
+  $cached_old = array_diff_key($result['cache'], $result['report']['PROCESSED']);
   if (!empty($cached_old))
   {
     foreach($cached_old as $name => $cached_name)
@@ -640,7 +640,7 @@ function ontology_documentation_create()
   }
 
   $result['report']+= array(
-    'set as removed' => array_keys($cached_old)
+    'SET AS REMOVED' => array_keys($cached_old)
   );
   ontology_documentation_create_report($result['report']);
   cache_set(__documentation_type__, array_diff_key($result['cache'], $cached_old) , __documentation_type_cache__);

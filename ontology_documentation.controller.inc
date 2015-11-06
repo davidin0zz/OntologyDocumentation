@@ -35,9 +35,9 @@ class OntologyDocumentationController extends EntityAPIController
     if (empty($report))
     {
       $report = array(
-        'processed' => array() ,
-        'new' => array() ,
-        'updated' => array() ,
+        'PROCESSED' => array() ,
+        'NEW' => array() ,
+        'UPDATED' => array() ,
       );
     }
 
@@ -45,7 +45,7 @@ class OntologyDocumentationController extends EntityAPIController
     $ui_update = $entity->created != $entity->changed;
     $is_old = $entity->old;
     $cache_hit = isset($cache_array[$entity_name]);
-    $report['processed']+= array(
+    $report['PROCESSED']+= array(
       $entity_name => $entity_name
     );
 
@@ -57,7 +57,7 @@ class OntologyDocumentationController extends EntityAPIController
     // di trovarci in uno stato di aggiornamento, possiamo cosÃ¬ ignorare la cache
     // e non spendere tempo alla ricerca delle differeze. Scriviamo subito i cambiamenti
     // e aggiorniamo la cache solamente se l'entitÃ  in esame non Ã¨ marcata come old,
-    // avremmo altrimeno il rinserimento in cache della stessa, DA EVITARE!
+    // avremmo altrimenti il reinserimento in cache della stessa, DA EVITARE!
 
     if ($ui_update)
     {
@@ -87,9 +87,9 @@ class OntologyDocumentationController extends EntityAPIController
 
       // Non corriamo la stessa disavventura nell'usare l'operaore di unione in questo
       // caso, poichÃ¨ la variabile report non Ã¨ persistente ma statica durante il ciclo
-      // di chiamata del metodo nell'arco della stessa richiesta.
+      // di chiamata del metodo.
 
-      $report['new']+= array(
+      $report['NEW']+= array(
         $entity_name => $entity_name
       );
     }
@@ -146,7 +146,7 @@ class OntologyDocumentationController extends EntityAPIController
         );
         $stored_entity_wrapper->setFieldsContent($properties);
         parent::save($stored_entity, $transaction);
-        $report['updated'][$entity_name] = $array_diff;
+        $report['UPDATED'][$entity_name] = $array_diff;
         $cache_array[$entity_name] = $stored_entity;
       }
       else
